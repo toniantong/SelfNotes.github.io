@@ -26,26 +26,26 @@ body {
   color: #d5d5d5;
 }
 
-a {
+.tlike a {
     text-decoration: none;
 }
 
-a:link {
+.tlike a:link {
     color: #0000ee;
 }
 
-a:visited {
+.tlike a:visited {
     color: #0000ee;
 }
 
-a:hover {
+.tlike a:hover {
     color: #0000ee;
 }
 
-a:active {
+.tlike a:active {
     color: #0000ee;
 }
 
-a:focus {
+.tlike a:focus {
     color: #0000ee;
 }
