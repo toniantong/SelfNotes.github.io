@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>URL 解码器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        input, button {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>URL 解码器</h1>
+    <label for="encodedUrl">输入编码的 URL:</label>
+    <br>
+    <input type="text" id="encodedUrl" value="https%3A%2F%2Fwww.example.com%2Fpath%3Fquery%3Dvalue" size="50">
+    <br>
+    <button onclick="decodeUrl()">解码</button>
+    <p>解码后的 URL: <span id="decodedUrl"></span></p>
+    <button onclick="copyToClipboard()">复制到剪贴板</button>
+
+    <script>
+        function decodeUrl() {
+            const encodedUrl = document.getElementById('encodedUrl').value;
+            const decodedUrl = decodeURIComponent(encodedUrl);
+            document.getElementById('decodedUrl').textContent = decodedUrl;
+        }
+
+        function copyToClipboard() {
+            const decodedUrl = document.getElementById('decodedUrl').textContent;
+            if (!decodedUrl) {
+                alert('没有可复制的 URL');
+                return;
+            }
+
+            // 创建一个临时的输入框来复制内容
+            const tempInput = document.createElement('input');
+            tempInput.value = decodedUrl;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            alert('URL 已复制到剪贴板');
+        }
+
+        // 自动解码并显示默认输入值
+        window.onload = decodeUrl;
+    </script>
+</body>
+  </html>
