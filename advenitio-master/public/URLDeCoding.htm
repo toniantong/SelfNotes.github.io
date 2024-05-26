@@ -3,22 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <title>URL 解码器</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
+            padding: 0;
+            box-sizing: border-box;
         }
-        input, button {
-            margin: 5px 0;
+        h1 {
+            font-size: 1.5em;
+        }
+        label, input, button, p {
+            display: block;
+            margin: 10px 0;
+            width: 100%;
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: calc(100% - 22px); /* Adjust for padding and border */
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px;
+            font-size: 1em;
+            border: none;
+            border-radius: 4px;
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        @media (min-width: 600px) {
+            input, button {
+                width: auto;
+                display: inline-block;
+                vertical-align: middle;
+            }
+            input {
+                width: 70%;
+            }
+            button {
+                width: auto;
+                margin-left: 10px;
+            }
+            p {
+                display: inline;
+            }
         }
     </style>
 </head>
 <body>
     <h1>URL 解码器</h1>
     <label for="encodedUrl">输入编码的 URL:</label>
-    <br>
     <input type="text" id="encodedUrl" value="https%3A%2F%2Fwww.example.com%2Fpath%3Fquery%3Dvalue" size="50">
-    <br>
     <button onclick="decodeUrl()">解码</button>
     <p>解码后的 URL: <span id="decodedUrl"></span></p>
     <button onclick="copyToClipboard()">复制到剪贴板</button>
@@ -52,4 +95,4 @@
         window.onload = decodeUrl;
     </script>
 </body>
-  </html>
+</html>
