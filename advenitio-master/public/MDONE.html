@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown to HTML</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .container {
+            width: 90%;
+            max-width: 800px;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #html-output {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #fafafa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <textarea id="markdown-input" placeholder="在此輸入 Markdown 文本...">
+# 標題
+這是一段**粗體**文字和*斜體*文字。
+        </textarea>
+        <button onclick="convertMarkdown()">轉換</button>
+        <div id="html-output"></div>
+    </div>
+
+    <script>
+        function convertMarkdown() {
+            // 獲取 Markdown 文本
+            const markdownText = document.getElementById('markdown-input').value;
+            
+            // 使用 marked 解析 Markdown
+            const htmlContent = marked(markdownText);
+            
+            // 將解析後的 HTML 插入到 div 中
+            document.getElementById('html-output').innerHTML = htmlContent;
+        }
+    </script>
+</body>
+</html>
