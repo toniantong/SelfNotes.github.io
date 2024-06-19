@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Remove Markdown</title>
+    <script>
+        function removeMarkdown() {
+            var input = document.getElementById('markdown').value;
+            var output = input.replace(/[_*`#]/g, "");  // 基本的Markdown符號
+            output = output.replace(/\[(.*?)\]\(.*?\)/g, "$1");  // 鏈接
+            document.getElementById('text').innerText = output;
+        }
+    </script>
+</head>
+<body>
+    <h1>Remove Markdown</h1>
+    <textarea id="markdown" rows="10" cols="50"></textarea>
+    <button onclick="removeMarkdown()">Remove Markdown</button>
+    <p id="text"></p>
+</body>
+</html>
