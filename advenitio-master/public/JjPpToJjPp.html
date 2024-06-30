@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>日文文字轉換器</title>
+  <style>
+    body {
+      font-family: sans-serif;
+    }
+
+    textarea {
+      width: 95%;
+      height: 120px;
+      padding: 10px;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+      resize: vertical;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin-bottom: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    /* 手機版面調整 */
+    @media screen and (max-width: 600px) {
+      textarea {
+        height: 80px;
+      }
+
+      button {
+        padding: 8px 16px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<h1>日文文字轉換器</h1>
+
+<textarea id="input-text" placeholder="請輸入要轉換的文字"></textarea>
+
+<button onclick="hiraganaToKatakana()">平假名 → 片假名</button>
+<button onclick="katakanaToHiragana()">片假名 → 平假名</button>
+<button onclick="zenkakuToHankaku()">全角 → 半角</button>
+<button onclick="hankakuToZenkaku()">半角 → 全角</button>
+
+<textarea id="output-text" placeholder="轉換後的文字會顯示在這裡" readonly></textarea>
+
+<button onclick="copyToClipboard()">複製到剪貼簿</button>
+
+<script>
+  const inputText = document.getElementById("input-text");
+  const outputText = document.getElementById("output-text");
+
+  function hiraganaToKatakana() {
+    outputText.value = inputText.value.replace(/[\u3041-\u3096]/g, function(match) {
+      return String.fromCharCode(match.charCodeAt(0) + 0x60);
+    });
+  }
+
+  function katakanaToHiragana() {
+    outputText.value = inputText.value.replace(/[\u30A1-\u30F6]/g, function(match) {
+      return String.fromCharCode(match.charCodeAt(0) - 0x60);
+    });
+  }
+
+  function zenkakuToHankaku() {
+    outputText.value = inputText.value.replace(/[\uFF01-\uFF5E]/g, function(match) {
+      return String.fromCharCode(match.charCodeAt(0) - 0xFEE0);
+    });
+  }
+
+  function hankakuToZenkaku() {
+    outputText.value = inputText.value.replace(/[\u0021-\u007E]/g, function(match) {
+      return String.fromCharCode(match.charCodeAt(0) + 0xFEE0);
+    });
+  }
+
+  function copyToClipboard() {
+    outputText.select();
+    document.execCommand("copy");
+    alert("已複製到剪貼簿!");
+  }
+</script>
+
+</body>
+</html>
