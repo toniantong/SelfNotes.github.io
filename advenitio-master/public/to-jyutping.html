@@ -62,7 +62,7 @@
     const outputText = document.getElementById("output-text");
 
     function cantoneseToJyutping() {
-      outputText.value = toJyutping(inputText.value);
+      outputText.value = toJyutping.getJyutpingText(inputText.value);
     }
 
     function romajiToKatakana() {
