@@ -44,7 +44,10 @@
   
   <textarea id="input-text" placeholder="請輸入要轉換的文字"></textarea>
   
+  <button onclick="convertToJyutping()">粵文 → 羅馬拼音</button>
+
   <button onclick="romajiToKatakana()">羅馬拼音 → 片假名</button>
+
   <button onclick="copyToClipboard()">複製到剪貼簿</button>
   
   <textarea id="output-text" placeholder="轉換後的文字會顯示在這裡" readonly></textarea>
@@ -52,8 +55,17 @@
   <script src="https://unpkg.com/to-jyutping"></script>
   <script src="https://unpkg.com/wanakana"></script>
   <script>
+
     const inputText = document.getElementById("input-text");
     const outputText = document.getElementById("output-text");
+
+  function romajiToKatakana() {
+    outputText.value = toJyutping(inputText.value);
+  }
+
+  function cantoneseToJyutping() {
+    outputText.value = toJyutping(inputText.value);
+  }
 
     function romajiToKatakana() {
       outputText.value = wanakana.toKatakana(inputText.value);
