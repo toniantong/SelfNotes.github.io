@@ -53,15 +53,17 @@
   <textarea id="output-text" placeholder="轉換後的文字會顯示在這裡" readonly></textarea>
 
   <script src="https://unpkg.com/to-jyutping"></script>
+
   <script src="https://unpkg.com/wanakana"></script>
+
   <script>
 
     const inputText = document.getElementById("input-text");
     const outputText = document.getElementById("output-text");
 
-  function cantoneseToJyutping() {
-    outputText.value = ToJyutping.getJyutpingText(inputText.value);
-  }
+    function cantoneseToJyutping() {
+      outputText.value = toJyutping(inputText.value);
+    }
 
     function romajiToKatakana() {
       outputText.value = wanakana.toKatakana(inputText.value);
