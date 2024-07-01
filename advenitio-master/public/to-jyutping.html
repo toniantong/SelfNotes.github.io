@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>粵語中文轉轉轉</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+      padding: 10px;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+      resize: vertical;
+    }
+    button {
+      padding: 10px 20px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    @media screen and (max-width: 600px) {
+      textarea {
+        height: 100px;
+      }
+      button {
+        padding: 8px 16px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>中文轉粵拼&羅馬拼音轉片假名轉換器</h1>
+  
+  <textarea id="input-text" placeholder="請輸入要轉換的文字"></textarea>
+  
+  <button onclick="romajiToKatakana()">羅馬拼音 → 片假名</button>
+  <button onclick="copyToClipboard()">複製到剪貼簿</button>
+  
+  <textarea id="output-text" placeholder="轉換後的文字會顯示在這裡" readonly></textarea>
+
+  <script src="https://unpkg.com/wanakana"></script>
+  <script>
+    const inputText = document.getElementById("input-text");
+    const outputText = document.getElementById("output-text");
+
+    function romajiToKatakana() {
+      outputText.value = wanakana.toKatakana(inputText.value);
+    }
+
+    function copyToClipboard() {
+      outputText.select();
+      document.execCommand("copy");
+      alert("已複製到剪貼簿!");
+    }
+  </script>
+</body>
+</html>
