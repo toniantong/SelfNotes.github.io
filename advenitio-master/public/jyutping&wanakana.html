@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>粵語轉換工具</title>
+</head>
+<body>
+  <h1>粵語轉換工具</h1>
+  <textarea id="input-text" placeholder="輸入粵語中文"></textarea>
+  <br>
+  <button onclick="cantoneseToJyutping()">粵文 → 羅馬拼音</button>
+  <button onclick="romajiToKatakana()">羅馬拼音 → 片假名</button>
+  <button onclick="copyToClipboard()">複製到剪貼簿</button>
+  <br>
+  <textarea id="output-text" placeholder="轉換後的文字會顯示在這裡" readonly></textarea>
+  <script src="https://unpkg.com/to-jyutping@1.0.0/dist/index.js"></script>
+  <script src="https://unpkg.com/wanakana@4.0.2/dist/wanakana.min.js"></script>
+
+  <script>
+    const inputText = document.getElementById("input-text");
+    const outputText = document.getElementById("output-text");
+
+    function cantoneseToJyutping() {
+      outputText.value = ToJyutping.getJyutpingText(inputText.value);     }
+
+    function romajiToKatakana() {
+      outputText.value = wanakana.toKatakana(outputText.value);
+    }
+
+    function copyToClipboard() {
+      outputText.select();
+      document.execCommand("copy");
+      alert("已複製到剪貼簿!");
+    }
+  </script>
+</body>
+</html>
