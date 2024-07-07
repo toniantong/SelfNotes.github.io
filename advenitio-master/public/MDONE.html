@@ -65,8 +65,15 @@
         <button onclick="convertMarkdown()">轉換</button>
         <div><textarea id="html-output" placeholder="在此輸入 Markdown 文本...">
         </textarea></div>
-
     <script>
+        function removeMarkdown() {
+            var input = document.getElementById('markdown-input').value;
+            var output = input.replace(/[_*`#]/g, "");  // 基本的Markdown符號
+            output = output.replace(/\[(.*?)\]\(.*?\)/g, "$1");  // 鏈接
+            document.getElementById('html-output').innerText = output;
+        }
+    </script>
+    <!--<script>
         function convertMarkdown() {
             // 獲取 Markdown 文本
             const markdownText = document.getElementById('markdown-input').value;
@@ -77,6 +84,6 @@
             // 將解析後的 HTML 插入到 div 中
             document.getElementById('html-output').innerHTML = htmlContent;
         }
-    </script>
+    </script>-->
 </body>
 </html>
