@@ -63,15 +63,15 @@
 這是一段**粗體**文字和*斜體*文字。
         </textarea>
         <button onclick="removeMarkdown()">轉換</button>
-        <div><textarea id="html-output" placeholder="在此輸入 Markdown 文本...">
+        <div><textarea id="text-output" placeholder="在此輸入 Markdown 文本...">
         </textarea></div>
-        <div ID="html-output"></div>
+        <div id="html-output"></div>
     <script>
         function removeMarkdown() {
             var input = document.getElementById('markdown-input').value;
             var output = input.replace(/[_*`#]/g, "");  // 基本的Markdown符號
             output = output.replace(/\[(.*?)\]\(.*?\)/g, "$1");  // 鏈接
-            document.getElementById('html-output').innerText = output;
+            document.getElementById('text-output').innerText = output;
         }
     </script>
     <script>
