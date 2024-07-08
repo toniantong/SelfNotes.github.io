@@ -1,23 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyScript Demo</title>
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+            h2, h3 {
+                font-size: 1.2em;
+            }
+        }
+        #how-many {
+            width: 100%;
+            max-width: 300px;
+        }
+        #new-task-btn {
+            display: block;
+            margin-top: 10px;
+        }
+    </style>
+</head>
 <body>
-  <h2 id="target"></h2>
-  <div id="outputDiv" style="margin-top: 10px;margin-bottom: 10px;"></div>
-  <h3 id="target2"></h3>
-  <br>
-  <py-inputbox id="how-many" style="margin-bottom: 10px;"></py-inputbox>
-  <py-script>
-    input_num = Element("how-many")
-    out = Element("target")
-    out2 = Element("target2")
-    
-    def click_event(*args, **kwargs):
-      n = int(input_num.value)
-      str_n = str(input_num.value)
-      out.write(n)
-      pyscript.write('outputDiv', n)
-      out2.element.innerText += str_n
-  </py-script>
-  <py-button id="new-task-btn" label="Add text">
-    def on_click(evt):
-      click_event()
-  </py-button>
+    <div class="container">
+        <h1>PyScript Input Demo</h1>
+        <p>Enter a number and click the button to see the results:</p>
+        
+        <h2>Result 1: <span id="target"></span></h2>
+        <div id="outputDiv" style="margin-top: 10px;margin-bottom: 10px;"></div>
+        <h3>Result 2: <span id="target2"></span></h3>
+        <br>
+        <label for="how-many">Enter a number:</label>
+        <py-inputbox id="how-many" style="margin-bottom: 10px;"></py-inputbox>
+        <py-script>
+            input_num = Element("how-many")
+            out = Element("target")
+            out2 = Element("target2")
+            
+            def click_event(*args, **kwargs):
+                try:
+                    n = int(input_num.value)
+                    str_n = str(n)
+                    out.write(n)
+                    pyscript.write('outputDiv', f"The number you entered is: {n}")
+                    out2.element.innerText += str_n + " "
+                except ValueError:
+                    pyscript.write('outputDiv', "Please enter a valid number.")
+        </py-script>
+        <py-button id="new-task-btn" label="Add text">
+            def on_click(evt):
+                click_event()
+        </py-button>
+    </div>
 </body>
+</html>
