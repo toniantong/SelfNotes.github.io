@@ -1,0 +1,23 @@
+<body>
+  <h2 id="target"></h2>
+  <div id="outputDiv" style="margin-top: 10px;margin-bottom: 10px;"></div>
+  <h3 id="target2"></h3>
+  <br>
+  <py-inputbox id="how-many" style="margin-bottom: 10px;"></py-inputbox>
+  <py-script>
+    input_num = Element("how-many")
+    out = Element("target")
+    out2 = Element("target2")
+    
+    def click_event(*args, **kwargs):
+      n = int(input_num.value)
+      str_n = str(input_num.value)
+      out.write(n)
+      pyscript.write('outputDiv', n)
+      out2.element.innerText += str_n
+  </py-script>
+  <py-button id="new-task-btn" label="Add text">
+    def on_click(evt):
+      click_event()
+  </py-button>
+</body>
