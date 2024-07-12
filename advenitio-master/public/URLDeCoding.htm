@@ -76,22 +76,33 @@
         }
 
         function copyToClipboard() {
-            const decodedUrl = document.getElementById('decodedUrl').textContent;
-            if (!decodedUrl) {
-                alert('没有可复制的 URL');
-                return;
-            }
+        // 獲取解碼後的 URL 文本
+        const decodedUrl = document.getElementById('decodedUrl').textContent;
+    
+        // 如果沒有解碼後的 URL，彈出提示並返回
+        if (!decodedUrl) {
+            alert('没有可复制的 URL');
+            return;
+         }
 
-            // 创建一个临时的输入框来复制内容
-            const tempInput = document.createElement('input');
-            tempInput.value = decodedUrl;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempInput);
+         // 創建一個臨時的輸入框來複製內容
+         const tempInput = document.createElement('input');
+         tempInput.value = decodedUrl;
+          document.body.appendChild(tempInput);
+    
+         // 選中臨時輸入框中的文本
+         tempInput.select();
+    
+         // 執行複製命令
+         document.execCommand('copy');
+    
+         // 從 DOM 中移除臨時輸入框
+          document.body.removeChild(tempInput);
 
-            alert('URL 已复制到剪贴板');
-        }
+         // 彈出提示表示 URL 已複製到剪貼簿
+         alert('URL 已复制到剪贴板');
+     }
+
         function clearInput() {
             document.getElementById('encodedUrl').value = '';
             document.getElementById('decodedUrl').textContent = '';
