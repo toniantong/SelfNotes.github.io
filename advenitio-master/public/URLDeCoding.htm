@@ -69,12 +69,12 @@
     </script>
     <h1>URL 解碼器</h1>
     <label for="encodedUrl">輸入編碼的 URL:</label>
-    <input type="text" id="encodedUrl" value="" size="50">
+    <textarea id="encodedUrl" value="" rows="1" cols="50" wrap="soft" oninput="autoResizeTextarea(this)" style="overflow:hidden; resize:none; box-sizing:border-box; width:100%;"></textarea>
     <button onclick="decodeUrl()">解碼</button>
     <p>解碼後的 URL: <span id="decodedUrl"></span></p>
     <button onclick="copyToClipboard()">複制剪貼簿</button>
     <button onclick="clearInput()">清除</button>
-   <input type="text" id="outcodedUrl" value="" size="50">
+   <textarea id="outcodedUrl" value="" rows="1" cols="50" wrap="soft" oninput="autoResizeTextarea(this)" style="overflow:hidden; resize:none; box-sizing:border-box; width:100%;"></textarea>
 
     <script>
         function decodeUrl() {
