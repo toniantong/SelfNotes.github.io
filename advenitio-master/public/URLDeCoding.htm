@@ -59,6 +59,14 @@
     </style>
 </head>
 <body>
+    <script>
+        function autoResizeTextarea(textarea) {
+            // 重置高度，讓scrollHeight獲取正確高度
+            textarea.style.height = 'auto';
+            // 設置高度為scrollHeight
+            textarea.style.height = textarea.scrollHeight + 'px';
+        }
+    </script>
     <h1>URL 解碼器</h1>
     <label for="encodedUrl">輸入編碼的 URL:</label>
     <input type="text" id="encodedUrl" value="" size="50">
