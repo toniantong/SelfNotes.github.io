@@ -70,9 +70,16 @@
 
     <script>
         function decodeUrl() {
+            // 獲取輸入框中編碼的 URL 值
             const encodedUrl = document.getElementById('encodedUrl').value;
+    
+            // 使用 decodeURIComponent 函數對編碼的 URL 進行解碼
             const decodedUrl = decodeURIComponent(encodedUrl);
-            document.getElementById('decodedUrl').textContent = decodedUrl;
+    
+            // 將解碼後的 URL 設置到顯示解碼後 URL 的元素中
+             document.getElementById('decodedUrl').textContent = decodedUrl;
+
+            // document.getElementById('outcodedUrl').value = decodedUrl;
         }
 
         function copyToClipboard() {
