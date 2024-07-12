@@ -65,6 +65,7 @@
     <button onclick="decodeUrl()">解碼</button>
     <p>解碼後的 URL: <span id="decodedUrl"></span></p>
     <button onclick="copyToClipboard()">複制剪貼簿</button>
+    <button onclick="clearInput()">清除</button>
 
     <script>
         function decodeUrl() {
@@ -90,7 +91,9 @@
 
             alert('URL 已复制到剪贴板');
         }
-
+        function clearInput() {
+            input ="";
+        }
         // 自动解码并显示默认输入值
         window.onload = decodeUrl;
     </script>
