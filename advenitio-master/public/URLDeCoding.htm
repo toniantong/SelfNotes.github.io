@@ -134,16 +134,22 @@
 
         function clearInput() {
             const encodedUrl = document.getElementById('encodedUrl');
-            encodedurl.value = '';
-            encodedUrl.rows = 1;
-             document.getElementById('decodedUrl').textContent = '';
+            encodedUrl.value = '';
+            encodedUrl.style.height = 'auto';
+            document.getElementById('decodedUrl').textContent = '';
             const outcodedUrl = document.getElementById('outcodedUrl');
             outcodedUrl.value = '';
-            outcodedUrl.rows = 1;
+            outcodedUrl.style.height = 'auto';
         }
 
         // 自动解码并显示默认输入值
-        window.onload = decodeUrl;
+        window.onload = function(){
+            const encodedUrl = document
+                getElementById('encodedUrl');
+            if (encodedUrl.value) {
+                decodeUrl();
+            }
+        };
     </script>
 </body>
 </html>
