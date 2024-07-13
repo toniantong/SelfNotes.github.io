@@ -89,40 +89,43 @@
 
             // 將解碼後的 URL 設置到輸出輸出框中
             document.getElementById('outcodedUrl').value = decodedUrl;
+           outcodedUrl.rows = encodedUrl.rows
         }
 
         function copyToClipboard() {
-        // 獲取解碼後的 URL 文本
-        const decodedUrl = document.getElementById('outcodedUrl').value;
+            // 獲取解碼後的 URL 文本
+            const decodedUrl = document.getElementById('outcodedUrl').value;
     
-        // 如果沒有解碼後的 URL，彈出提示並返回
-        if (!decodedUrl) {
-            alert('没有可复制的 URL');
-            return;
-         }
+            // 如果沒有解碼後的 URL，彈出提示並返回
+            if (!decodedUrl) {
+                alert('没有可复制的 URL');
+                return;
+            }
 
-         // 創建一個臨時的輸入框來複製內容
-         const tempInput = document.createElement('input');
-         tempInput.value = decodedUrl;
-          document.body.appendChild(tempInput);
+            // 創建一個臨時的輸入框來複製內容
+            const tempInput = document.createElement('input');
+            tempInput.value = decodedUrl;
+             document.body.appendChild(tempInput);
     
-         // 選中臨時輸入框中的文本
-         tempInput.select();
+            // 選中臨時輸入框中的文本
+            tempInput.select();
     
-         // 執行複製命令
-         document.execCommand('copy');
+            // 執行複製命令
+            document.execCommand('copy');
     
-         // 從 DOM 中移除臨時輸入框
-          document.body.removeChild(tempInput);
+            // 從 DOM 中移除臨時輸入框
+             document.body.removeChild(tempInput);
 
-         // 彈出提示表示 URL 已複製到剪貼簿
-         alert('URL 已复制到剪贴板');
-     }
+            // 彈出提示表示 URL 已複製到剪貼簿
+            alert('URL 已复制到剪贴板');
+        }
 
         function clearInput() {
-            document.getElementById('encodedUrl').value = '';
-            document.getElementById('decodedUrl').textContent = '';
-            document.getElementById('outcodedUrl').value = '';
+             document.getElementById('encodedUrl').value = '';
+            encodedUr1.rows = 1;
+             document.getElementById('decodedUrl').textContent = '';
+             document.getElementById('outcodedUrl').value = '';
+            outcodedUrl.rows = 1;
         }
 
         // 自动解码并显示默认输入值
