@@ -133,10 +133,12 @@
         }
 
         function clearInput() {
-             document.getElementById('encodedUrl').value = '';
-            encodedUr1.rows = 1;
+            const encodedUrl = document.getElementById('encodedUrl');
+            encodedurl.value = '';
+            encodedUrl.rows = 1;
              document.getElementById('decodedUrl').textContent = '';
-             document.getElementById('outcodedUrl').value = '';
+            const outcodedUrl = document.getElementById('outcodedUrl');
+            outcodedUrl.value = '';
             outcodedUrl.rows = 1;
         }
 
