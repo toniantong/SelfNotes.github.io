@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRT檔案文字提取工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-sizing: border-box;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        #fileInput {
+            display: block;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        #extractButton {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        #extractButton:hover {
+            background-color: #45a049;
+        }
+        #output {
+            width: 100%;
+            min-height: 200px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 15px;
+            }
+            #extractButton {
+                padding: 12px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SRT檔案文字提取工具</h1>
+        <input type="file" id="fileInput" accept=".srt">
+        <button id="extractButton">提取文字</button>
+        <textarea id="output" readonly placeholder="提取的文字將顯示在這裡..."></textarea>
+    </div>
+
+    <script>
+        document.getElementById('extractButton').addEventListener('click', function() {
+            const fileInput = document.getElementById('fileInput');
+            const output = document.getElementById('output');
+
+            if (fileInput.files.length === 0) {
+                alert('請先選擇一個SRT檔案');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const content = e.target.result;
+                const extractedText = extractTextFromSRT(content);
+                output.value = extractedText;
+            };
+
+            reader.readAsText(file);
+        });
+
+        function extractTextFromSRT(content) {
+            const lines = content.split(/\r?\n/);
+            let extractedText = '';
+            let isTextBlock = false;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (line === '') {
+                    isTextBlock = false;
+                } else if (!isNaN(line) || line.includes('-->')) {
+                    isTextBlock = false;
+                } else {
+                    if (extractedText !== '') {
+                        extractedText += '\n';
+                    }
+                    extractedText += line;
+                    isTextBlock = true;
+                }
+            }
+
+            return extractedText;
+        }
+    </script>
+</body>
+</html>
