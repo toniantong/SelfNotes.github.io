@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRT 檔案翻譯工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            box-sizing: border-box;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        input[type="file"] {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            margin-bottom: 20px;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        /* 響應式設計 */
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+            button {
+                padding: 12px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SRT 檔案翻譯工具</h1>
+        <label for="srtFile">上傳 .SRT 檔案：</label>
+        <input type="file" id="srtFile" accept=".srt">
+        
+        <label for="originalText">原始 SRT 內容：</label>
+        <textarea id="originalText" placeholder="原始 SRT 內容將顯示在這裡" readonly></textarea>
+        
+        <label for="translatedText">翻譯後的 SRT 內容：</label>
+        <textarea id="translatedText" placeholder="翻譯後的 SRT 內容將顯示在這裡" readonly></textarea>
+        
+        <button onclick="translateSRT()">翻譯</button>
+    </div>
+
+    <script>
+        function readSRTFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = (e) => reject(e);
+                reader.readAsText(file);
+            });
+        }
+
+        document.getElementById('srtFile').addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                try {
+                    const content = await readSRTFile(file);
+                    document.getElementById('originalText').value = content;
+                } catch (error) {
+                    console.error('Error reading file:', error);
+                    alert('無法讀取檔案');
+                }
+            }
+        });
+
+        function translateSRT() {
+            const originalText = document.getElementById('originalText').value;
+            if (!originalText) {
+                alert('請先上傳並載入 SRT 檔案');
+                return;
+            }
+
+            // 這裡應該是實際的翻譯邏輯
+            // 為了演示，我們只是簡單地將文本轉為大寫
+            const translatedText = originalText.toUpperCase();
+
+            document.getElementById('translatedText').value = translatedText;
+        }
+    </script>
+</body>
+</html>
