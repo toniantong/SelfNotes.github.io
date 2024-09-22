@@ -23,7 +23,6 @@
             padding: 2rem;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            /* 调整最大宽度，增加页面在大屏幕上的宽度 */
             max-width: 800px;
             width: 90%;
             margin: 2rem auto;
@@ -33,19 +32,39 @@
             text-align: center;
             color: #333;
             margin-bottom: 1rem;
-            /* 在大屏幕上增加标题的字体大小 */
             font-size: 2rem;
+        }
+
+        /* 为文本区域容器设置样式 */
+        .textarea-container {
+            position: relative;
+            margin-bottom: 1rem;
         }
 
         textarea {
             width: 100%;
             padding: 0.5rem;
-            margin-bottom: 1rem;
             border: 1px solid #ddd;
             border-radius: 4px;
             resize: vertical;
             font-size: 1rem;
             box-sizing: border-box;
+        }
+
+        /* 清空按钮的样式 */
+        .clear-button {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background-color: transparent;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        .clear-button:hover {
+            color: #333;
         }
 
         .button-group {
@@ -119,13 +138,21 @@
 <body>
     <div class="container">
         <h1>Traditional and Simplified Chinese Converter</h1>
-        <textarea id="inputText" rows="5" placeholder="Enter Chinese text here..."></textarea>
+        <!-- 输入文本区域 -->
+        <div class="textarea-container">
+            <textarea id="inputText" rows="5" placeholder="Enter Chinese text here..."></textarea>
+            <button class="clear-button" id="clearInput" title="Clear Input">&times;</button>
+        </div>
         <div class="button-group">
             <button id="tradToSimp">Traditional to Simplified</button>
             <button id="copyOutput">Copy Output</button>
             <button id="simpToTrad">Simplified to Traditional</button>
         </div>
-        <textarea id="output" rows="5" placeholder="Converted text will appear here..."></textarea>
+        <!-- 输出文本区域 -->
+        <div class="textarea-container">
+            <textarea id="output" rows="5" placeholder="Converted text will appear here..."></textarea>
+            <button class="clear-button" id="clearOutput" title="Clear Output">&times;</button>
+        </div>
     </div>
     <!-- 引入 OpenCC.js -->
     <script src="https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/umd/full.min.js"></script>
@@ -136,6 +163,8 @@
             const simpToTradBtn = document.getElementById('simpToTrad');
             const output = document.getElementById('output');
             const copyOutputBtn = document.getElementById('copyOutput');
+            const clearInputBtn = document.getElementById('clearInput');
+            const clearOutputBtn = document.getElementById('clearOutput');
 
             // 初始化 OpenCC 转换器
             const converterT2S = OpenCC.Converter({ from: 'tw', to: 'cn' }); // 繁体到简体
@@ -159,6 +188,17 @@
 
             tradToSimpBtn.addEventListener('click', () => convertText('tradToSimp'));
             simpToTradBtn.addEventListener('click', () => convertText('simpToTrad'));
+
+            // 清空输入文本区域
+            clearInputBtn.addEventListener('click', () => {
+                inputText.value = '';
+            });
+
+            // 清空输出文本区域
+            clearOutputBtn.addEventListener('click', () => {
+                output.value = '';
+            });
+
             copyOutputBtn.addEventListener('click', function () {
                 const outputText = output.value;
                 if (!outputText) {
