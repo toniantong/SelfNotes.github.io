@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>日本語テキスト変換ツール</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --primary-hover: #45a049;
+            --bg-color: #f0f0f0;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin: 10px 0;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            font-size: 16px;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        button:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.5);
+        }
+
+        #error-message {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+
+            textarea {
+                height: 120px;
+            }
+
+            button {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>日本語テキスト変換ツール</h1>
+        <textarea id="input" placeholder="ここに日本語テキストを入力してください" aria-label="入力テキスト"></textarea>
+        <div class="button-group">
+            <button onclick="convert('hiraganaToKatakana')" aria-label="平仮名を片仮名に変換">平仮名→片仮名</button>
+            <button onclick="convert('katakanaToHiragana')" aria-label="片仮名を平仮名に変換">片仮名→平仮名</button>
+            <button onclick="convert('fullwidthToHalfwidth')" aria-label="全角を半角に変換">全角→半角</button>
+            <button onclick="convert('halfwidthToFullwidth')" aria-label="半角を全角に変換">半角→全角</button>
+        </div>
+        <textarea id="output" placeholder="変換されたテキストがここに表示されます" readonly aria-label="出力テキスト"></textarea>
+        <div class="button-group">
+            <button onclick="copyToClipboard()" aria-label="結果をクリップボードにコピー">結果をコピー</button>
+            <button onclick="clearAll()" aria-label="すべてクリア">クリア</button>
+        </div>
+        <div id="error-message"></div>
+    </div>
+
+    <script>
+        const input = document.getElementById('input');
+        const output = document.getElementById('output');
+        const errorMessage = document.getElementById('error-message');
+
+        const converters = {
+            hiraganaToKatakana: text => text.replace(/[\u3041-\u3096]/g, char => String.fromCharCode(char.charCodeAt(0) + 0x60)),
+            katakanaToHiragana: text => text.replace(/[\u30A1-\u30F6]/g, char => String.fromCharCode(char.charCodeAt(0) - 0x60)),
+            fullwidthToHalfwidth: text => text.replace(/[\uFF01-\uFF5E]/g, char => String.fromCharCode(char.charCodeAt(0) - 0xFEE0)),
+            halfwidthToFullwidth: text => text.replace(/[!-~]/g, char => String.fromCharCode(char.charCodeAt(0) + 0xFEE0))
+        };
+
+        function convert(conversionType) {
+            errorMessage.textContent = '';
+            const text = input.value.trim();
+            if (!text) {
+                showError('テキストを入力してください。');
+                return;
+            }
+            try {
+                output.value = converters[conversionType](text);
+            } catch (error) {
+                showError('変換中にエラーが発生しました。');
+                console.error(error);
+            }
+        }
+
+        function copyToClipboard() {
+            if (!output.value) {
+                showError('コピーするテキストがありません。');
+                return;
+            }
+            output.select();
+            document.execCommand('copy');
+            showError('クリップボードにコピーしました！', 'success');
+        }
+
+        function clearAll() {
+            input.value = '';
+            output.value = '';
+            errorMessage.textContent = '';
+        }
+
+        function showError(message, type = 'error') {
+            errorMessage.textContent = message;
+            errorMessage.style.color = type === 'error' ? 'red' : 'green';
+            setTimeout(() => {
+                errorMessage.textContent = '';
+            }, 3000);
+        }
+
+        // Accessibility: Add keyboard support for buttons
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.target.tagName === 'BUTTON') {
+                e.preventDefault();
+                e.target.click();
+            }
+        });
+    </script>
+</body>
+</html>
