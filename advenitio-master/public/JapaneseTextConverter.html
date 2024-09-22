@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>日文文字轉換器</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        textarea {
+            width: 80%;
+            height: 200px;
+            margin: 10px 0;
+            padding: 10px;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        @media (max-width: 600px) {
+            textarea {
+                height: 150px;
+            }
+            button {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>日文文字轉換器</h1>
+    <textarea id="input" placeholder="請輸入日文文本"></textarea><br>
+    <button onclick="hiraganaToKatakana()">平假名轉片假名</button>
+    <button onclick="katakanaToHiragana()">片假名轉平假名</button>
+    <button onclick="fullwidthToHalfwidth()">全角轉半角</button>
+    <button onclick="halfwidthToFullwidth()">半角轉全角</button><br>
+    <textarea id="output" placeholder="轉換後的文本將在這裡顯示" readonly></textarea><br>
+    <button onclick="copyToClipboard()">複製結果</button>
+
+    <script>
+        const input = document.getElementById('input');
+        const output = document.getElementById('output');
+
+        function hiraganaToKatakana() {
+            const text = input.value;
+            const converted = text.replace(/[\u3041-\u3096]/g, function(match) {
+                return String.fromCharCode(match.charCodeAt(0) + 0x60);
+            });
+            output.value = converted;
+        }
+
+        function katakanaToHiragana() {
+            const text = input.value;
+            const converted = text.replace(/[\u30A1-\u30F6]/g, function(match) {
+                return String.fromCharCode(match.charCodeAt(0) - 0x60);
+            });
+            output.value = converted;
+        }
+
+        function fullwidthToHalfwidth() {
+            const text = input.value;
+            const converted = text.replace(/[\uFF01-\uFF5E]/g, function(match) {
+                return String.fromCharCode(match.charCodeAt(0) - 0xFEE0);
+            });
+            output.value = converted;
+        }
+
+        function halfwidthToFullwidth() {
+            const text = input.value;
+            const converted = text.replace(/[!-~]/g, function(match) {
+                return String.fromCharCode(match.charCodeAt(0) + 0xFEE0);
+            });
+            output.value = converted;
+        }
+
+        function copyToClipboard() {
+            output.select();
+            document.execCommand('copy');
+            alert('已複製到剪貼簿！');
+        }
+    </script>
+</body>
+</html>
