@@ -5,6 +5,7 @@
     <title>日文文字轉換器</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
+        /* 樣式保持不變 */
         body {
             font-family: sans-serif;
             text-align: center;
@@ -73,17 +74,97 @@
 
         function fullwidthToHalfwidth() {
             const text = input.value;
-            const converted = text.replace(/[\uFF01-\uFF5E]/g, function(match) {
-                return String.fromCharCode(match.charCodeAt(0) - 0xFEE0);
-            });
+            let converted = '';
+            const mapping = {
+                '。': '｡',
+                '「': '｢',
+                '」': '｣',
+                '、': '､',
+                '・': '･',
+                'ー': 'ｰ',
+                '゛': 'ﾞ',
+                '゜': 'ﾟ',
+            };
+
+            for (let i = 0; i < text.length; i++) {
+                const char = text.charAt(i);
+                const code = text.charCodeAt(i);
+
+                // 特殊符號處理
+                if (mapping[char]) {
+                    converted += mapping[char];
+                }
+                // 全角ASCII字符（！到～）
+                else if (code >= 0xFF01 && code <= 0xFF5E) {
+                    converted += String.fromCharCode(code - 0xFEE0);
+                }
+                // 全角空格
+                else if (code === 0x3000) {
+                    converted += String.fromCharCode(0x0020);
+                }
+                // 全角片假名到半角片假名
+                else if (code >= 0x30A1 && code <= 0x30FE) {
+                    const halfwidthCode = code - 0xCF25;
+                    if (halfwidthCode >= 0xFF61 && halfwidthCode <= 0xFF9F) {
+                        converted += String.fromCharCode(halfwidthCode);
+                    } else {
+                        converted += char;
+                    }
+                }
+                // 其他字符不變
+                else {
+                    converted += char;
+                }
+            }
+
             output.value = converted;
         }
 
         function halfwidthToFullwidth() {
             const text = input.value;
-            const converted = text.replace(/[!-~]/g, function(match) {
-                return String.fromCharCode(match.charCodeAt(0) + 0xFEE0);
-            });
+            let converted = '';
+            const mapping = {
+                '｡': '。',
+                '｢': '「',
+                '｣': '」',
+                '､': '、',
+                '･': '・',
+                'ｰ': 'ー',
+                'ﾞ': '゛',
+                'ﾟ': '゜',
+            };
+
+            for (let i = 0; i < text.length; i++) {
+                const char = text.charAt(i);
+                const code = text.charCodeAt(i);
+
+                // 特殊符號處理
+                if (mapping[char]) {
+                    converted += mapping[char];
+                }
+                // 半角ASCII字符（!到~）
+                else if (code >= 0x0021 && code <= 0x007E) {
+                    converted += String.fromCharCode(code + 0xFEE0);
+                }
+                // 半角空格
+                else if (code === 0x0020) {
+                    converted += String.fromCharCode(0x3000);
+                }
+                // 半角片假名到全角片假名
+                else if (code >= 0xFF61 && code <= 0xFF9F) {
+                    const fullwidthCode = code + 0xCF25;
+                    if (fullwidthCode >= 0x30A1 && fullwidthCode <= 0x30FE) {
+                        converted += String.fromCharCode(fullwidthCode);
+                    } else {
+                        converted += char;
+                    }
+                }
+                // 其他字符不變
+                else {
+                    converted += char;
+                }
+            }
+
             output.value = converted;
         }
 
