@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,53 +10,53 @@
             box-sizing: border-box;
         }
 
-body {
-    font-family: Arial, sans-serif;
-    line-height: 1.6;
-    background-color: #f0f0f0;
-    margin: 0;
-    padding: 0;
-}
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
 
-.container {
-    background-color: white;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    max-width: 600px;
-    width: 90%;
-    margin: 2rem auto;
-}
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 90%;
+            margin: 2rem auto;
+        }
 
-h1 {
-    text-align: center;
-    color: #333;
-    margin-bottom: 1rem;
-}
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 1rem;
+        }
 
-textarea {
-    width: 100%;
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    resize: vertical;
-    font-size: 16px;
-    box-sizing: border-box;
-}
+        textarea {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
 
-.button-group {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-}
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
 
-.button-group button {
-    flex: 1;
-    margin: 5px;
-    min-width: 120px;
-}
+        .button-group button {
+            flex: 1;
+            margin: 5px;
+            min-width: 120px;
+        }
 
         button {
             background-color: #4CAF50;
@@ -79,18 +80,19 @@ textarea {
             background-color: #f9f9f9;
         }
 
-/* 響應式設計 */
-@media (max-width: 600px) {
-    .button-group {
-        flex-direction: column;
-    }
+        /* 響應式設計 */
+        @media (max-width: 600px) {
+            .button-group {
+                flex-direction: column;
+            }
 
-    .button-group button {
-        margin: 5px 0;
-    }
-}
+            .button-group button {
+                margin: 5px 0;
+            }
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>Traditional and Simplified Chinese Converter</h1>
@@ -105,13 +107,13 @@ textarea {
     <!-- 引入 OpenCC.js -->
     <script src="{{ url_for('static', filename='lib/opencc-js.min.js') }}"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const inputText = document.getElementById('inputText');
             const tradToSimpBtn = document.getElementById('tradToSimp');
             const simpToTradBtn = document.getElementById('simpToTrad');
             const output = document.getElementById('output');
             const copyOutputBtn = document.getElementById('copyOutput');
-            
+
             // 初始化 OpenCC 轉換器
             const converterT2S = OpenCC.Converter({ from: 'tw', to: 'cn' }); // 繁體到簡體
             const converterS2T = OpenCC.Converter({ from: 'cn', to: 'tw' }); // 簡體到繁體
@@ -141,16 +143,16 @@ textarea {
 
             tradToSimpBtn.addEventListener('click', () => convertText('tradToSimp'));
             simpToTradBtn.addEventListener('click', () => convertText('simpToTrad'));
-            copyOutputBtn.addEventListener('click', function() {
+            copyOutputBtn.addEventListener('click', function () {
                 const outputText = output.value;
                 if (!outputText) {
                     alert('No text to copy!');
                     return;
                 }
                 if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(outputText).then(function() {
+                    navigator.clipboard.writeText(outputText).then(function () {
                         alert('Output copied to clipboard!');
-                    }, function(err) {
+                    }, function (err) {
                         console.error('Could not copy text: ', err);
                         copyTextFallback(outputText);
                     });
@@ -178,4 +180,5 @@ textarea {
         });
     </script>
 </body>
+
 </html>
