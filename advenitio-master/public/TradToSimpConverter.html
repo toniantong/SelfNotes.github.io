@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Traditional and Simplified Chinese Converter</title>
     <style>
-        /* Your existing CSS styles remain unchanged */
+        /* 保持原有的 CSS 样式 */
         * {
             box-sizing: border-box;
         }
@@ -23,7 +23,8 @@
             padding: 2rem;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
+            /* 调整最大宽度，增加页面在大屏幕上的宽度 */
+            max-width: 800px;
             width: 90%;
             margin: 2rem auto;
         }
@@ -32,6 +33,8 @@
             text-align: center;
             color: #333;
             margin-bottom: 1rem;
+            /* 在大屏幕上增加标题的字体大小 */
+            font-size: 2rem;
         }
 
         textarea {
@@ -41,7 +44,7 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             resize: vertical;
-            font-size: 16px;
+            font-size: 1rem;
             box-sizing: border-box;
         }
 
@@ -56,15 +59,16 @@
             flex: 1;
             margin: 5px;
             min-width: 120px;
+            font-size: 1rem;
         }
 
         button {
             background-color: #4CAF50;
             border: none;
             color: white;
-            padding: 0.5rem 1rem;
+            padding: 0.75rem 1.5rem;
             text-align: center;
-            font-size: 16px;
+            font-size: 1rem;
             cursor: pointer;
             border-radius: 4px;
             transition: background-color 0.3s;
@@ -78,7 +82,28 @@
             background-color: #f9f9f9;
         }
 
-        /* Responsive design */
+        /* 针对大屏幕的媒体查询 */
+        @media (min-width: 1200px) {
+            .container {
+                max-width: 1000px;
+                width: 70%;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            textarea {
+                font-size: 1.1rem;
+            }
+
+            button {
+                font-size: 1.1rem;
+                padding: 1rem 2rem;
+            }
+        }
+
+        /* 响应式设计 */
         @media (max-width: 600px) {
             .button-group {
                 flex-direction: column;
@@ -102,7 +127,7 @@
         </div>
         <textarea id="output" rows="5" placeholder="Converted text will appear here..."></textarea>
     </div>
-    <!-- Include OpenCC.js -->
+    <!-- 引入 OpenCC.js -->
     <script src="https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/umd/full.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -112,9 +137,9 @@
             const output = document.getElementById('output');
             const copyOutputBtn = document.getElementById('copyOutput');
 
-            // Initialize OpenCC converters
-            const converterT2S = OpenCC.Converter({ from: 'tw', to: 'cn' }); // Traditional to Simplified
-            const converterS2T = OpenCC.Converter({ from: 'cn', to: 'tw' }); // Simplified to Traditional
+            // 初始化 OpenCC 转换器
+            const converterT2S = OpenCC.Converter({ from: 'tw', to: 'cn' }); // 繁体到简体
+            const converterS2T = OpenCC.Converter({ from: 'cn', to: 'tw' }); // 简体到繁体
 
             function convertText(conversionType) {
                 const text = inputText.value.trim();
@@ -127,7 +152,7 @@
                 if (conversionType === 'tradToSimp') {
                     converted = converterT2S(text);
                 } else if (conversionType === 'simpToTrad') {
-                    converted = converterS2T(text); // Corrected to use converterS2T
+                    converted = converterS2T(text);
                 }
                 output.value = converted;
             }
