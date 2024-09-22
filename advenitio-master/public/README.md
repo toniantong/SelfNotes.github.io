@@ -7,6 +7,8 @@
 
 [TradToSimpConverter](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/TradToSimpConverter.html)
 
+[JapaneseTextTransformTool](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/JapaneseTextTransformTool.html)
+
 [JapaneseTextConverter](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/JapaneseTextConverter.html)
 
 [JjPpToJjPp](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/JjPpToJjPp.html)
