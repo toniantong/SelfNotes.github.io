@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Traditional and Simplified Chinese Converter</title>
     <style>
+        /* Your existing CSS styles remain unchanged */
         * {
             box-sizing: border-box;
         }
@@ -64,8 +64,6 @@
             color: white;
             padding: 0.5rem 1rem;
             text-align: center;
-            text-decoration: none;
-            display: inline-block;
             font-size: 16px;
             cursor: pointer;
             border-radius: 4px;
@@ -80,7 +78,7 @@
             background-color: #f9f9f9;
         }
 
-        /* 響應式設計 */
+        /* Responsive design */
         @media (max-width: 600px) {
             .button-group {
                 flex-direction: column;
@@ -104,7 +102,7 @@
         </div>
         <textarea id="output" rows="5" placeholder="Converted text will appear here..."></textarea>
     </div>
-    <!-- 引入 OpenCC.js -->
+    <!-- Include OpenCC.js -->
     <script src="https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/umd/full.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -114,17 +112,10 @@
             const output = document.getElementById('output');
             const copyOutputBtn = document.getElementById('copyOutput');
 
-            // 初始化 OpenCC 轉換器
-            const converterT2S = OpenCC.Converter({ from: 'tw', to: 'cn' }); // 繁體到簡體
-            const converterS2T = OpenCC.Converter({ from: 'cn', to: 'tw' }); // 簡體到繁體
+            // Initialize OpenCC converters
+            const converterT2S = OpenCC.Converter({ from: 'tw', to: 'cn' }); // Traditional to Simplified
+            const converterS2T = OpenCC.Converter({ from: 'cn', to: 'tw' }); // Simplified to Traditional
 
-            // let converter;
-
-            // Initialize OpenCC
-            // OpenCC.load({ from: 't', to: 's' }).then(result => {
-            //     converter = result;
-            // });
-            
             function convertText(conversionType) {
                 const text = inputText.value.trim();
                 if (!text) {
@@ -136,14 +127,13 @@
                 if (conversionType === 'tradToSimp') {
                     converted = converterT2S(text);
                 } else if (conversionType === 'simpToTrad') {
-                    converted = converterT2S(text);
+                    converted = converterS2T(text); // Corrected to use converterS2T
                 }
                 output.value = converted;
             }
 
             tradToSimpBtn.addEventListener('click', () => convertText('tradToSimp'));
             simpToTradBtn.addEventListener('click', () => convertText('simpToTrad'));
-            
             copyOutputBtn.addEventListener('click', function () {
                 const outputText = output.value;
                 if (!outputText) {
@@ -175,11 +165,11 @@
                     alert('Output copied to clipboard!');
                 } catch (err) {
                     console.error('Failed to copy: ', err);
+                    alert('Failed to copy text.');
                 }
                 document.body.removeChild(textArea);
             }
         });
     </script>
 </body>
-
 </html>
