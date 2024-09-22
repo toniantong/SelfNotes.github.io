@@ -105,7 +105,7 @@
         <textarea id="output" rows="5" placeholder="Converted text will appear here..."></textarea>
     </div>
     <!-- 引入 OpenCC.js -->
-    <script src="{{ url_for('static', filename='lib/opencc-js.min.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/opencc.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const inputText = document.getElementById('inputText');
@@ -115,8 +115,8 @@
             const copyOutputBtn = document.getElementById('copyOutput');
 
             // 初始化 OpenCC 轉換器
-            const converterT2S = OpenCC.Converter({ from: 'tw', to: 'cn' }); // 繁體到簡體
-            const converterS2T = OpenCC.Converter({ from: 'cn', to: 'tw' }); // 簡體到繁體
+            const converterT2S = new OpenCC('t2s.json'); // 繁體到簡體
+            const converterS2T = new OpenCC('s2t.json'); // 簡體到繁體
 
             // let converter;
 
@@ -125,7 +125,7 @@
             //     converter = result;
             // });
 
-            function convertText(conversionType) {
+            async function convertText(conversionType) {
                 const text = inputText.value.trim();
                 if (!text) {
                     alert('Please enter some text to convert.');
@@ -134,9 +134,9 @@
 
                 let converted = '';
                 if (conversionType === 'tradToSimp') {
-                    converted = converterT2S(text);
+                    converted = await converterT2S.convertPromise(text);
                 } else if (conversionType === 'simpToTrad') {
-                    converted = converterS2T(text);
+                    converted = await converterS2T.convertPromise(text);
                 }
                 output.value = converted;
             }
