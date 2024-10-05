@@ -97,10 +97,7 @@
                 // 全角ASCII字符（！到～）
                 else if (code >= 0xFF01 && code <= 0xFF5E) {
                     converted += String.fromCharCode(code - 0xFEE0);
-                } else {
-                    converted += str.charAt(i);
                 }
-              
                 // 全角空格
                 else if (code === 0x3000) {
                     converted += String.fromCharCode(0x0020);
