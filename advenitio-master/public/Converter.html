@@ -147,9 +147,9 @@
                     converted += String.fromCharCode(code + 0xFEE0);
                 }
                 // 半角空格
-                else if (code === 0x0020) {
-                    converted += String.fromCharCode(0x3000);
-                }
+                //else if (code === 0x0020) {
+                //    converted += String.fromCharCode(0x3000);
+                //}
                 // 半角片假名到全角片假名
                 else if (code >= 0xFF61 && code <= 0xFF9F) {
                     const fullwidthCode = code + 0xCF25;
