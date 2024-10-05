@@ -96,7 +96,16 @@
                 }
                 // 全角ASCII字符（！到～）
                 else if (code >= 0xFF01 && code <= 0xFF5E) {
-                    converted += String.fromCharCode(code - 0xFEE0);
+                    // 排除全角英文字母和數字
+                    if (
+                        (code >= 0xFF10 && code <= 0xFF19) || // 0-9
+                        (code >= 0xFF21 && code <= 0xFF3A) || // A-Z
+                        (code >= 0xFF41 && code <= 0xFF5A)    // a-z
+                    ) {
+                        converted += char;
+                    } else {
+                        converted += String.fromCharCode(code - 0xFEE0);
+                    }
                 }
                 // 全角空格
                 else if (code === 0x3000) {
@@ -144,12 +153,21 @@
                 }
                 // 半角ASCII字符（!到~）
                 else if (code >= 0x0021 && code <= 0x007E) {
-                    converted += String.fromCharCode(code + 0xFEE0);
+                    // 排除半角英文字母和數字
+                    if (
+                        (code >= 0x0030 && code <= 0x0039) || // 0-9
+                        (code >= 0x0041 && code <= 0x005A) || // A-Z
+                        (code >= 0x0061 && code <= 0x007A)    // a-z
+                    ) {
+                        converted += char;
+                    } else {
+                        converted += String.fromCharCode(code + 0xFEE0);
+                    }
                 }
                 // 半角空格
-                //else if (code === 0x0020) {
-                //    converted += String.fromCharCode(0x3000);
-                //}
+                // else if (code === 0x0020) {
+                //     converted += String.fromCharCode(0x3000);
+                // }
                 // 半角片假名到全角片假名
                 else if (code >= 0xFF61 && code <= 0xFF9F) {
                     const fullwidthCode = code + 0xCF25;
