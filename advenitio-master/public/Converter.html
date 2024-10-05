@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>日文文字轉換器</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* 樣式保持不變 */
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        textarea {
+            width: 80%;
+            height: 200px;
+            margin: 10px 0;
+            padding: 10px;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        @media (max-width: 600px) {
+            textarea {
+                height: 150px;
+            }
+            button {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>日文文字轉換器</h1>
+    <textarea id="input" placeholder="請輸入日文文本"></textarea><br>
+    <button onclick="hiraganaToKatakana()">平假名轉片假名</button>
+    <button onclick="katakanaToHiragana()">片假名轉平假名</button>
+    <button onclick="fullwidthToHalfwidth()">全角轉半角</button>
+    <button onclick="halfwidthToFullwidth()">半角轉全角</button><br>
+    <textarea id="output" placeholder="轉換後的文本將在這裡顯示" readonly></textarea><br>
+    <button onclick="copyToClipboard()">複製結果</button>
+
+    <script>
+        const input = document.getElementById('input');
+        const output = document.getElementById('output');
+
+        function hiraganaToKatakana() {
+            const text = input.value;
+            const converted = text.replace(/[\u3041-\u3096]/g, function(match) {
+                return String.fromCharCode(match.charCodeAt(0) + 0x60);
+            });
+            output.value = converted;
+        }
+
+        function katakanaToHiragana() {
+            const text = input.value;
+            const converted = text.replace(/[\u30A1-\u30F6]/g, function(match) {
+                return String.fromCharCode(match.charCodeAt(0) - 0x60);
+            });
+            output.value = converted;
+        }
+
+        function fullwidthToHalfwidth() {
+            const text = input.value;
+            let converted = '';
+            const mapping = {
+                '。': '｡',
+                '「': '｢',
+                '」': '｣',
+                '、': '､',
+                '・': '･',
+                'ー': 'ｰ',
+                '゛': 'ﾞ',
+                '゜': 'ﾟ',
+            };
+
+            for (let i = 0; i < text.length; i++) {
+                const char = text.charAt(i);
+                const code = text.charCodeAt(i);
+
+                // 特殊符號處理
+                if (mapping[char]) {
+                    converted += mapping[char];
+                }
+                // 全角ASCII字符（！到～）
+                else if (code >= 0xFF01 && code <= 0xFF5E) {
+                    converted += String.fromCharCode(code - 0xFEE0);
+                } else {
+                    converted += str.charAt(i);
+                }
+              
+                // 全角空格
+                else if (code === 0x3000) {
+                    converted += String.fromCharCode(0x0020);
+                }
+                // 全角片假名到半角片假名
+                else if (code >= 0x30A1 && code <= 0x30FE) {
+                    const halfwidthCode = code - 0xCF25;
+                    if (halfwidthCode >= 0xFF61 && halfwidthCode <= 0xFF9F) {
+                        converted += String.fromCharCode(halfwidthCode);
+                    } else {
+                        converted += char;
+                    }
+                }
+                // 其他字符不變
+                else {
+                    converted += char;
+                }
+            }
+
+            output.value = converted;
+        }
+
+        function halfwidthToFullwidth() {
+            const text = input.value;
+            let converted = '';
+            const mapping = {
+                '｡': '。',
+                '｢': '「',
+                '｣': '」',
+                '､': '、',
+                '･': '・',
+                'ｰ': 'ー',
+                'ﾞ': '゛',
+                'ﾟ': '゜',
+            };
+
+            for (let i = 0; i < text.length; i++) {
+                const char = text.charAt(i);
+                const code = text.charCodeAt(i);
+
+                // 特殊符號處理
+                if (mapping[char]) {
+                    converted += mapping[char];
+                }
+                // 半角ASCII字符（!到~）
+                else if (code >= 0x0021 && code <= 0x007E) {
+                    converted += String.fromCharCode(code + 0xFEE0);
+                }
+                // 半角空格
+                else if (code === 0x0020) {
+                    converted += String.fromCharCode(0x3000);
+                }
+                // 半角片假名到全角片假名
+                else if (code >= 0xFF61 && code <= 0xFF9F) {
+                    const fullwidthCode = code + 0xCF25;
+                    if (fullwidthCode >= 0x30A1 && fullwidthCode <= 0x30FE) {
+                        converted += String.fromCharCode(fullwidthCode);
+                    } else {
+                        converted += char;
+                    }
+                }
+                // 其他字符不變
+                else {
+                    converted += char;
+                }
+            }
+
+            output.value = converted;
+        }
+
+        function copyToClipboard() {
+            output.select();
+            document.execCommand('copy');
+            alert('已複製到剪貼簿！');
+        }
+    </script>
+</body>
+</html>
