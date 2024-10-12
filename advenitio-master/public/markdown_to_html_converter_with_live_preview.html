@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown to HTML Converter with Live Preview</title>
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+    <style>
+        .textarea-container {
+            height: 300px;
+        }
+
+        textarea {
+            height: 100%;
+            resize: none;
+        }
+
+        #preview-container {
+            border: 1px solid var(--bs-secondary);
+            border-radius: 0.25rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid my-4">
+        <h1 class="text-center mb-4">Markdown to HTML Converter</h1>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <div class="d-flex justify-content-between mb-2">
+                    <button class="btn btn-secondary" onclick="pasteMarkdown()">Paste</button>
+                    <button class="btn btn-secondary" onclick="clearText('markdown-input')">Clear</button>
+                </div>
+                <div class="textarea-container">
+                    <textarea id="markdown-input" class="form-control"
+                        placeholder="Enter Markdown text here"></textarea>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="d-flex justify-content-between mb-2">
+                    <button class="btn btn-secondary" onclick="copyHtml()">Copy</button>
+                    <button class="btn btn-secondary" onclick="clearText('html-output')">Clear</button>
+                </div>
+                <div class="textarea-container">
+                    <textarea id="html-output" class="form-control" placeholder="HTML output"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-3">
+            <button id="convert-btn" class="btn btn-primary">Convert</button>
+        </div>
+        <div class="mt-4">
+            <div class="d-flex justify-content-between mb-2">
+                <h4>Preview</h4>
+                <button class="btn btn-secondary" onclick="updatePreview()">Refresh</button>
+            </div>
+            <div id="preview-container"></div>
+        </div>
+    </div>
+
+    <script defer>
+        const markdownInput = document.getElementById('markdown-input');
+        const htmlOutput = document.getElementById('html-output');
+        const previewContainer = document.getElementById('preview-container');
+        const convertBtn = document.getElementById('convert-btn');
+
+        function convertMarkdown() {
+            try {
+                const markdown = markdownInput.value;
+                const html = marked.parse(markdown);
+                htmlOutput.value = html;
+                updatePreview();
+            } catch (err) {
+                console.error('Error converting Markdown:', err);
+                htmlOutput.value = 'Error converting Markdown. Please check your input.';
+            }
+        }
+
+        function updatePreview() {
+            previewContainer.innerHTML = htmlOutput.value;
+        }
+
+        function clearText(elementId) {
+            document.getElementById(elementId).value = '';
+            if (elementId === 'markdown-input') {
+                htmlOutput.value = '';
+                previewContainer.innerHTML = '';
+            }
+        }
+
+        async function pasteMarkdown() {
+            try {
+                const text = await navigator.clipboard.readText();
+                markdownInput.value = text;
+                convertMarkdown();
+            } catch (err) {
+                console.error('Failed to read clipboard contents: ', err);
+            }
+        }
+
+        async function copyHtml() {
+            try {
+                await navigator.clipboard.writeText(htmlOutput.value);
+                alert('HTML copied to clipboard!');
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+            }
+        }
+
+        convertBtn.addEventListener('click', convertMarkdown);
+        markdownInput.addEventListener('input', convertMarkdown);
+    </script>
+</body>
+
+</html>
