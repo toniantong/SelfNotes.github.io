@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
 
@@ -25,6 +24,20 @@
             margin-top: 1rem;
             height: 300px;
             overflow-y: auto;
+        }
+
+        #select-all-btn, #copy-preview-btn {
+            margin-right: 10px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+        
+        #select-all-btn:hover, #copy-preview-btn:hover {
+            background-color: var(--bs-primary);
         }
     </style>
 </head>
@@ -63,9 +76,9 @@
             </div>
             <div id="preview-container" spellcheck="false" contenteditable="true"></div>
         </div>
-        <div>
-            <button onclick="selectAllText('preview-container')">Select All</button>
-            <button onclick="copyTheTextSentenceFormatOfTheHtmlFromThePreviewText()">Copy</button>
+        <div class="mt-3">
+            <button id="select-all-btn" class="btn btn-secondary" onclick="selectAllText('preview-container')">Select All</button>
+            <button id="copy-preview-btn" class="btn btn-secondary" onclick="copyTheTextSentenceFormatOfTheHtmlFromThePreviewText()">Copy</button>
         </div>
     </div>
 
