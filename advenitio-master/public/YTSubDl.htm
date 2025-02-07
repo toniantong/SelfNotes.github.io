@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube 字幕下載工具 - 單一檔案版本</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: var(--bs-dark);
+            color: var(--bs-light);
+        }
+
+        .card {
+            background-color: var(--bs-dark-bg-subtle);
+            border: 1px solid var(--bs-border-color);
+        }
+
+        .form-control:focus {
+            border-color: var(--bs-primary);
+            box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+        }
+
+        #status {
+            transition: all 0.3s ease;
+        }
+
+        .alert {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .alert.show {
+            display: block;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container min-vh-100 d-flex align-items-center justify-content-center">
+        <div class="card shadow-lg w-100" style="max-width: 600px;">
+            <div class="card-body p-4">
+                <h1 class="text-center mb-4">
+                    <i class="fab fa-youtube text-danger me-2"></i>
+                    YouTube 字幕下載工具
+                </h1>
+
+                <form id="downloadForm" class="needs-validation" novalidate>
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-link"></i>
+                            </span>
+                            <input type="url" 
+                                   class="form-control" 
+                                   id="youtubeUrl" 
+                                   name="youtube_url" 
+                                   placeholder="請輸入 YouTube 影片網址..."
+                                   required>
+                            <button type="button" class="btn btn-secondary" id="checkSubtitles">
+                                <i class="fas fa-search"></i>
+                                檢查字幕
+                            </button>
+                        </div>
+                        <div class="invalid-feedback">
+                            請輸入有效的YouTube網址
+                        </div>
+                    </div>
+
+                    <div id="subtitleOptions" class="mb-3 d-none">
+                        <label class="form-label">選擇字幕語言</label>
+                        <select class="form-select" id="subtitleLang" name="subtitle_lang" required disabled>
+                            <option value="">請選擇字幕語言...</option>
+                        </select>
+                        <small class="text-muted">注意：(自動) 表示自動生成的字幕</small>
+                    </div>
+
+                    <div id="filenameInput" class="mb-3 d-none">
+                        <label class="form-label">自訂檔名稱 (建議)</label>
+                        <div class="input-group">
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="customFilename" 
+                                   name="custom_filename" 
+                                   placeholder="留空將使用影片標題">
+                            <button type="button" class="btn btn-outline-secondary" id="copyFilename">
+                                <i class="fas fa-copy"></i>
+                                複製
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100" id="downloadBtn" disabled>
+                        <i class="fas fa-download me-2"></i>
+                        下載字幕
+                    </button>
+                </form>
+
+                <div id="status" class="alert mt-3 d-none"></div>
+
+                <div class="mt-4">
+                    <h5 class="text-center mb-3">使用說明</h5>
+                    <ol class="text-muted small">
+                        <li>複製 YouTube 影片網址</li>
+                        <li>貼上到上方輸入框</li>
+                        <li>點擊「檢查字幕」按鈕</li>
+                        <li>選擇想要的字幕語言</li>
+                        <li>可選擇自訂檔案名稱</li>
+                        <li>點擊下載按鈕</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('downloadForm');
+            const urlInput = document.getElementById('youtubeUrl');
+            const checkButton = document.getElementById('checkSubtitles');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const statusDiv = document.getElementById('status');
+            const subtitleOptions = document.getElementById('subtitleOptions');
+            const subtitleLang = document.getElementById('subtitleLang');
+            const filenameInput = document.getElementById('filenameInput');
+            const customFilename = document.getElementById('customFilename');
+            const copyFilename = document.getElementById('copyFilename');
+
+            // 添加複製按鈕功能
+            copyFilename.addEventListener('click', async function() {
+                const textToCopy = customFilename.value;
+                if (textToCopy) {
+                    try {
+                        await navigator.clipboard.writeText(textToCopy);
+                        showStatus('已複製檔名到剪貼簿', 'success');
+                    } catch (err) {
+                        showStatus('複製失敗，請手動複製', 'danger');
+                    }
+                } else {
+                    showStatus('檔名為空，無法複製', 'warning');
+                }
+            });
+
+            function showStatus(message, type = 'info') {
+                statusDiv.className = `alert alert-${type} show`;
+                statusDiv.textContent = message;
+            }
+
+            function hideStatus() {
+                statusDiv.className = 'alert d-none';
+            }
+
+            function resetForm() {
+                subtitleOptions.classList.add('d-none');
+                filenameInput.classList.add('d-none');
+                subtitleLang.disabled = true;
+                downloadBtn.disabled = true;
+                subtitleLang.innerHTML = '<option value="">請選擇字幕語言...</option>';
+            }
+
+            // 表單提交處理
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                showStatus('此為單一檔案版本，請使用完整版本下載字幕', 'warning');
+            });
+
+            // URL 輸入處理
+            urlInput.addEventListener('input', function() {
+                hideStatus();
+                resetForm();
+            });
+
+            // 檢查字幕按鈕處理
+            checkButton.addEventListener('click', function() {
+                showStatus('此為單一檔案版本，請使用完整版本檢查字幕', 'warning');
+            });
+        });
+    </script>
+</body>
+</html>
