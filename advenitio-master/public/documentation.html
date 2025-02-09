@@ -159,6 +159,36 @@
       align-items: center;
       gap: 0.5rem;
       margin-right: 0.5rem;
+      transition: all 0.2s ease-in-out;
+    }
+    /* 新增深色模式下的按鈕樣式 */
+    .dark .button {
+      background: var(--muted);
+      border-color: var(--primary);
+      color: var(--foreground);
+    }
+
+    .dark .button:hover {
+      background: var(--primary);
+      color: var(--background);
+      transform: translateY(-1px);
+    }
+
+    .button:hover {
+      background: var(--muted);
+      border-color: var(--primary);
+    }
+
+    /* 複製按鈕的特殊樣式 */
+    .dark .copy-btn {
+      background: var(--muted);
+      border-color: var(--primary);
+      color: var(--foreground);
+    }
+
+    .dark .copy-btn:hover {
+      background: var(--primary);
+      color: var(--background);
     }
     .editable {
       min-height: 2.5rem;
