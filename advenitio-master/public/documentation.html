@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>智能文本分隔工具</title>
+  <title>智能文本分隔工具 - 使用說明</title>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     :root {
@@ -12,38 +12,130 @@
       --muted: #f1f5f9;
       --primary: #2563eb;
       --destructive: #dc2626;
+      --card-bg: #ffffff;
+      --section-spacing: 2rem;
     }
     .dark {
-      --background: #020817;
+      --background: #0f172a;
       --foreground: #f8fafc;
       --muted: #1e293b;
       --primary: #3b82f6;
       --destructive: #ef4444;
+      --card-bg: #1e293b;
     }
     body {
       background-color: var(--background);
       color: var(--foreground);
       font-family: ui-sans-serif, system-ui, sans-serif;
-      min-height: 100vh;
-      padding: 1rem;
-      box-sizing: border-box;
+      line-height: 1.6;
+      margin: 0;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: var(--section-spacing);
+      padding: 2rem 0;
+      border-bottom: 1px solid var(--muted);
+    }
+    .title {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: var(--primary);
+    }
+    .subtitle {
+      font-size: 1.2rem;
+      color: var(--foreground);
+      opacity: 0.8;
     }
     .card {
-      background: var(--muted);
-      border-radius: 0.5rem;
-      padding: 1.5rem;
-      max-width: 64rem;
-      margin: 0 auto;
+      background: var(--card-bg);
+      border-radius: 1rem;
+      padding: 2rem;
+      margin-bottom: var(--section-spacing);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
-    .button {
-      background: var(--background);
-      border: 1px solid var(--foreground);
-      border-radius: 0.375rem;
-      padding: 0.5rem 1rem;
-      cursor: pointer;
-      display: inline-flex;
+    .section-title {
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      color: var(--primary);
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 0.5rem;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-bottom: var(--section-spacing);
+    }
+    .feature-item {
+      padding: 1.5rem;
+      background: var(--muted);
+      border-radius: 0.8rem;
+      transition: transform 0.2s;
+    }
+    .feature-item:hover {
+      transform: translateY(-4px);
+    }
+    .feature-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
       align-items: center;
       gap: 0.5rem;
+    }
+    .feature-icon {
+      color: var(--primary);
+    }
+    .instruction-list {
+      list-style: none;
+      padding: 0;
+    }
+    .instruction-item {
+      margin-bottom: 1rem;
+      padding: 1rem;
+      background: var(--muted);
+      border-radius: 0.5rem;
+    }
+    .tech-specs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+    .tech-item {
+      padding: 1rem;
+      background: var(--muted);
+      border-radius: 0.5rem;
+    }
+    .theme-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: var(--card-bg);
+      border: 1px solid var(--muted);
+      border-radius: 0.5rem;
+      padding: 0.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      z-index: 1000;
+    }
+    @media (max-width: 768px) {
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+      .tech-specs {
+        grid-template-columns: 1fr;
+      }
+      body {
+        padding: 1rem;
+      }
     }
     .textarea {
       width: 100%;
@@ -55,6 +147,18 @@
       font-family: monospace;
       white-space: pre-wrap;
       box-sizing: border-box;
+      margin-bottom: 1rem;
+    }
+    .button {
+      background: var(--background);
+      border: 1px solid var(--foreground);
+      border-radius: 0.375rem;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-right: 0.5rem;
     }
     .editable {
       min-height: 2.5rem;
@@ -74,29 +178,7 @@
       align-items: center;
       opacity: 0.6;
     }
-    .input-section {
-      margin-top: 1rem;
-    }
-    .input-controls {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-    .input-controls input {
-      width: 200px;
-      padding: 0.25rem;
-    }
-    .text-areas {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-    .input-area, .output-area {
-      flex: 1 1 300px;
-      position: relative;
-    }
-    .actions, .output-controls {
+    .actions, .output-controls{
       margin-top: 0.5rem;
       display: flex;
       gap: 0.5rem;
@@ -112,53 +194,134 @@
       padding: 0.25rem;
       cursor: pointer;
     }
+    .input-section, .output-section {
+        margin-bottom: var(--section-spacing);
+    }
+
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="header" style="display: flex; justify-content: space-between; align-items: center;">
-      <h1 class="title">智能分隔文本編輯器</h1>
-      <div class="controls">
-        <button class="button" id="toggleUpdate" title="切換自動更新">
-          <i data-lucide="refresh-cw"></i>
-        </button>
-        <button class="button" id="toggleDarkMode" title="切換主題">
-          <i data-lucide="moon"></i>
-        </button>
+  <div class="container">
+    <header class="header">
+      <h1 class="title">智能文本分隔工具</h1>
+      <p class="subtitle">進階的多語言文本處理與分隔應用</p>
+    </header>
+
+    <div class="card input-section">
+        <h2 class="section-title">輸入文字</h2>
+        <textarea id="input" class="textarea" placeholder="在此輸入文字..."></textarea>
+        <div class="actions">
+          <button class="button" id="pasteBtn">
+            <i data-lucide="clipboard"></i>貼上
+          </button>
+          <button class="button" id="clearBtn">
+            <i data-lucide="x"></i>清空
+          </button>
+        </div>
+    </div>
+
+    <div class="card output-section">
+        <h2 class="section-title">輸出文字</h2>
+        <div class="output-controls">
+            <button class="button" id="toggleView">
+              <i data-lucide="list-tree"></i>切換顯示模式
+            </button>
+            <button class="button" id="copyAllBtn">
+              <i data-lucide="copy"></i>複製全部
+            </button>
+        </div>
+        <div id="output" class="textarea editable-output" readonly></div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">核心功能</h2>
+      <div class="feature-grid">
+        <div class="feature-item">
+          <div class="feature-title">
+            <i data-lucide="split" class="feature-icon"></i>
+            智慧分隔
+          </div>
+          <p>根據設定的字符數限制自動分隔文本，支援多語言處理，特別優化處理英文單字斷行。</p>
+        </div>
+        <div class="feature-item">
+          <div class="feature-title">
+            <i data-lucide="edit" class="feature-icon"></i>
+            即時編輯
+          </div>
+          <p>支援分段編輯功能，可以單獨修改每個分段的內容，並自動同步更新。</p>
+        </div>
+        <div class="feature-item">
+          <div class="feature-title">
+            <i data-lucide="layout-grid" class="feature-icon"></i>
+            雙視圖模式
+          </div>
+          <p>提供合併和分隔兩種顯示模式，滿足不同的編輯需求。</p>
+        </div>
+        <div class="feature-item">
+          <div class="feature-title">
+            <i data-lucide="copy" class="feature-icon"></i>
+            快速複製
+          </div>
+          <p>支援單段複製和全文複製功能，方便文本的轉移和使用。</p>
+        </div>
       </div>
     </div>
-    <div class="content">
-      <div class="input-section">
-        <div class="input-controls">
-          <div>
-            <label for="segmentLimit">分隔字符數限制</label>
-            <input type="number" id="segmentLimit" value="100000000000" class="limit-input">
-          </div>
-          <span id="charCount">當前字符數：0</span>
+
+    <div class="card">
+      <h2 class="section-title">使用指南</h2>
+      <ul class="instruction-list">
+        <li class="instruction-item">
+          <strong>基本操作</strong>
+          <ul>
+            <li>在左側輸入框輸入或貼上文字</li>
+            <li>使用頂部的數字輸入框設定分隔字符數限制（最小值為 2）</li>
+            <li>系統會自動按照設定的限制進行分隔</li>
+          </ul>
+        </li>
+        <li class="instruction-item">
+          <strong>視圖控制</strong>
+          <ul>
+            <li>點擊「分隔顯示」按鈕在不同顯示模式間切換</li>
+            <li>合併模式：以連續文本形式顯示</li>
+            <li>分隔模式：每段文字單獨顯示，方便編輯</li>
+          </ul>
+        </li>
+        <li class="instruction-item">
+          <strong>更新控制</strong>
+          <ul>
+            <li>自動更新：實時處理文本變化</li>
+            <li>手動更新：關閉自動更新後，需點擊更新按鈕</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">技術規格</h2>
+      <div class="tech-specs">
+        <div class="tech-item">
+          <strong>前端框架</strong>
+          <ul>
+            <li>React with TypeScript</li>
+            <li>Tailwind CSS 樣式框架</li>
+            <li>Shadcn/ui 元件庫</li>
+          </ul>
         </div>
-        <div class="text-areas">
-          <div class="input-area">
-            <textarea id="input" class="textarea" placeholder="在此輸入文字..."></textarea>
-            <div class="actions">
-              <button class="button" id="pasteBtn">
-                <i data-lucide="clipboard"></i>貼上
-              </button>
-              <button class="button" id="clearBtn">
-                <i data-lucide="x"></i>清空
-              </button>
-            </div>
-          </div>
-          <div class="output-area">
-            <div class="output-controls">
-              <button class="button" id="toggleView">
-                <i data-lucide="list-tree"></i>切換顯示模式
-              </button>
-              <button class="button" id="copyAllBtn">
-                <i data-lucide="copy"></i>複製全部
-              </button>
-            </div>
-            <div id="output" class="textarea editable-output" readonly></div>
-          </div>
+        <div class="tech-item">
+          <strong>核心功能</strong>
+          <ul>
+            <li>智能文本分析與分隔</li>
+            <li>即時編輯與更新</li>
+            <li>響應式設計</li>
+          </ul>
+        </div>
+        <div class="tech-item">
+          <strong>系統需求</strong>
+          <ul>
+            <li>支援現代瀏覽器</li>
+            <li>建議螢幕寬度 > 768px</li>
+            <li>支援觸控設備</li>
+          </ul>
         </div>
       </div>
     </div>
@@ -183,13 +346,12 @@
 
     // 添加事件監聽
     document.getElementById('input').addEventListener('input', handleInput);
-    document.getElementById('segmentLimit').addEventListener('change', handleLimitChange);
     document.getElementById('pasteBtn').addEventListener('click', handlePaste);
     document.getElementById('clearBtn').addEventListener('click', handleClear);
     document.getElementById('toggleView').addEventListener('click', toggleView);
     document.getElementById('copyAllBtn').addEventListener('click', copyAll);
     document.getElementById('toggleDarkMode').addEventListener('click', toggleTheme);
-    document.getElementById('toggleUpdate').addEventListener('click', toggleAutoUpdate);
+
 
     // 格式化文本函數：根據限定字符數切割文本
     function formatText(text, limit) {
@@ -240,28 +402,15 @@
     function handleInput(e) {
       state.inputText = e.target.value;
       state.charCount = e.target.value.length;
-      document.getElementById('charCount').textContent = `當前字符數：${state.charCount}`;
       if (state.autoUpdate) updateOutput();
     }
 
-    // 處理字符數限制變更
-    function handleLimitChange(e) {
-      let value = parseInt(e.target.value);
-      if (isNaN(value) || value < 1) {
-        value = 1;
-        e.target.value = 1;
-      }
-      state.segmentLimit = value;
-      updateOutput();
-    }
 
     // 處理剪貼簿貼上
     function handlePaste() {
       navigator.clipboard.readText().then(text => {
         document.getElementById('input').value = text;
         state.inputText = text;
-        state.charCount = text.length;
-        document.getElementById('charCount').textContent = `當前字符數：${state.charCount}`;
         updateOutput();
       }).catch(err => {
         alert('無法讀取剪貼簿內容！');
@@ -272,8 +421,6 @@
     function handleClear() {
       document.getElementById('input').value = '';
       state.inputText = '';
-      state.charCount = 0;
-      document.getElementById('charCount').textContent = '當前字符數：0';
       updateOutput();
     }
 
@@ -315,12 +462,7 @@
       } else {
         document.documentElement.classList.remove('dark');
       }
-    }
-
-    // 切換自動更新模式
-    function toggleAutoUpdate() {
-      state.autoUpdate = !state.autoUpdate;
-      alert(`自動更新狀態已切換為：${state.autoUpdate ? '開啟' : '關閉'}`);
+      lucide.createIcons();
     }
 
     // 初始化輸出
