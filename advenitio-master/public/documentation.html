@@ -1,86 +1,225 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>智能文本分隔工具</title>
+  <title>Intelligent Text Segmentation Tool</title>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    /* 其他樣式保持不變 */
-    
-    /* 列印媒體查詢，隱藏切換主題按鈕，移除卡片陰影與背景 */
-    @media print {
-      .toggle-theme {
-        display: none;
-      }
-      .card {
-        box-shadow: none;
-        background: transparent !important;
-      }
+    :root {
+      --background: #fff;
+      --foreground: #020817;
+      --muted: #f1f5f9;
+      --primary: #2563eb;
+      --destructive: #dc2626;
+    }
+    .dark {
+      --background: #020817;
+      --foreground: #f8fafc;
+      --muted: #1e293b;
+      --primary: #3b82f6;
+      --destructive: #ef4444;
+    }
+    body {
+      background-color: var(--background);
+      color: var(--foreground);
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      min-height: 100vh;
+      padding: 1rem;
+      box-sizing: border-box;
+      line-height: 1.5;
+    }
+    .card {
+      background: var(--muted);
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      max-width: 64rem;
+      margin: 0 auto;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    }
+    .title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .section {
+      margin-bottom: 2rem;
+    }
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      color: var(--primary);
+    }
+    .feature-list {
+      list-style-type: none;
+      padding: 0;
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+    .feature-item {
+      background: var(--background);
+      padding: 1rem;
+      border-radius: 0.375rem;
+      border: 1px solid var(--foreground);
+    }
+    .feature-title {
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .description {
+      margin-bottom: 1rem;
+      color: var(--foreground);
+      opacity: 0.8;
+    }
+    .toggle-theme {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: var(--background);
+      border: 1px solid var(--foreground);
+      border-radius: 0.375rem;
+      padding: 0.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
   </style>
 </head>
 <body>
-  <!-- 為了無障礙性，加入 aria-pressed 與 aria-label -->
-  <button class="toggle-theme" onclick="toggleTheme()" aria-label="切換主題" aria-pressed="false">
-    <i data-lucide="moon" aria-hidden="true"></i>
-    <span>切換主題</span>
+  <button class="toggle-theme" onclick="toggleTheme()">
+    <i data-lucide="moon"></i>
+    <span>Toggle Theme</span>
   </button>
 
   <div class="card">
-    <!-- 此處僅舉例一個功能項目，其他裝飾性圖示均添加 aria-hidden -->
-    <ul>
-      <li class="feature-item">
-        <div class="feature-title">
-          <i data-lucide="divide" aria-hidden="true"></i>
-          智能文本分段
-        </div>
-        <p>根據字符限制自動分段，同時保留單詞完整性</p>
-      </li>
-      <!-- 其他功能項目可依此格式添加 -->
-    </ul>
+    <h1 class="title">
+      <i data-lucide="type"></i>
+      Intelligent Text Segmentation Tool - Documentation
+    </h1>
+
+    <div class="section">
+      <p class="description">
+        An advanced multilingual text segmentation application that provides intelligent parsing, dynamic rendering, and enhanced user interaction for breaking down and manipulating text across different languages.
+      </p>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Key Features</h2>
+      <ul class="feature-list">
+        <li class="feature-item">
+          <div class="feature-title">
+            <i data-lucide="divide"></i>
+            Smart Text Segmentation
+          </div>
+          <p>Automatically segments text based on character limit while preserving word integrity</p>
+        </li>
+        <li class="feature-item">
+          <div class="feature-title">
+            <i data-lucide="text"></i>
+            English Word Handling
+          </div>
+          <p>Treats English words as complete units, using hyphens for necessary breaks</p>
+        </li>
+        <li class="feature-item">
+          <div class="feature-title">
+            <i data-lucide="monitor"></i>
+            Dual Display Modes
+          </div>
+          <p>Switch between merged and segmented views for different editing needs</p>
+        </li>
+        <li class="feature-item">
+          <div class="feature-title">
+            <i data-lucide="edit"></i>
+            Individual Segment Editing
+          </div>
+          <p>Edit and copy individual segments with automatic updates</p>
+        </li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Usage Instructions</h2>
+      <ul class="feature-list">
+        <li class="feature-item">
+          <div class="feature-title">
+            <i data-lucide="pen-tool"></i>
+            Input Text
+          </div>
+          <p>Enter or paste text in the input box</p>
+        </li>
+        <li class="feature-item">
+          <div class="feature-title">
+            <i data-lucide="settings"></i>
+            Configure Limit
+          </div>
+          <p>Set character limit (minimum 2) for text segmentation</p>
+        </li>
+        <li class="feature-item">
+          <div class="feature-title">
+            <i data-lucide="layout-template"></i>
+            View Options
+          </div>
+          <p>Toggle between merged and segmented views, with word wrap options</p>
+        </li>
+        <li class="feature-item">
+          <div class="feature-title">
+            <i data-lucide="refresh-cw"></i>
+            Update Modes
+          </div>
+          <p>Choose between automatic and manual updates</p>
+        </li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Technical Information</h2>
+      <ul class="feature-list">
+        <li class="feature-item">
+          <div class="feature-title">
+            <i data-lucide="code"></i>
+            Built With
+          </div>
+          <p>React with TypeScript, Tailwind CSS, and modern web technologies</p>
+        </li>
+        <li class="feature-item">
+          <div class="feature-title">
+            <i data-lucide="laptop"></i>
+            System Requirements
+          </div>
+          <p>Modern web browser with JavaScript enabled</p>
+        </li>
+      </ul>
+    </div>
   </div>
 
   <script>
-    // 初始化圖示
+    // Initialize icons
     lucide.createIcons();
 
-    // 主題預設與初始化（嘗試從 localStorage 中讀取使用者偏好）
-    function initializeTheme() {
-      const savedTheme = localStorage.getItem('theme');
-      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const isDark = savedTheme ? savedTheme === 'dark' : systemDark;
-      
-      if (isDark) document.documentElement.classList.add('dark');
-      updateThemeButton(isDark);
-    }
-
-    // 更新主題切換按鈕的圖示與 ARIA 屬性
-    function updateThemeButton(isDark) {
-      const themeIcon = document.querySelector('.toggle-theme i');
-      // 清空原有圖示內容
-      themeIcon.innerHTML = "";
-      // 根據當前主題設定圖示：深色模式顯示「sun」，否則顯示「moon」
-      themeIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
-      // 重新初始化圖示（此處先清空再建立新圖示可避免重複）
-      lucide.createIcons();
-      document.querySelector('.toggle-theme').setAttribute('aria-pressed', isDark);
-    }
-
-    // 切換主題，並將使用者偏好儲存至 localStorage
+    // Theme toggle functionality
     function toggleTheme() {
       const isDark = document.documentElement.classList.toggle('dark');
-      localStorage.setItem('theme', isDark ? 'dark' : 'light');
-      updateThemeButton(isDark);
+      const themeIcon = document.querySelector('.toggle-theme i');
+      themeIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+      lucide.createIcons();
     }
 
-    // 初始載入時初始化主題
-    initializeTheme();
-
-    // 列印友善：當列印媒介改變時，若列印則移除 dark 模式
-    window.matchMedia('print').addListener((e) => {
-      if (e.matches) document.documentElement.classList.remove('dark');
-    });
+    // Check system preference for initial theme
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.classList.add('dark');
+      const themeIcon = document.querySelector('.toggle-theme i');
+      themeIcon.setAttribute('data-lucide', 'sun');
+      lucide.createIcons();
+    }
   </script>
 </body>
 </html>
