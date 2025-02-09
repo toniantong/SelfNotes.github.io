@@ -100,7 +100,7 @@
       margin-bottom: 1rem;
       padding: 1rem;
       background: var(--muted);
-      border-radius: 0.5rem;,
+      border-radius: 0.5rem;
     }
     .tech-specs {
       display: grid;
@@ -232,10 +232,6 @@
 </head>
 <body>
   <div class="container">
-  <button class="theme-toggle" id="toggleDarkMode" title="切換主題">
-    <i data-lucide="moon"></i>
-    切換主題
-  </button>
     <header class="header">
       <h1 class="title">智能文本分隔工具</h1>
       <p class="subtitle">進階的多語言文本處理與分隔應用</p>
@@ -382,125 +378,3 @@
     document.getElementById('input').addEventListener('input', handleInput);
     document.getElementById('pasteBtn').addEventListener('click', handlePaste);
     document.getElementById('clearBtn').addEventListener('click', handleClear);
-    document.getElementById('toggleView').addEventListener('click', toggleView);
-    document.getElementById('copyAllBtn').addEventListener('click', copyAll);
-    document.getElementById('toggleDarkMode').addEventListener('click', toggleTheme);
-
-
-    // 格式化文本函數：根據限定字符數切割文本
-    function formatText(text, limit) {
-      if (!text) return { text: "", segments: [] };
-      let segments = [];
-      let formatted = "";
-      // 這裡採用簡單分段：每 {limit} 個字符作為一個段落
-      for (let i = 0; i < text.length; i += limit) {
-        const segment = text.slice(i, i + limit);
-        segments.push(segment);
-      }
-      formatted = segments.join('\n');
-      return { text: formatted, segments: segments };
-    }
-
-    // 更新輸出結果
-    function updateOutput() {
-      const result = formatText(state.inputText, state.segmentLimit);
-      state.formattedText = result.text;
-      state.formattedSegments = result.segments;
-      renderOutput();
-    }
-
-    // 渲染結果
-    function renderOutput() {
-      const output = document.getElementById('output');
-      if (state.segmentedView) {
-        output.innerHTML = state.formattedSegments.map((seg, i) => `
-          <div class="editable">
-            <div class="segment-index">
-              <i data-lucide="hash"></i>
-              ${(i + 1).toString().padStart(state.formattedSegments.length.toString().length, '0')}
-            </div>
-            ${seg}
-            <button class="copy-btn" onclick="copySegment(${i})">
-              <i data-lucide="copy"></i>
-            </button>
-          </div>
-        `).join('');
-      } else {
-        // 合併顯示模式
-        output.innerHTML = `<div class="editable">${state.formattedText}</div>`;
-      }
-      lucide.createIcons();
-    }
-
-    // 處理文本輸入
-    function handleInput(e) {
-      state.inputText = e.target.value;
-      state.charCount = e.target.value.length;
-      if (state.autoUpdate) updateOutput();
-    }
-
-
-    // 處理剪貼簿貼上
-    function handlePaste() {
-      navigator.clipboard.readText().then(text => {
-        document.getElementById('input').value = text;
-        state.inputText = text;
-        updateOutput();
-      }).catch(err => {
-        alert('無法讀取剪貼簿內容！');
-      });
-    }
-
-    // 處理清空操作
-    function handleClear() {
-      document.getElementById('input').value = '';
-      state.inputText = '';
-      updateOutput();
-    }
-
-    // 切換顯示模式（分段與合併）
-    function toggleView() {
-      state.segmentedView = !state.segmentedView;
-      updateOutput();
-    }
-
-    // 複製單一段落
-    function copySegment(index) {
-      const seg = state.formattedSegments[index];
-      navigator.clipboard.writeText(seg).then(() => {
-        alert('已複製該段內容！');
-      }).catch(() => {
-        alert('複製失敗！');
-      });
-    }
-
-    // 複製全部內容
-    function copyAll() {
-      navigator.clipboard.writeText(state.formattedText).then(() => {
-        alert('已複製全部內容！');
-      }).catch(() => {
-        alert('複製全部內容失敗！');
-      });
-    }
-
-    // 切換主題
-    function toggleTheme() {
-      state.darkMode = !state.darkMode;
-      localStorage.setItem('darkMode', state.darkMode.toString());
-      updateTheme();
-    }
-
-    function updateTheme() {
-      if (state.darkMode) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-      lucide.createIcons();
-    }
-
-    // 初始化輸出
-    updateOutput();
-  </script>
-</body>
-</html>
