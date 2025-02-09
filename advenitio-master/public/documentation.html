@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>智能文本分隔工具</title>
+  <title>Intelligent Text Segmentation Tool</title>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     :root {
@@ -27,6 +27,7 @@
       min-height: 100vh;
       padding: 1rem;
       box-sizing: border-box;
+      line-height: 1.5;
     }
     .card {
       background: var(--muted);
@@ -34,297 +35,191 @@
       padding: 1.5rem;
       max-width: 64rem;
       margin: 0 auto;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
     }
-    .button {
-      background: var(--background);
-      border: 1px solid var(--foreground);
-      border-radius: 0.375rem;
-      padding: 0.5rem 1rem;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .textarea {
-      width: 100%;
-      height: 400px;
-      padding: 0.5rem;
-      background: var(--muted);
-      border: 1px solid var(--foreground);
-      border-radius: 0.375rem;
-      font-family: monospace;
-      white-space: pre-wrap;
-      box-sizing: border-box;
-    }
-    .editable {
-      min-height: 2.5rem;
-      padding: 0.5rem 3rem;
-      border: 1px solid var(--foreground);
-      border-radius: 0.375rem;
-      background: var(--muted);
-      position: relative;
-      margin-bottom: 0.5rem;
-    }
-    .segment-index {
-      position: absolute;
-      left: 0.5rem;
-      top: 0.5rem;
-      display: flex;
-      gap: 0.25rem;
-      align-items: center;
-      opacity: 0.6;
-    }
-    .input-section {
-      margin-top: 1rem;
-    }
-    .input-controls {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
+    .title {
+      font-size: 1.5rem;
+      font-weight: bold;
       margin-bottom: 1rem;
-    }
-    .input-controls input {
-      width: 200px;
-      padding: 0.25rem;
-    }
-    .text-areas {
       display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-    .input-area, .output-area {
-      flex: 1 1 300px;
-      position: relative;
-    }
-    .actions, .output-controls {
-      margin-top: 0.5rem;
-      display: flex;
+      align-items: center;
       gap: 0.5rem;
     }
-    .copy-btn {
-      position: absolute;
-      right: 0.5rem;
-      top: 50%;
-      transform: translateY(-50%);
+    .section {
+      margin-bottom: 2rem;
+    }
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      color: var(--primary);
+    }
+    .feature-list {
+      list-style-type: none;
+      padding: 0;
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+    .feature-item {
+      background: var(--background);
+      padding: 1rem;
+      border-radius: 0.375rem;
+      border: 1px solid var(--foreground);
+    }
+    .feature-title {
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .description {
+      margin-bottom: 1rem;
+      color: var(--foreground);
+      opacity: 0.8;
+    }
+    .toggle-theme {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
       background: var(--background);
       border: 1px solid var(--foreground);
       border-radius: 0.375rem;
-      padding: 0.25rem;
+      padding: 0.5rem;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
   </style>
 </head>
 <body>
+  <button class="toggle-theme" onclick="toggleTheme()">
+    <i data-lucide="moon"></i>
+    <span>Toggle Theme</span>
+  </button>
+
   <div class="card">
-    <div class="header" style="display: flex; justify-content: space-between; align-items: center;">
-      <h1 class="title">智能分隔文本編輯器</h1>
-      <div class="controls">
-        <button class="button" id="toggleUpdate" title="切換自動更新">
-          <i data-lucide="refresh-cw"></i>
-        </button>
-        <button class="button" id="toggleDarkMode" title="切換主題">
-          <i data-lucide="moon"></i>
-        </button>
-      </div>
+    <h1 class="title">
+      <i data-lucide="type"></i>
+      Intelligent Text Segmentation Tool - Documentation
+    </h1>
+
+    <div class="section">
+      <p class="description">
+        An advanced multilingual text segmentation application that provides intelligent parsing, dynamic rendering, and enhanced user interaction for breaking down and manipulating text across different languages.
+      </p>
     </div>
-    <div class="content">
-      <div class="input-section">
-        <div class="input-controls">
-          <div>
-            <label for="segmentLimit">分隔字符數限制</label>
-            <input type="number" id="segmentLimit" value="100000000000" class="limit-input">
+
+    <div class="section">
+      <h2 class="section-title">Key Features</h2>
+      <ul class="feature-list">
+        <li class="feature-item">
+          <div class="feature-title">
+            <i data-lucide="divide"></i>
+            Smart Text Segmentation
           </div>
-          <span id="charCount">當前字符數：0</span>
-        </div>
-        <div class="text-areas">
-          <div class="input-area">
-            <textarea id="input" class="textarea" placeholder="在此輸入文字..."></textarea>
-            <div class="actions">
-              <button class="button" id="pasteBtn">
-                <i data-lucide="clipboard"></i>貼上
-              </button>
-              <button class="button" id="clearBtn">
-                <i data-lucide="x"></i>清空
-              </button>
-            </div>
+          <p>Automatically segments text based on character limit while preserving word integrity</p>
+        </li>
+        <li class="feature-item">
+          <div class="feature-title">
+            <i data-lucide="text"></i>
+            English Word Handling
           </div>
-          <div class="output-area">
-            <div class="output-controls">
-              <button class="button" id="toggleView">
-                <i data-lucide="list-tree"></i>切換顯示模式
-              </button>
-              <button class="button" id="copyAllBtn">
-                <i data-lucide="copy"></i>複製全部
-              </button>
-            </div>
-            <div id="output" class="textarea editable-output" readonly></div>
+          <p>Treats English words as complete units, using hyphens for necessary breaks</p>
+        </li>
+        <li class="feature-item">
+          <div class="feature-title">
+            <i data-lucide="monitor"></i>
+            Dual Display Modes
           </div>
-        </div>
-      </div>
+          <p>Switch between merged and segmented views for different editing needs</p>
+        </li>
+        <li class="feature-item">
+          <div class="feature-title">
+            <i data-lucide="edit"></i>
+            Individual Segment Editing
+          </div>
+          <p>Edit and copy individual segments with automatic updates</p>
+        </li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Usage Instructions</h2>
+      <ul class="feature-list">
+        <li class="feature-item">
+          <div class="feature-title">
+            <i data-lucide="pen-tool"></i>
+            Input Text
+          </div>
+          <p>Enter or paste text in the input box</p>
+        </li>
+        <li class="feature-item">
+          <div class="feature-title">
+            <i data-lucide="settings"></i>
+            Configure Limit
+          </div>
+          <p>Set character limit (minimum 2) for text segmentation</p>
+        </li>
+        <li class="feature-item">
+          <div class="feature-title">
+            <i data-lucide="layout-template"></i>
+            View Options
+          </div>
+          <p>Toggle between merged and segmented views, with word wrap options</p>
+        </li>
+        <li class="feature-item">
+          <div class="feature-title">
+            <i data-lucide="refresh-cw"></i>
+            Update Modes
+          </div>
+          <p>Choose between automatic and manual updates</p>
+        </li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Technical Information</h2>
+      <ul class="feature-list">
+        <li class="feature-item">
+          <div class="feature-title">
+            <i data-lucide="code"></i>
+            Built With
+          </div>
+          <p>React with TypeScript, Tailwind CSS, and modern web technologies</p>
+        </li>
+        <li class="feature-item">
+          <div class="feature-title">
+            <i data-lucide="laptop"></i>
+            System Requirements
+          </div>
+          <p>Modern web browser with JavaScript enabled</p>
+        </li>
+      </ul>
     </div>
   </div>
 
   <script>
-    // 初始狀態管理
-    let state = {
-      inputText: '',
-      segmentLimit: 100000000000,
-      formattedText: '',
-      formattedSegments: [],
-      autoUpdate: true,
-      darkMode: localStorage.getItem('darkMode') === 'true',
-      charCount: 0,
-      segmentedView: true  // true: 分段顯示, false: 合併顯示
-    };
-
-    // 初始化圖標與主題
+    // Initialize icons
     lucide.createIcons();
-    updateTheme();
 
-    // 添加事件監聽
-    document.getElementById('input').addEventListener('input', handleInput);
-    document.getElementById('segmentLimit').addEventListener('change', handleLimitChange);
-    document.getElementById('pasteBtn').addEventListener('click', handlePaste);
-    document.getElementById('clearBtn').addEventListener('click', handleClear);
-    document.getElementById('toggleView').addEventListener('click', toggleView);
-    document.getElementById('copyAllBtn').addEventListener('click', copyAll);
-    document.getElementById('toggleDarkMode').addEventListener('click', toggleTheme);
-    document.getElementById('toggleUpdate').addEventListener('click', toggleAutoUpdate);
-
-    // 格式化文本函數：根據限定字符數切割文本
-    function formatText(text, limit) {
-      if (!text) return { text: "", segments: [] };
-      let segments = [];
-      let formatted = "";
-      // 這裡採用簡單分段：每 {limit} 個字符作為一個段落
-      for (let i = 0; i < text.length; i += limit) {
-        const segment = text.slice(i, i + limit);
-        segments.push(segment);
-      }
-      formatted = segments.join('\n');
-      return { text: formatted, segments: segments };
-    }
-
-    // 更新輸出結果
-    function updateOutput() {
-      const result = formatText(state.inputText, state.segmentLimit);
-      state.formattedText = result.text;
-      state.formattedSegments = result.segments;
-      renderOutput();
-    }
-
-    // 渲染結果
-    function renderOutput() {
-      const output = document.getElementById('output');
-      if (state.segmentedView) {
-        output.innerHTML = state.formattedSegments.map((seg, i) => `
-          <div class="editable">
-            <div class="segment-index">
-              <i data-lucide="hash"></i>
-              ${(i + 1).toString().padStart(state.formattedSegments.length.toString().length, '0')}
-            </div>
-            ${seg}
-            <button class="copy-btn" onclick="copySegment(${i})">
-              <i data-lucide="copy"></i>
-            </button>
-          </div>
-        `).join('');
-      } else {
-        // 合併顯示模式
-        output.innerHTML = `<div class="editable">${state.formattedText}</div>`;
-      }
+    // Theme toggle functionality
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      const themeIcon = document.querySelector('.toggle-theme i');
+      themeIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
       lucide.createIcons();
     }
 
-    // 處理文本輸入
-    function handleInput(e) {
-      state.inputText = e.target.value;
-      state.charCount = e.target.value.length;
-      document.getElementById('charCount').textContent = `當前字符數：${state.charCount}`;
-      if (state.autoUpdate) updateOutput();
+    // Check system preference for initial theme
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.classList.add('dark');
+      const themeIcon = document.querySelector('.toggle-theme i');
+      themeIcon.setAttribute('data-lucide', 'sun');
+      lucide.createIcons();
     }
-
-    // 處理字符數限制變更
-    function handleLimitChange(e) {
-      let value = parseInt(e.target.value);
-      if (isNaN(value) || value < 1) {
-        value = 1;
-        e.target.value = 1;
-      }
-      state.segmentLimit = value;
-      updateOutput();
-    }
-
-    // 處理剪貼簿貼上
-    function handlePaste() {
-      navigator.clipboard.readText().then(text => {
-        document.getElementById('input').value = text;
-        state.inputText = text;
-        state.charCount = text.length;
-        document.getElementById('charCount').textContent = `當前字符數：${state.charCount}`;
-        updateOutput();
-      }).catch(err => {
-        alert('無法讀取剪貼簿內容！');
-      });
-    }
-
-    // 處理清空操作
-    function handleClear() {
-      document.getElementById('input').value = '';
-      state.inputText = '';
-      state.charCount = 0;
-      document.getElementById('charCount').textContent = '當前字符數：0';
-      updateOutput();
-    }
-
-    // 切換顯示模式（分段與合併）
-    function toggleView() {
-      state.segmentedView = !state.segmentedView;
-      updateOutput();
-    }
-
-    // 複製單一段落
-    function copySegment(index) {
-      const seg = state.formattedSegments[index];
-      navigator.clipboard.writeText(seg).then(() => {
-        alert('已複製該段內容！');
-      }).catch(() => {
-        alert('複製失敗！');
-      });
-    }
-
-    // 複製全部內容
-    function copyAll() {
-      navigator.clipboard.writeText(state.formattedText).then(() => {
-        alert('已複製全部內容！');
-      }).catch(() => {
-        alert('複製全部內容失敗！');
-      });
-    }
-
-    // 切換主題
-    function toggleTheme() {
-      state.darkMode = !state.darkMode;
-      localStorage.setItem('darkMode', state.darkMode.toString());
-      updateTheme();
-    }
-
-    function updateTheme() {
-      if (state.darkMode) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    }
-
-    // 切換自動更新模式
-    function toggleAutoUpdate() {
-      state.autoUpdate = !state.autoUpdate;
-      alert(`自動更新狀態已切換為：${state.autoUpdate ? '開啟' : '關閉'}`);
-    }
-
-    // 初始化輸出
-    updateOutput();
   </script>
 </body>
 </html>
