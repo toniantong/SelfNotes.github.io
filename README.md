@@ -12,3 +12,4 @@
 ---
 [YTSubDl.htm](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/YTSubDl.htm)
 [documentation.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/documentation.html)
+[SmartSplitEditor.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/SmartSplitEditor.html)
