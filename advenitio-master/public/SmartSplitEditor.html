@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智能分隔文本編輯器</title>
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --background-color: #f8f8f8;
+      --dark-bg-color: #1e293b;
+      --text-color: #333;
+      --dark-text-color: #f1f5f9;
+      --muted-bg: #e5e7eb;
+      --dark-muted-bg: #334155;
+      --border-color: #ddd;
+      --dark-border-color: #475569;
+    }
+    html {
+      font-family: sans-serif;
+      font-size: 16px;
+    }
+    body {
+      margin: 0;
+      padding: 16px;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .dark body,
+    .dark {
+      background-color: var(--dark-bg-color);
+      color: var(--dark-text-color);
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .card {
+      background-color: #fff;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+    .dark .card {
+      background-color: #1e293b;
+      border-color: var(--dark-border-color);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      margin-right: 8px;
+    }
+    .button {
+      padding: 6px 12px;
+      margin: 2px;
+      border: 1px solid var(--border-color);
+      background: none;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .button:hover {
+      background-color: var(--muted-bg);
+    }
+    .dark .button {
+      border-color: var(--dark-border-color);
+    }
+    .active {
+      background-color: var(--primary-color);
+      color: #fff;
+    }
+    textarea {
+      width: 100%;
+      resize: vertical;
+      padding: 8px;
+      font-family: monospace;
+      font-size: 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+    }
+    .dark textarea {
+      border-color: var(--dark-border-color);
+      background-color: #273444;
+      color: var(--dark-text-color);
+    }
+    .result-container {
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background-color: var(--muted-bg);
+      padding: 8px;
+      height: 400px;
+      overflow-y: auto;
+      position: relative;
+      white-space: pre-wrap;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    .dark .result-container {
+      border-color: var(--dark-border-color);
+      background-color: var(--dark-muted-bg);
+    }
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+    @media (min-width: 768px) {
+      .grid-cols-2 {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    .controls {
+      margin-bottom: 8px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .segment {
+      position: relative;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 8px 8px 8px 40px;
+      margin-bottom: 4px;
+      background-color: #fff;
+    }
+    .dark .segment {
+      background-color: #1e293b;
+      border-color: var(--dark-border-color);
+    }
+    .segment-number {
+      position: absolute;
+      left: 8px;
+      top: 8px;
+      font-size: 0.8rem;
+      color: var(--primary-color);
+      font-family: monospace;
+    }
+    .segment .copy-btn {
+      position: absolute;
+      right: 8px;
+      top: 8px;
+    }
+    [contenteditable] {
+      outline: none;
+    }
+    .nowrap {
+      white-space: pre;
+      overflow-x: auto;
+    }
+    /* Toast styling */
+    #toastContainer {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+    .toast {
+      background: var(--primary-color);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 4px;
+      margin-top: 8px;
+      opacity: 0.9;
+      transition: opacity 0.3s;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="header">
+        <h1>智能分隔文本編輯器</h1>
+        <div class="controls">
+          <button id="btnCharacter" class="button active" data-mode="character">字符分隔</button>
+          <button id="btnPeriod" class="button" data-mode="period">句點分隔</button>
+          <button id="btnNewline" class="button" data-mode="newline">換行分隔</button>
+          <button id="themeToggleBtn" class="button">主題</button>
+          <button id="wrapToggleBtn" class="button">換行: ON</button>
+        </div>
+      </div>
+      <details id="instructions">
+        <summary>使用說明</summary>
+        <div style="padding:8px;">
+          <ul>
+            <li><strong>基本功能：</strong>
+              <ul>
+                <li>在文本框中輸入或貼上文字內容</li>
+                <li>支援自動更新和手動更新兩種模式</li>
+                <li>提供合併顯示和分隔顯示兩種模式</li>
+                <li>支援文字換行和不換行兩種顯示方式</li>
+              </ul>
+            </li>
+            <li><strong>分隔模式：</strong>
+              <ul>
+                <li>字符分隔：按照指定的字符數限制自動分隔，英文單詞會作為整體處理，必要時使用連字符（-）分隔</li>
+                <li>句點分隔：在句點（。或.）處分隔</li>
+                <li>換行分隔：按照原文的換行位置分隔</li>
+              </ul>
+            </li>
+            <li><strong>導航與編輯：</strong>
+              <ul>
+                <li>可切換分隔顯示和合併顯示</li>
+                <li>每個分隔段落都可以單獨編輯及複製</li>
+                <li>支援全文複製功能</li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </details>
+      <div class="controls">
+        <label>分隔字符數限制: <input id="segmentLimitInput" type="text" value="100000000000" style="width: 120px;"></label>
+        <span>當前字符數: <span id="charCount">0</span></span>
+      </div>
+      <div class="grid grid-cols-2">
+        <div>
+          <div class="controls">
+            <button id="pasteBtn" class="button">貼上</button>
+            <button id="clearBtn" class="button">清空</button>
+          </div>
+          <textarea id="inputText" rows="20" placeholder="在此輸入文字..."></textarea>
+        </div>
+        <div>
+          <div class="controls">
+            <button id="updateBtn" class="button" style="display:none;">更新</button>
+            <select id="segmentSelect" style="display:none;">
+              <option value="">跳轉到分段</option>
+            </select>
+            <button id="toggleViewBtn" class="button">分隔顯示</button>
+            <button id="copyAllBtn" class="button">複製全部</button>
+            <label style="display: flex; align-items: center;">
+              <input type="checkbox" id="autoUpdateCheckbox" checked style="margin-right:4px;">
+              自動更新
+            </label>
+          </div>
+          <div id="resultContainer" class="result-container"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="toastContainer"></div>
+  <script>
+    // 全域 state 變數
+    let segmentLimit = 100000000000;
+    let formattedText = "";
+    let formattedSegments = [];
+    let isSegmentView = false;
+    let isDarkMode = false;
+    let isWrapText = true;
+    let autoUpdate = true;
+    let splitMode = "character"; // "character", "period", "newline"
+
+    // DOM 元素
+    const inputTextElem = document.getElementById("inputText");
+    const segmentLimitInputElem = document.getElementById("segmentLimitInput");
+    const charCountElem = document.getElementById("charCount");
+    const resultContainer = document.getElementById("resultContainer");
+    const autoUpdateCheckbox = document.getElementById("autoUpdateCheckbox");
+    const updateBtn = document.getElementById("updateBtn");
+    const toggleViewBtn = document.getElementById("toggleViewBtn");
+    const segmentSelect = document.getElementById("segmentSelect");
+    const pasteBtn = document.getElementById("pasteBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const copyAllBtn = document.getElementById("copyAllBtn");
+    const themeToggleBtn = document.getElementById("themeToggleBtn");
+    const wrapToggleBtn = document.getElementById("wrapToggleBtn");
+    const btnCharacter = document.getElementById("btnCharacter");
+    const btnPeriod = document.getElementById("btnPeriod");
+    const btnNewline = document.getElementById("btnNewline");
+
+    // Toast 方法
+    function showToast(message, variant = "success") {
+      const toastContainer = document.getElementById("toastContainer");
+      const toast = document.createElement("div");
+      toast.className = "toast";
+      toast.textContent = message;
+      toastContainer.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        setTimeout(() => {
+          toastContainer.removeChild(toast);
+        }, 300);
+      }, 2000);
+    }
+
+    // 切換主題（深/淺）
+    function toggleTheme() {
+      document.documentElement.classList.toggle("dark");
+      isDarkMode = document.documentElement.classList.contains("dark");
+      localStorage.setItem("darkMode", isDarkMode);
+    }
+
+    // 切換格式化結果區域是否換行
+    function toggleWrap() {
+      isWrapText = !isWrapText;
+      if(isWrapText) {
+        resultContainer.classList.remove("nowrap");
+        wrapToggleBtn.textContent = "換行: ON";
+      } else {
+        resultContainer.classList.add("nowrap");
+        wrapToggleBtn.textContent = "換行: OFF";
+      }
+    }
+
+    // 模擬格式化處理函式（參考原始邏輯）
+    function formatText(text, limit, mode) {
+      if (!text) return { text: "", segments: [] };
+      let segments = [];
+      let formatted = "";
+      let currentSegment = "";
+      let buffer = "";
+      let isEnglishWord = false;
+
+      const isEnglishChar = char => /[a-zA-Z]/.test(char);
+
+      function flushCurrentSegment() {
+        if (currentSegment.length === 0) return;
+        segments.push(currentSegment);
+        formatted += currentSegment + "\n";
+        currentSegment = "";
+      }
+
+      function processEnglishBuffer() {
+        const totalLength = currentSegment.length + buffer.length;
+        if (totalLength === limit) {
+          currentSegment += buffer;
+          flushCurrentSegment();
+        } else if (totalLength > limit) {
+          let availableSpace = limit - currentSegment.length;
+          if (availableSpace > 0) {
+            currentSegment += buffer.slice(0, availableSpace - 1) + '-';
+            buffer = buffer.slice(availableSpace - 1);
+          } else {
+            const splitPoint = limit - 1;
+            currentSegment += buffer.slice(0, splitPoint) + '-';
+            buffer = buffer.slice(splitPoint);
+          }
+          flushCurrentSegment();
+          while (buffer.length > 0) {
+            if (buffer.length > limit) {
+              const splitPoint = limit - 1;
+              currentSegment = buffer.slice(0, splitPoint) + '-';
+              buffer = buffer.slice(splitPoint);
+              flushCurrentSegment();
+            } else {
+              currentSegment = buffer;
+              buffer = '';
+            }
+          }
+        } else {
+          currentSegment += buffer;
+          buffer = '';
+        }
+      }
+
+      const paragraphs = text.split("\n");
+      for (let paragraph of paragraphs) {
+        if (paragraph === "") {
+          if (mode === "newline") {
+            segments.push("");
+            formatted += "\n";
+          }
+          continue;
+        }
+        for (let i = 0; i < paragraph.length; i++) {
+          const char = paragraph[i];
+          const nextChar = paragraph[i + 1];
+          const isEnglish = isEnglishChar(char);
+          if (isEnglish) {
+            if (!isEnglishWord && buffer.length > 0) {
+              currentSegment += buffer;
+              buffer = "";
+            }
+            isEnglishWord = true;
+            buffer += char;
+          } else {
+            if (isEnglishWord) {
+              processEnglishBuffer();
+              isEnglishWord = false;
+            }
+            buffer += char;
+          }
+          let shouldSplit =
+            (currentSegment.length + buffer.length >= limit) ||
+            (mode === "period" && (char === "。" || (char === "." && nextChar === " "))) ||
+            (mode === "newline" && char === "\n");
+
+          if (!isEnglish && shouldSplit) {
+            if (mode === "period" && (char === "。" || (char === "." && nextChar === " "))) {
+              currentSegment += buffer;
+              if (char === "." && nextChar === " ") {
+                currentSegment += nextChar;
+                i++;
+              }
+              flushCurrentSegment();
+              buffer = "";
+            } else if (mode === "newline" && char === "\n") {
+              currentSegment += buffer.slice(0, -1);
+              flushCurrentSegment();
+              buffer = "";
+            } else {
+              currentSegment += buffer;
+              flushCurrentSegment();
+              buffer = "";
+            }
+          }
+        }
+        if (isEnglishWord) {
+          processEnglishBuffer();
+        }
+        if (buffer.length > 0) {
+          currentSegment += buffer;
+          buffer = "";
+        }
+        if (currentSegment.length > 0) {
+          flushCurrentSegment();
+        }
+        if (mode === "newline") {
+          formatted += "\n";
+        }
+      }
+      return { text: formatted.trim(), segments: segments.filter(seg => seg) };
+    }
+
+    // 根據使用者輸入更新格式化結果
+    function updateFormat() {
+      const text = inputTextElem.value;
+      segmentLimit = parseInt(segmentLimitInputElem.value.trim()) || 100000000000;
+      charCountElem.textContent = text.length;
+      const result = formatText(text, segmentLimit, splitMode);
+      formattedText = result.text;
+      formattedSegments = result.segments;
+      renderResult();
+      updateSegmentSelect();
+    }
+
+    // 根據「合併」或「分段」模式渲染結果區域
+    function renderResult() {
+      resultContainer.innerHTML = "";
+      if (isSegmentView) {
+        // 分段模式：每段一個可編輯區塊
+        formattedSegments.forEach((segment, index) => {
+          const segDiv = document.createElement("div");
+          segDiv.className = "segment";
+          segDiv.id = "segment-" + index;
+          // 設置 contentEditable，可直接編輯
+          segDiv.contentEditable = true;
+          segDiv.textContent = segment;
+          segDiv.addEventListener("blur", () => {
+            formattedSegments[index] = segDiv.textContent;
+            formattedText = formattedSegments.join("\n");
+          });
+          const numSpan = document.createElement("span");
+          numSpan.className = "segment-number";
+          const digits = formattedSegments.length.toString().length;
+          numSpan.textContent = (index + 1).toString().padStart(digits, '0');
+          segDiv.appendChild(numSpan);
+          const copyBtn = document.createElement("button");
+          copyBtn.className = "button copy-btn";
+          copyBtn.textContent = "複製";
+          copyBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            copyToClipboard(segment);
+          });
+          segDiv.appendChild(copyBtn);
+          resultContainer.appendChild(segDiv);
+        });
+      } else {
+        // 合併模式：單一 contentEditable 區塊
+        const mergedDiv = document.createElement("div");
+        mergedDiv.contentEditable = true;
+        mergedDiv.style.height = "100%";
+        mergedDiv.style.overflowY = "auto";
+        mergedDiv.style.outline = "none";
+        mergedDiv.textContent = formattedText;
+        mergedDiv.addEventListener("blur", () => {
+          formattedText = mergedDiv.textContent;
+          formattedSegments = formattedText.split("\n").filter(Boolean);
+          updateSegmentSelect();
+        });
+        resultContainer.appendChild(mergedDiv);
+      }
+    }
+
+    // 更新用來跳轉到指定分段的下拉選單
+    function updateSegmentSelect() {
+      segmentSelect.innerHTML = '<option value="">跳轉到分段</option>';
+      if (isSegmentView && formattedSegments.length > 0) {
+        segmentSelect.style.display = "inline";
+        formattedSegments.forEach((_, index) => {
+          const option = document.createElement("option");
+          option.value = index;
+          const digits = formattedSegments.length.toString().length;
+          option.textContent = "第 " + (index + 1).toString().padStart(digits, '0') + " 段";
+          segmentSelect.appendChild(option);
+        });
+      } else {
+        segmentSelect.style.display = "none";
+      }
+    }
+
+    // 跳轉捲動到指定分段
+    function scrollToSegment(index) {
+      const segDiv = document.getElementById("segment-" + index);
+      if (segDiv) {
+        segDiv.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+
+    // 複製文字到剪貼簿
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast("已複製到剪貼簿");
+      }).catch(() => {
+        showToast("複製失敗", "error");
+      });
+    }
+
+    // DOM 載入後的初始化
+    document.addEventListener("DOMContentLoaded", () => {
+      // 讀取存檔的主題偏好
+      const savedDarkMode = localStorage.getItem("darkMode");
+      if (savedDarkMode === "true") {
+        document.documentElement.classList.add("dark");
+        isDarkMode = true;
+      }
+      updateFormat();
+
+      inputTextElem.addEventListener("input", () => {
+        if(autoUpdate) {
+          updateFormat();
+        }
+      });
+
+      segmentLimitInputElem.addEventListener("input", () => {
+        if(autoUpdate) {
+          updateFormat();
+        }
+      });
+
+      autoUpdateCheckbox.addEventListener("change", () => {
+        autoUpdate = autoUpdateCheckbox.checked;
+        updateBtn.style.display = autoUpdate ? "none" : "inline-block";
+        if(autoUpdate) {
+          updateFormat();
+        }
+      });
+
+      updateBtn.addEventListener("click", updateFormat);
+
+      toggleViewBtn.addEventListener("click", () => {
+        isSegmentView = !isSegmentView;
+        toggleViewBtn.textContent = isSegmentView ? "合併顯示" : "分隔顯示";
+        renderResult();
+        updateSegmentSelect();
+      });
+
+      segmentSelect.addEventListener("change", () => {
+        const value = segmentSelect.value;
+        if (value !== "") {
+          scrollToSegment(value);
+        }
+      });
+
+      pasteBtn.addEventListener("click", async () => {
+        try {
+          const text = await navigator.clipboard.readText();
+          inputTextElem.value = text;
+          updateFormat();
+        } catch (err) {
+          console.error("無法讀取剪貼簿:", err);
+        }
+      });
+
+      clearBtn.addEventListener("click", () => {
+        inputTextElem.value = "";
+        updateFormat();
+      });
+
+      copyAllBtn.addEventListener("click", () => {
+        copyToClipboard(formattedText);
+      });
+
+      themeToggleBtn.addEventListener("click", toggleTheme);
+      wrapToggleBtn.addEventListener("click", toggleWrap);
+
+      // 分隔模式按鈕
+      [btnCharacter, btnPeriod, btnNewline].forEach(btn => {
+        btn.addEventListener("click", () => {
+          splitMode = btn.getAttribute("data-mode");
+          [btnCharacter, btnPeriod, btnNewline].forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          updateFormat();
+        });
+      });
+    });
+  </script>
+</body>
+</html>
