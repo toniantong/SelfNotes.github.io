@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WebVTT to SRT Converter</title>
+  <style>
+    body {
+      font-family: sans-serif;
+    }
+    #input-text {
+      width: 90%;
+      height: 200px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+      white-space: pre-wrap;
+    }
+    button {
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    textarea {
+        width: 90%;
+        height: 200px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 10px;
+        white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>WebVTT to SRT Converter</h1>
+
+  <p>Upload a .vtt file or paste WebVTT content below:</p>
+
+  <input type="file" id="file-input" accept=".vtt">
+  <textarea id="input-text" placeholder="Paste WebVTT content here"></textarea>
+  <br>
+  <button id="convert-button">Convert to SRT</button>
+
+  <h2>SRT Output:</h2>
+  <textarea id="output-text" readonly placeholder="SRT output will appear here"></textarea>
+  <br>
+  <button id="download-button" disabled>Download SRT</button>
+
+  <script>
+    const fileInput = document.getElementById('file-input');
+    const inputText = document.getElementById('input-text');
+    const convertButton = document.getElementById('convert-button');
+    const outputText = document.getElementById('output-text');
+    const downloadButton = document.getElementById('download-button');
+
+    fileInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+
+      if (file) {
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+          inputText.value = e.target.result;
+        };
+
+        reader.onerror = (e) => {
+          alert('Error reading file!');
+        };
+
+        reader.readAsText(file);
+      }
+    });
+
+    convertButton.addEventListener('click', () => {
+      const vttContent = inputText.value;
+      const srtContent = convertVTTtoSRT(vttContent);
+      outputText.value = srtContent;
+      downloadButton.disabled = false;
+    });
+
+    downloadButton.addEventListener('click', () => {
+      const srtContent = outputText.value;
+      downloadSRT(srtContent);
+    });
+
+    function convertVTTtoSRT(vtt) {
+      const lines = vtt.split('\n');
+      let srt = '';
+      let counter = 1;
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+
+        if (line.startsWith('0') && line.includes('-->')) {
+          // Timecode line
+          const [startTime, endTime] = line.split(' --> ');
+          const srtTimecode = vttTimeToSRT(startTime) + ' --> ' + vttTimeToSRT(endTime);
+          srt += counter + '\n';
+          srt += srtTimecode + '\n';
+          counter++;
+        } else if (line !== '' && !line.startsWith('WEBVTT') && !line.startsWith('Kind:') && !line.startsWith('Language:')) {
+          // Subtitle text line
+          srt += line + '\n';
+        }
+      }
+
+      return srt.trim();
+    }
+
+    function vttTimeToSRT(vttTime) {
+      const [hours, minutes, secondsMilliseconds] = vttTime.split(':');
+      const [seconds, milliseconds] = secondsMilliseconds.split('.');
+      return `${hours}:${minutes}:${seconds},${milliseconds}`;
+    }
+
+    function downloadSRT(srtContent) {
+      const blob = new Blob([srtContent], { type: 'text/srt' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'subtitle.srt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  </script>
+
+</body>
+</html>
