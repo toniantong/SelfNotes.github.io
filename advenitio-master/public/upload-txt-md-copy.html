@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>上传并显示文件内容 (All-in-One)</title>
+  <title>上傳並顯示文件內容 (All-in-One)</title>
   <style>
     /* CSS 样式 */
     body {
@@ -26,14 +26,16 @@
 <body>
 
   <input type="file" id="file-input" accept=".txt,.md">
-  <button id="copy-button" disabled>复制</button>
-  <textarea id="text-content" rows="10" cols="50">请选择一个文件。</textarea>
+  <button id="copy-button" disabled>複制</button>
+  <button id="paste-button">贴上</button>
+  <textarea id="text-content" rows="10" cols="50">請選擇一個文件。</textarea>
 
   <script>
-    // JavaScript 代码
+    // JavaScript 代碼
     const fileInput = document.getElementById('file-input');
     const textContentElement = document.getElementById('text-content');
     const copyButton = document.getElementById('copy-button');
+    const pasteButton = document.getElementById('paste-button');
 
     fileInput.addEventListener('change', (event) => {
       const file = event.target.files[0];
@@ -48,14 +50,14 @@
         };
 
         reader.onerror = (e) => {
-          console.error('读取文件出错:', e);
-          textContentElement.value = '读取文件出错！';
+          console.error('讀取文件出錯:', e);
+          textContentElement.value = '讀取文件出錯！';
           copyButton.disabled = true;
         };
 
         reader.readAsText(file);
       } else {
-        textContentElement.value = '请选择一个文件。';
+        textContentElement.value = '請選擇一個文件。';
         copyButton.disabled = true;
       }
     });
@@ -65,10 +67,10 @@
 
       navigator.clipboard.writeText(textToCopy)
         .then(() => {
-          alert('已复制到剪贴板！');
+          alert('複製到剪貼板！');
         })
         .catch(err => {
-          console.error('复制失败: ', err);
+          console.error('複制失敗: ', err);
           const textArea = document.createElement("textarea");
           textArea.value = textToCopy;
           document.body.appendChild(textArea);
@@ -76,14 +78,24 @@
           textArea.select();
           try {
             const successful = document.execCommand('copy');
-            const msg = successful ? '成功' : '失败';
-            alert('复制' + msg + '!');
+            const msg = successful ? '成功' : '失敗';
+            alert('複制' + msg + '!');
           } catch (err) {
-            console.error('复制失败: ', err);
-            alert('复制失败，请手动复制。');
+            console.error('複制失敗: ', err);
+            alert('複制失敗，請手動複制。');
           }
           document.body.removeChild(textArea);
         });
+    });
+
+    pasteButton.addEventListener('click', async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        textContentElement.value = text;
+      } catch (err) {
+        console.error('粘貼失敗: ', err);
+        alert('粘貼失敗，請手動貼上。');
+      }
     });
   </script>
 
