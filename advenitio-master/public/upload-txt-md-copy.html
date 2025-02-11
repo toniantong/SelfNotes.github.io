@@ -12,6 +12,8 @@
       border: 1px solid #ccc;
       padding: 10px;
       margin-bottom: 10px;
+      width: 90%; /* 增加宽度，使其更易于阅读 */
+      height: 200px; /* 增加高度 */
     }
     button {
       padding: 5px 10px;
@@ -26,8 +28,10 @@
 <body>
 
   <input type="file" id="file-input" accept=".txt,.md">
-  <button id="copy-button" disabled>複制</button>
-  <button id="paste-button">贴上</button>
+  <button id="copy-button" disabled>複製</button>
+  <button id="paste-button">貼上</button>
+
+  <textarea id="text-content" rows="10" cols="50">請選擇一個文件。</textarea>
 
   <script>
     // JavaScript 代碼
@@ -69,7 +73,8 @@
           alert('複製到剪貼板！');
         })
         .catch(err => {
-          console.error('複制失敗: ', err);
+          console.error('複製失敗: ', err);
+          // Fallback to textarea method (less reliable, but more compatible)
           const textArea = document.createElement("textarea");
           textArea.value = textToCopy;
           document.body.appendChild(textArea);
@@ -78,10 +83,10 @@
           try {
             const successful = document.execCommand('copy');
             const msg = successful ? '成功' : '失敗';
-            alert('複制' + msg + '!');
+            alert('複製' + msg + '!');
           } catch (err) {
             console.error('複制失敗: ', err);
-            alert('複制失敗，請手動複制。');
+            alert('複製失敗，請手動複製。');
           }
           document.body.removeChild(textArea);
         });
@@ -92,13 +97,11 @@
         const text = await navigator.clipboard.readText();
         textContentElement.value = text;
       } catch (err) {
-        console.error('粘貼失敗: ', err);
-        alert('粘貼失敗，請手動貼上。');
+        console.error('貼上失敗: ', err);
+        alert('貼上失敗，請手動貼上。');
       }
     });
   </script>
-
-  <textarea id="text-content" rows="10" cols="50">請選擇一個文件。</textarea>
 
 </body>
 </html>
