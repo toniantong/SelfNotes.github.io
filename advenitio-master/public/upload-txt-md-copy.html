@@ -27,7 +27,7 @@
 
   <input type="file" id="file-input" accept=".txt,.md">
   <button id="copy-button" disabled>复制</button>
-  <pre id="text-content">请选择一个文件。</pre>
+  <textarea id="text-content" rows="10" cols="50">请选择一个文件。</textarea>
 
   <script>
     // JavaScript 代码
@@ -43,25 +43,25 @@
 
         reader.onload = (e) => {
           const fileContent = e.target.result;
-          textContentElement.innerText = fileContent;
+          textContentElement.value = fileContent;
           copyButton.disabled = false;
         };
 
         reader.onerror = (e) => {
           console.error('读取文件出错:', e);
-          textContentElement.innerText = '读取文件出错！';
+          textContentElement.value = '读取文件出错！';
           copyButton.disabled = true;
         };
 
         reader.readAsText(file);
       } else {
-        textContentElement.innerText = '请选择一个文件。';
+        textContentElement.value = '请选择一个文件。';
         copyButton.disabled = true;
       }
     });
 
     copyButton.addEventListener('click', () => {
-      const textToCopy = textContentElement.innerText;
+      const textToCopy = textContentElement.value;
 
       navigator.clipboard.writeText(textToCopy)
         .then(() => {
