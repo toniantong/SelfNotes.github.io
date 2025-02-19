@@ -6,6 +6,7 @@
 <body>
 <textarea id="htmlInput" style="width: 100%; height: 100px;">Enter HTML here...</textarea>
 <button onclick="convertHtmlToMarkdown()">Convert to Markdown</button>
+<button onclick="copyToClipboard()">Copy to Clipboard</button>
 <div id="markdownOutput" style="width: 100%; height: 100px; border: 1px solid black; padding: 5px;"></div>
 
 <script src="https://unpkg.com/turndown/dist/turndown.js"></script>
@@ -16,6 +17,15 @@ function convertHtmlToMarkdown() {
     var markdown = turndownService.turndown(html);
     
     document.getElementById('markdownOutput').innerText = markdown;
+}
+
+function copyToClipboard() {
+    var copyText = document.getElementById('markdownOutput').innerText;
+    navigator.clipboard.writeText(copyText).then(function() {
+        alert('Copied to clipboard');
+    }, function(err) {
+        alert('Failed to copy text: ' + err);
+    });
 }
 </script>
 </body>
