@@ -27,6 +27,29 @@
       box-sizing: border-box;
       resize: vertical;
     }
+    .dialog {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border: 1px solid #ccc;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      z-index: 1000;
+      display: none;
+    }
+    .dialog input {
+      margin: 5px 0;
+      padding: 5px;
+      width: 100%;
+    }
+    .dialog-buttons {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
 
     /* 平板（< 768px） */
     @media (max-width: 768px) {
@@ -43,6 +66,7 @@
       }
       button { flex: none; width: 100%; margin: 2px 0; }
       #editor { min-height: 150px; font-size: 14px; }
+      .dialog { width: 90%; }
     }
   </style>
 </head>
@@ -57,8 +81,21 @@
       <button onclick="clearEditor()">清除</button>
       <button onclick="pasteText()">貼上</button>
       <button onclick="copyText()">複製</button>
+      <button onclick="openSearchReplaceDialog()">搜尋與取代</button>
     </div>
     <div id="editor" contenteditable="true" oninput="autoSave()"></div>
+  </div>
+
+  <!-- 搜尋與取代對話框 -->
+  <div id="searchReplaceDialog" class="dialog">
+    <h3>搜尋與取代</h3>
+    <input type="text" id="searchInput" placeholder="搜尋內容">
+    <input type="text" id="replaceInput" placeholder="取代為">
+    <div class="dialog-buttons">
+      <button onclick="replaceText()">取代</button>
+      <button onclick="replaceAllText()">全部取代</button>
+      <button onclick="closeDialog()">關閉</button>
+    </div>
   </div>
 
   <script>
@@ -92,7 +129,6 @@
 
     async function pasteText() {
       try {
-        // 先將編輯器獲得焦點，再從剪貼簿讀取內容並插入光標位置
         const editor = document.getElementById('editor');
         editor.focus();
         const text = await navigator.clipboard.readText();
@@ -104,13 +140,56 @@
 
     async function copyText() {
       try {
-        // 複製編輯器內的純文字內容
         const content = document.getElementById('editor').textContent;
         await navigator.clipboard.writeText(content);
         alert("複製成功！");
       } catch (err) {
         alert("複製失敗，請手動複製。");
       }
+    }
+
+    // 搜尋與取代功能
+    function openSearchReplaceDialog() {
+      const dialog = document.getElementById('searchReplaceDialog');
+      dialog.style.display = 'block';
+      document.getElementById('searchInput').focus();
+    }
+
+    function closeDialog() {
+      const dialog = document.getElementById('searchReplaceDialog');
+      dialog.style.display = 'none';
+      document.getElementById('searchInput').value = '';
+      document.getElementById('replaceInput').value = '';
+    }
+
+    function replaceText() {
+      const editor = document.getElementById('editor');
+      const searchText = document.getElementById('searchInput').value;
+      const replaceText = document.getElementById('replaceInput').value;
+      if (!searchText) return alert("請輸入搜尋內容");
+
+      editor.focus();
+      const selection = window.getSelection();
+      if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const content = editor.innerHTML;
+        const newContent = content.replace(searchText, replaceText);
+        editor.innerHTML = newContent;
+        autoSave();
+      }
+    }
+
+    function replaceAllText() {
+      const editor = document.getElementById('editor');
+      const searchText = document.getElementById('searchInput').value;
+      const replaceText = document.getElementById('replaceInput').value;
+      if (!searchText) return alert("請輸入搜尋內容");
+
+      editor.focus();
+      const content = editor.innerHTML;
+      const newContent = content.split(searchText).join(replaceText);
+      editor.innerHTML = newContent;
+      autoSave();
     }
 
     window.onload = loadText;
