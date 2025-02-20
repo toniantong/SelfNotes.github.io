@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>編輯器</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; }
+    .container { max-width: 100%; padding: 10px; }
+    .toolbar {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 8px 12px;
+      font-size: 14px;
+      min-width: 60px;
+      cursor: pointer;
+    }
+    #editor {
+      width: 100%;
+      min-height: 300px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      box-sizing: border-box;
+      resize: vertical;
+    }
+
+    /* 平板（< 768px） */
+    @media (max-width: 768px) {
+      .toolbar { justify-content: space-between; }
+      button { flex: 1 1 30%; }
+      #editor { min-height: 200px; }
+    }
+
+    /* 手機（< 480px） */
+    @media (max-width: 480px) {
+      .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      button { flex: none; width: 100%; margin: 2px 0; }
+      #editor { min-height: 150px; font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="toolbar">
+      <button onclick="formatText('bold')">粗體</button>
+      <button onclick="formatText('italic')">斜體</button>
+      <button onclick="formatText('underline')">下劃線</button>
+      <button onclick="saveText()">儲存</button>
+      <button onclick="loadText()">載入</button>
+    </div>
+    <div id="editor" contenteditable="true" oninput="autoSave()"></div>
+  </div>
+
+  <script>
+    function formatText(command) {
+      document.execCommand(command, false, null);
+    }
+
+    function autoSave() {
+      const content = document.getElementById('editor').innerHTML;
+      localStorage.setItem('editorContent', content);
+    }
+
+    function saveText() {
+      const content = document.getElementById('editor').innerHTML;
+      const blob = new Blob([content], { type: 'text/html' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'my_text.html';
+      link.click();
+    }
+
+    function loadText() {
+      const saved = localStorage.getItem('editorContent');
+      if (saved) document.getElementById('editor').innerHTML = saved;
+    }
+
+    window.onload = loadText;
+  </script>
+</body>
+</html>
