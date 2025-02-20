@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>編輯器</title>
+  <title>響應式文字編輯器</title>
   <style>
     body { margin: 0; font-family: Arial, sans-serif; }
     .container { max-width: 100%; padding: 10px; }
@@ -54,6 +54,9 @@
       <button onclick="formatText('underline')">下劃線</button>
       <button onclick="saveText()">儲存</button>
       <button onclick="loadText()">載入</button>
+      <button onclick="clearEditor()">清除</button>
+      <button onclick="pasteText()">貼上</button>
+      <button onclick="copyText()">複製</button>
     </div>
     <div id="editor" contenteditable="true" oninput="autoSave()"></div>
   </div>
@@ -80,6 +83,34 @@
     function loadText() {
       const saved = localStorage.getItem('editorContent');
       if (saved) document.getElementById('editor').innerHTML = saved;
+    }
+
+    function clearEditor() {
+      document.getElementById('editor').innerHTML = "";
+      localStorage.removeItem('editorContent');
+    }
+
+    async function pasteText() {
+      try {
+        // 先將編輯器獲得焦點，再從剪貼簿讀取內容並插入光標位置
+        const editor = document.getElementById('editor');
+        editor.focus();
+        const text = await navigator.clipboard.readText();
+        document.execCommand("insertText", false, text);
+      } catch (err) {
+        alert("貼上失敗，請手動貼上。");
+      }
+    }
+
+    async function copyText() {
+      try {
+        // 複製編輯器內的純文字內容
+        const content = document.getElementById('editor').textContent;
+        await navigator.clipboard.writeText(content);
+        alert("複製成功！");
+      } catch (err) {
+        alert("複製失敗，請手動複製。");
+      }
     }
 
     window.onload = loadText;
