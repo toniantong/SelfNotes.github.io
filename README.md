@@ -19,3 +19,5 @@
 [WebvTT2SRT.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/WebvTT2SRT.html)
 
 [ResponsiveEditor.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/ResponsiveEditor.html)
+
+[T2QRCode.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/T2QRCode.html)
