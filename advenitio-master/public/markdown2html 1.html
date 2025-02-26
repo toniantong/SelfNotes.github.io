@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown to HTML Converter</title>
+    <style>
+        :root {
+            --primary-color: #9b59b6;
+            --secondary-color: #8e44ad;
+            --background-color: #f5f5f5;
+            --text-color: #333;
+            --container-bg: #fff;
+            --border-color: #ddd;
+            --success-color: #2ecc71;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary-color: #9b59b6;
+                --secondary-color: #8e44ad;
+                --background-color: #1a1a1a;
+                --text-color: #f5f5f5;
+                --container-bg: #2d2d2d;
+                --border-color: #444;
+                --success-color: #27ae60;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: var(--container-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+
+        .description {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .converter {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .converter {
+                flex-direction: row;
+            }
+        }
+
+        .input-section, .output-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 400px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            resize: vertical;
+            background-color: var(--container-bg);
+            color: var(--text-color);
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            justify-content: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .copy-btn {
+            background-color: var(--secondary-color);
+        }
+
+        .copy-btn:hover {
+            background-color: var(--primary-color);
+        }
+
+        .clear-btn {
+            background-color: #e74c3c;
+        }
+
+        .clear-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: var(--success-color);
+            color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transform: translateY(-100px);
+            transition: transform 0.3s ease-in-out;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateY(0);
+        }
+
+        .preview-container {
+            margin-top: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 15px;
+            background-color: var(--container-bg);
+            min-height: 200px;
+            max-height: 400px;
+            overflow: auto;
+        }
+
+        .preview-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        .tab-buttons {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .tab-button {
+            padding: 8px 15px;
+            background-color: var(--container-bg);
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        .tab-button.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Markdown to HTML Converter</h1>
+        <p class="description">Paste your Markdown text below and convert it to clean HTML code.</p>
+        
+        <div class="converter">
+            <div class="input-section">
+                <div class="section-title">Markdown Input</div>
+                <textarea id="markdown-input" placeholder="Paste your Markdown here..."></textarea>
+                <div class="buttons">
+                    <button id="convert-btn">Convert to HTML</button>
+                    <button id="clear-input-btn" class="clear-btn">Clear</button>
+                </div>
+            </div>
+            
+            <div class="output-section">
+                <div class="tab-buttons">
+                    <button class="tab-button active" data-tab="code">HTML Code</button>
+                    <button class="tab-button" data-tab="preview">Preview</button>
+                </div>
+                
+                <div id="code-tab" class="tab-content active">
+                    <textarea id="html-output" placeholder="Your HTML will appear here..." readonly></textarea>
+                    <div class="buttons">
+                        <button id="copy-btn" class="copy-btn">Copy HTML</button>
+                        <button id="clear-output-btn" class="clear-btn">Clear</button>
+                    </div>
+                </div>
+                
+                <div id="preview-tab" class="tab-content">
+                    <div class="preview-title">HTML Preview</div>
+                    <div id="preview-container" class="preview-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">Copied to clipboard!</div>
+
+    <footer>
+        <p>Markdown to HTML Converter &copy; 2025</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const markdownInput = document.getElementById('markdown-input');
+            const htmlOutput = document.getElementById('html-output');
+            const previewContainer = document.getElementById('preview-container');
+            const convertBtn = document.getElementById('convert-btn');
+            const copyBtn = document.getElementById('copy-btn');
+            const clearInputBtn = document.getElementById('clear-input-btn');
+            const clearOutputBtn = document.getElementById('clear-output-btn');
+            const notification = document.getElementById('notification');
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            // Tab switching
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const tabName = this.getAttribute('data-tab');
+                    
+                    // Update active tab button
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Update active tab content
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    document.getElementById(`${tabName}-tab`).classList.add('active');
+                });
+            });
+
+            // Convert Markdown to HTML
+            convertBtn.addEventListener('click', function() {
+                const markdown = markdownInput.value;
+                if (!markdown.trim()) {
+                    alert('Please enter some Markdown to convert');
+                    return;
+                }
+                
+                const html = convertMarkdownToHtml(markdown);
+                htmlOutput.value = html;
+                previewContainer.innerHTML = html;
+            });
+
+            // Copy HTML to clipboard
+            copyBtn.addEventListener('click', function() {
+                if (!htmlOutput.value.trim()) {
+                    alert('No HTML to copy');
+                    return;
+                }
+                
+                htmlOutput.select();
+                document.execCommand('copy');
+                
+                // Show notification
+                notification.classList.add('show');
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 2000);
+            });
+
+            // Clear input
+            clearInputBtn.addEventListener('click', function() {
+                markdownInput.value = '';
+            });
+
+            // Clear output
+            clearOutputBtn.addEventListener('click', function() {
+                htmlOutput.value = '';
+                previewContainer.innerHTML = '';
+            });
+
+            // Markdown to HTML conversion function
+            function convertMarkdownToHtml(markdown) {
+                // Pre-process the markdown to handle blocks
+                let html = markdown;
+                
+                // Handle code blocks
+                html = html.replace(/```([^`]*?)```/gs, function(match, code) {
+                    return '<pre><code>' + escapeHtml(code.trim()) + '</code></pre>';
+                });
+                
+                // Handle inline code
+                html = html.replace(/`([^`]+)`/g, function(match, code) {
+                    return '<code>' + escapeHtml(code) + '</code>';
+                });
+                
+                // Process by line
+                const lines = html.split('\n');
+                let inBlockquote = false;
+                let inList = false;
+                let inOrderedList = false;
+                let inTable = false;
+                let tableHeader = [];
+                let tableRows = [];
+                
+                html = '';
+                let skipNextLine = false;
+                
+                for (let i = 0; i < lines.length; i++) {
+                    if (skipNextLine) {
+                        skipNextLine = false;
+                        continue;
+                    }
+                    
+                    let line = lines[i].trim();
+                    let nextLine = i < lines.length - 1 ? lines[i + 1].trim() : '';
+                    
+                    // Check for headers
+                    const headerMatch = line.match(/^(#{1,6})\s+(.+)$/);
+                    if (headerMatch) {
+                        const level = headerMatch[1].length;
+                        const text = headerMatch[2].trim();
+                        html += `<h${level}>${processInline(text)}</h${level}>`;
+                        continue;
+                    }
+                    
+                    // Check for horizontal rule
+                    if (line.match(/^(\*{3,}|-{3,}|_{3,})$/)) {
+                        html += '<hr>';
+                        continue;
+                    }
+                    
+                    // Check for blockquote start
+                    if (line.startsWith('>')) {
+                        if (!inBlockquote) {
+                            html += '<blockquote>';
+                            inBlockquote = true;
+                        }
+                        line = line.substring(1).trim();
+                        html += `<p>${processInline(line)}</p>`;
+                        continue;
+                    } else if (inBlockquote) {
+                        html += '</blockquote>';
+                        inBlockquote = false;
+                    }
+                    
+                    // Check for unordered list items
+                    if (line.match(/^[\*\-\+]\s+(.+)$/)) {
+                        if (!inList || inOrderedList) {
+                            if (inOrderedList) {
+                                html += '</ol>';
+                                inOrderedList = false;
+                            }
+                            if (!inList) {
+                                html += '<ul>';
+                                inList = true;
+                            }
+                        }
+                        const itemContent = line.replace(/^[\*\-\+]\s+/, '');
+                        html += `<li>${processInline(itemContent)}</li>`;
+                        continue;
+                    }
+                    
+                    // Check for ordered list items
+                    if (line.match(/^\d+\.\s+(.+)$/)) {
+                        if (!inList || !inOrderedList) {
+                            if (inList && !inOrderedList) {
+                                html += '</ul>';
+                            }
+                            if (!inList) {
+                                html += '<ol>';
+                                inList = true;
+                                inOrderedList = true;
+                            }
+                        }
+                        const itemContent = line.replace(/^\d+\.\s+/, '');
+                        html += `<li>${processInline(itemContent)}</li>`;
+                        continue;
+                    }
+                    
+                    // Close lists if we're done with them
+                    if (inList && !line.match(/^[\*\-\+]\s+(.+)$/) && !line.match(/^\d+\.\s+(.+)$/)) {
+                        if (inOrderedList) {
+                            html += '</ol>';
+                            inOrderedList = false;
+                        } else {
+                            html += '</ul>';
+                        }
+                        inList = false;
+                    }
+                    
+                    // Check for table header
+                    const tableHeaderMatch = line.match(/^\|(.+)\|$/) && nextLine.match(/^\|(\s*[-:]+[-:\s]*)\|$/);
+                    if (tableHeaderMatch) {
+                        inTable = true;
+                        html += '<table><thead><tr>';
+                        
+                        // Process headers
+                        const headers = line.split('|').slice(1, -1);
+                        headers.forEach(header => {
+                            html += `<th>${processInline(header.trim())}</th>`;
+                        });
+                        
+                        html += '</tr></thead><tbody>';
+                        skipNextLine = true; // Skip the separator line
+                        continue;
+                    }
+                    
+                    // Check for table row
+                    if (inTable && line.match(/^\|(.+)\|$/)) {
+                        html += '<tr>';
+                        const cells = line.split('|').slice(1, -1);
+                        cells.forEach(cell => {
+                            html += `<td>${processInline(cell.trim())}</td>`;
+                        });
+                        html += '</tr>';
+                        continue;
+                    }
+                    
+                    // Close table if we're done with it
+                    if (inTable && !line.match(/^\|(.+)\|$/)) {
+                        html += '</tbody></table>';
+                        inTable = false;
+                    }
+                    
+                    // Regular paragraph (if not empty)
+                    if (line !== '') {
+                        html += `<p>${processInline(line)}</p>`;
+                    } else {
+                        html += '<br>';
+                    }
+                }
+                
+                // Close any open tags
+                if (inBlockquote) {
+                    html += '</blockquote>';
+                }
+                
+                if (inList) {
+                    if (inOrderedList) {
+                        html += '</ol>';
+                    } else {
+                        html += '</ul>';
+                    }
+                }
+                
+                if (inTable) {
+                    html += '</tbody></table>';
+                }
+                
+                return html;
+            }
+            
+            // Process inline elements
+            function processInline(text) {
+                // Bold
+                text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+                text = text.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+                
+                // Italic
+                text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+                text = text.replace(/_([^_]+)_/g, '<em>$1</em>');
+                
+                // Strikethrough
+                text = text.replace(/~~([^~]+)~~/g, '<del>$1</del>');
+                
+                // Links
+                text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+                
+                // Images
+                text = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">');
+                
+                return text;
+            }
+            
+            // Helper function to escape HTML special characters
+            function escapeHtml(text) {
+                return text
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+        });
+    </script>
+</body>
+</html>
