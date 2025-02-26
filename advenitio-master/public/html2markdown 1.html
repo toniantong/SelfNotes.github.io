@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML to Markdown Converter</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --background-color: #f5f5f5;
+            --text-color: #333;
+            --container-bg: #fff;
+            --border-color: #ddd;
+            --success-color: #2ecc71;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary-color: #3498db;
+                --secondary-color: #2980b9;
+                --background-color: #1a1a1a;
+                --text-color: #f5f5f5;
+                --container-bg: #2d2d2d;
+                --border-color: #444;
+                --success-color: #27ae60;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: var(--container-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+
+        .description {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .converter {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .converter {
+                flex-direction: row;
+            }
+        }
+
+        .input-section, .output-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 400px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            resize: vertical;
+            background-color: var(--container-bg);
+            color: var(--text-color);
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            justify-content: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .copy-btn {
+            background-color: var(--secondary-color);
+        }
+
+        .copy-btn:hover {
+            background-color: var(--primary-color);
+        }
+
+        .clear-btn {
+            background-color: #e74c3c;
+        }
+
+        .clear-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: var(--success-color);
+            color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transform: translateY(-100px);
+            transition: transform 0.3s ease-in-out;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateY(0);
+        }
+
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>HTML to Markdown Converter</h1>
+        <p class="description">Paste your HTML code below and convert it to clean Markdown format.</p>
+        
+        <div class="converter">
+            <div class="input-section">
+                <div class="section-title">HTML Input</div>
+                <textarea id="html-input" placeholder="Paste your HTML code here..."></textarea>
+                <div class="buttons">
+                    <button id="convert-btn">Convert to Markdown</button>
+                    <button id="clear-input-btn" class="clear-btn">Clear</button>
+                </div>
+            </div>
+            
+            <div class="output-section">
+                <div class="section-title">Markdown Output</div>
+                <textarea id="markdown-output" placeholder="Your Markdown will appear here..." readonly></textarea>
+                <div class="buttons">
+                    <button id="copy-btn" class="copy-btn">Copy Markdown</button>
+                    <button id="clear-output-btn" class="clear-btn">Clear</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">Copied to clipboard!</div>
+
+    <footer>
+        <p>HTML to Markdown Converter &copy; 2025</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const htmlInput = document.getElementById('html-input');
+            const markdownOutput = document.getElementById('markdown-output');
+            const convertBtn = document.getElementById('convert-btn');
+            const copyBtn = document.getElementById('copy-btn');
+            const clearInputBtn = document.getElementById('clear-input-btn');
+            const clearOutputBtn = document.getElementById('clear-output-btn');
+            const notification = document.getElementById('notification');
+
+            // Convert HTML to Markdown
+            convertBtn.addEventListener('click', function() {
+                const html = htmlInput.value;
+                if (!html.trim()) {
+                    alert('Please enter some HTML to convert');
+                    return;
+                }
+                
+                const markdown = convertHtmlToMarkdown(html);
+                markdownOutput.value = markdown;
+            });
+
+            // Copy markdown to clipboard
+            copyBtn.addEventListener('click', function() {
+                if (!markdownOutput.value.trim()) {
+                    alert('No markdown to copy');
+                    return;
+                }
+                
+                markdownOutput.select();
+                document.execCommand('copy');
+                
+                // Show notification
+                notification.classList.add('show');
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 2000);
+            });
+
+            // Clear input
+            clearInputBtn.addEventListener('click', function() {
+                htmlInput.value = '';
+            });
+
+            // Clear output
+            clearOutputBtn.addEventListener('click', function() {
+                markdownOutput.value = '';
+            });
+
+            // HTML to Markdown conversion function
+            function convertHtmlToMarkdown(html) {
+                // Create a temporary div to parse the HTML
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                
+                // Initialize markdown string
+                let markdown = '';
+                
+                // Process the DOM and convert to markdown
+                markdown = processNode(tempDiv);
+                
+                return markdown.trim();
+            }
+
+            function processNode(node, level = 0) {
+                let markdown = '';
+                
+                // Process all child nodes
+                for (let i = 0; i < node.childNodes.length; i++) {
+                    const child = node.childNodes[i];
+                    
+                    if (child.nodeType === Node.TEXT_NODE) {
+                        // Text node
+                        markdown += child.textContent;
+                    } else if (child.nodeType === Node.ELEMENT_NODE) {
+                        // Element node
+                        const tagName = child.tagName.toLowerCase();
+                        
+                        // Handle different HTML elements
+                        switch (tagName) {
+                            case 'h1':
+                            case 'h2':
+                            case 'h3':
+                            case 'h4':
+                            case 'h5':
+                            case 'h6':
+                                const headingLevel = parseInt(tagName.charAt(1));
+                                markdown += '\n' + '#'.repeat(headingLevel) + ' ' + child.textContent.trim() + '\n\n';
+                                break;
+                                
+                            case 'p':
+                                markdown += '\n' + processNode(child) + '\n\n';
+                                break;
+                                
+                            case 'strong':
+                            case 'b':
+                                markdown += '**' + processNode(child) + '**';
+                                break;
+                                
+                            case 'em':
+                            case 'i':
+                                markdown += '*' + processNode(child) + '*';
+                                break;
+                                
+                            case 'a':
+                                markdown += '[' + processNode(child) + '](' + (child.getAttribute('href') || '') + ')';
+                                break;
+                                
+                            case 'img':
+                                markdown += '![' + (child.getAttribute('alt') || '') + '](' + (child.getAttribute('src') || '') + ')';
+                                break;
+                                
+                            case 'code':
+                                markdown += '`' + processNode(child) + '`';
+                                break;
+                                
+                            case 'pre':
+                                markdown += '\n```\n' + processNode(child) + '\n```\n\n';
+                                break;
+                                
+                            case 'ul':
+                                markdown += '\n' + processListItems(child, '*') + '\n';
+                                break;
+                                
+                            case 'ol':
+                                markdown += '\n' + processListItems(child, '1.') + '\n';
+                                break;
+                                
+                            case 'li':
+                                // Handled by processListItems
+                                markdown += processNode(child);
+                                break;
+                                
+                            case 'blockquote':
+                                markdown += '\n> ' + processNode(child).replace(/\n/g, '\n> ') + '\n\n';
+                                break;
+                                
+                            case 'hr':
+                                markdown += '\n---\n\n';
+                                break;
+                                
+                            case 'table':
+                                markdown += '\n' + processTable(child) + '\n\n';
+                                break;
+                                
+                            case 'br':
+                                markdown += '\n';
+                                break;
+                                
+                            case 'div':
+                                markdown += processNode(child);
+                                if (i < node.childNodes.length - 1) {
+                                    markdown += '\n\n';
+                                }
+                                break;
+                                
+                            case 'span':
+                                markdown += processNode(child);
+                                break;
+                                
+                            default:
+                                markdown += processNode(child);
+                        }
+                    }
+                }
+                
+                return markdown;
+            }
+
+            function processListItems(listNode, marker) {
+                let markdown = '';
+                const items = listNode.querySelectorAll('li');
+                
+                items.forEach(item => {
+                    const itemContent = processNode(item).trim();
+                    let indent = '';
+                    
+                    // Calculate nesting level
+                    let parent = item.parentNode;
+                    while (parent && (parent.tagName === 'UL' || parent.tagName === 'OL')) {
+                        if (parent !== listNode) {
+                            indent += '  ';
+                        }
+                        parent = parent.parentNode;
+                    }
+                    
+                    markdown += indent + marker + ' ' + itemContent + '\n';
+                });
+                
+                return markdown;
+            }
+
+            function processTable(tableNode) {
+                let markdown = '';
+                const rows = tableNode.querySelectorAll('tr');
+                
+                if (rows.length === 0) {
+                    return markdown;
+                }
+                
+                // Process header row
+                const headerCells = rows[0].querySelectorAll('th');
+                if (headerCells.length > 0) {
+                    let headerRow = '| ';
+                    let separatorRow = '| ';
+                    
+                    headerCells.forEach(cell => {
+                        headerRow += processNode(cell).trim() + ' | ';
+                        separatorRow += '--- | ';
+                    });
+                    
+                    markdown += headerRow + '\n' + separatorRow + '\n';
+                }
+                
+                // Process data rows
+                for (let i = (headerCells.length > 0 ? 1 : 0); i < rows.length; i++) {
+                    const cells = rows[i].querySelectorAll('td');
+                    if (cells.length === 0) continue;
+                    
+                    let dataRow = '| ';
+                    cells.forEach(cell => {
+                        dataRow += processNode(cell).trim() + ' | ';
+                    });
+                    
+                    markdown += dataRow + '\n';
+                }
+                
+                return markdown;
+            }
+        });
+    </script>
+</body>
+</html>
