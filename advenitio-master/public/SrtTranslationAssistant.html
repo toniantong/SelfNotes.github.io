@@ -56,7 +56,13 @@
         <h1 class="text-3xl font-bold text-center mb-6" style="color: var(--primary-color)">字幕翻譯助手</h1>
         
         <div class="mb-6">
-            <label for="subtitleInput" class="block mb-2 font-medium">輸入帶時間戳的字幕稿</label>
+            <div class="flex justify-between items-center mb-2">
+                <label for="subtitleInput" class="font-medium">輸入帶時間戳的字幕稿</label>
+                <div class="flex gap-2">
+                    <button id="pasteBtn" class="px-2 py-1 rounded text-sm font-medium bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600">貼上</button>
+                    <button id="clearInputBtn" class="px-2 py-1 rounded text-sm font-medium bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600">清除</button>
+                </div>
+            </div>
             <textarea id="subtitleInput" rows="8" class="w-full p-3 border rounded-lg text-base" style="background-color: var(--bg-color); color: var(--text-color); border-color: var(--primary-color);" placeholder="00:00:01,123 --> 00:00:05,678&#10;這是一段帶有時間戳的字幕文本&#10;&#10;00:00:06,000 --> 00:00:10,500&#10;請將帶有時間戳的字幕貼到這裡"></textarea>
         </div>
         
@@ -72,7 +78,7 @@
                 <option value="粵語">粵語</option>
                 <option value="英文">英文</option>
                 <option value="繁體中文">繁體中文</option>
-                <option value="文言交">文言文</option>
+                <option value="文言文">文言文</option>
                 <option value="簡體中文">簡體中文</option>
                 <option value="日文">日文</option>
                 <option value="韓文">韓文</option>
@@ -100,15 +106,25 @@
         </div>
         
         <div class="mb-6">
-            <label for="cleanedOutput" class="block mb-2 font-medium">清除時間戳後的文本</label>
+            <div class="flex justify-between items-center mb-2">
+                <label for="cleanedOutput" class="font-medium">清除時間戳後的文本</label>
+                <div class="flex gap-2">
+                    <button id="copyCleanedBtn" class="px-2 py-1 rounded text-sm font-medium bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600">複製到剪貼簿</button>
+                    <button id="clearCleanedBtn" class="px-2 py-1 rounded text-sm font-medium bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600">清除</button>
+                </div>
+            </div>
             <textarea id="cleanedOutput" rows="8" class="w-full p-3 border rounded-lg text-base" style="background-color: var(--bg-color); color: var(--text-color); border-color: var(--primary-color);" placeholder="清除時間戳後的文本將顯示在這裡"></textarea>
         </div>
         
         <div id="translationSection" class="mb-6">
             <div class="flex justify-between items-center mb-2">
                 <label for="translationOutput" class="font-medium">翻譯結果</label>
-                <div id="translationStatus" class="text-sm text-gray-500 dark:text-gray-400 hidden">
-                    <span class="loading-dots">正在翻譯中</span>
+                <div class="flex gap-2 items-center">
+                    <div id="translationStatus" class="text-sm text-gray-500 dark:text-gray-400 hidden">
+                        <span class="loading-dots">正在翻譯中</span>
+                    </div>
+                    <button id="copyTranslationBtn" class="px-2 py-1 rounded text-sm font-medium bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600">複製到剪貼簿</button>
+                    <button id="clearTranslationBtn" class="px-2 py-1 rounded text-sm font-medium bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600">清除</button>
                 </div>
             </div>
             <div id="translationOutput" class="w-full p-3 border rounded-lg min-h-[12rem] overflow-auto" style="background-color: var(--bg-color); color: var(--text-color); border-color: var(--primary-color);"></div>
@@ -138,6 +154,80 @@
             const translationOutput = document.getElementById('translationOutput');
             const translationStatus = document.getElementById('translationStatus');
             const targetLang = document.getElementById('targetLang');
+            
+            // 複製到剪貼簿通用函數
+            function copyToClipboard(text, successCallback) {
+                navigator.clipboard.writeText(text)
+                    .then(() => {
+                        if (successCallback) successCallback();
+                    })
+                    .catch(err => {
+                        console.error('無法複製到剪貼簿:', err);
+                        alert('複製失敗，請手動複製。');
+                    });
+            }
+            
+            // 貼上按鈕功能
+            document.getElementById('pasteBtn').addEventListener('click', async () => {
+                try {
+                    const text = await navigator.clipboard.readText();
+                    subtitleInput.value = text;
+                } catch (err) {
+                    console.error('無法從剪貼簿讀取:', err);
+                    alert('無法從剪貼簿讀取，請手動貼上。');
+                }
+            });
+            
+            // 清除輸入按鈕
+            document.getElementById('clearInputBtn').addEventListener('click', () => {
+                subtitleInput.value = '';
+                subtitleInput.focus();
+            });
+            
+            // 複製處理後文本按鈕
+            document.getElementById('copyCleanedBtn').addEventListener('click', () => {
+                if (!cleanedOutput.value.trim()) {
+                    alert('沒有可複製的內容');
+                    return;
+                }
+                
+                copyToClipboard(cleanedOutput.value, () => {
+                    const btn = document.getElementById('copyCleanedBtn');
+                    const originalText = btn.textContent;
+                    btn.textContent = '已複製!';
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                    }, 2000);
+                });
+            });
+            
+            // 清除處理後文本按鈕
+            document.getElementById('clearCleanedBtn').addEventListener('click', () => {
+                cleanedOutput.value = '';
+            });
+            
+            // 複製翻譯結果按鈕
+            document.getElementById('copyTranslationBtn').addEventListener('click', () => {
+                const translationText = translationOutput.innerText;
+                if (!translationText.trim() || translationText.includes('正在翻譯，請稍候...')) {
+                    alert('沒有可複製的翻譯內容');
+                    return;
+                }
+                
+                copyToClipboard(translationText, () => {
+                    const btn = document.getElementById('copyTranslationBtn');
+                    const originalText = btn.textContent;
+                    btn.textContent = '已複製!';
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                    }, 2000);
+                });
+            });
+            
+            // 清除翻譯結果按鈕
+            document.getElementById('clearTranslationBtn').addEventListener('click', () => {
+                translationOutput.innerHTML = '';
+            });
             
             // 清除時間戳按鈕
             document.getElementById('cleanBtn').addEventListener('click', () => {
