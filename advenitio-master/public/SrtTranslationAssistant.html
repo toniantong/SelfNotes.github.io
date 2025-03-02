@@ -92,6 +92,17 @@
             </select>
         </div>
         
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-2">
+                <label for="maxChunkLength" class="font-medium">文本分塊字符限制</label>
+                <div class="flex gap-2">
+                    <input type="number" id="maxChunkLength" value="10000" min="100" class="p-2 border rounded-lg text-base w-24" 
+                        style="background-color: var(--bg-color); color: var(--text-color); border-color: var(--primary-color);">
+                </div>
+            </div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">設置每個文本塊的最大字符數（預設 10,000）。對超長文本進行分塊處理。</p>
+        </div>
+        
         <div id="promptSection" class="mb-6 hidden">
             <label for="promptOutput" class="block mb-2 font-medium">生成的提示詞</label>
             <div class="relative">
@@ -114,6 +125,21 @@
                 </div>
             </div>
             <textarea id="cleanedOutput" rows="8" class="w-full p-3 border rounded-lg text-base" style="background-color: var(--bg-color); color: var(--text-color); border-color: var(--primary-color);" placeholder="清除時間戳後的文本將顯示在這裡"></textarea>
+        </div>
+        
+        <div id="chunkedTextSection" class="mb-6 hidden">
+            <div class="flex justify-between items-center mb-2">
+                <div class="flex items-center gap-2">
+                    <label for="chunkSelect" class="font-medium">分塊後的文本</label>
+                    <select id="chunkSelect" class="p-2 border rounded-lg text-sm" style="background-color: var(--bg-color); color: var(--text-color); border-color: var(--primary-color);">
+                        <option value="">選擇區塊</option>
+                    </select>
+                </div>
+                <div class="flex gap-2">
+                    <button id="copyAllChunksBtn" class="px-2 py-1 rounded text-sm font-medium bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600">複製全部</button>
+                </div>
+            </div>
+            <div id="chunkedTextOutput" class="w-full border rounded-lg overflow-auto max-h-[40rem]" style="background-color: var(--bg-color); color: var(--text-color); border-color: var(--primary-color);"></div>
         </div>
         
         <div id="translationSection" class="mb-6">
@@ -348,18 +374,65 @@ ${chunkedText}
                 return promptTemplate;
             }
             
-            // 處理大型文本，如果超過一定長度就添加分隔標記
-            function chunkText(text) {
-                const maxChunkLength = 10000; // 假設每個塊的最大長度
+            // 添加分塊後文字的複製全部按鈕功能
+            document.getElementById('copyAllChunksBtn').addEventListener('click', () => {
+                const chunkedText = document.getElementById('chunkedTextOutput');
+                if (!chunkedText.textContent.trim()) {
+                    alert('沒有可複製的內容');
+                    return;
+                }
                 
+                // 獲取所有分塊的純文本內容
+                const allText = Array.from(chunkedText.querySelectorAll('.chunk'))
+                    .map(chunk => chunk.textContent)
+                    .join('\n\n');
+                
+                copyToClipboard(allText, () => {
+                    const btn = document.getElementById('copyAllChunksBtn');
+                    const originalText = btn.textContent;
+                    btn.textContent = '已複製!';
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                    }, 2000);
+                });
+            });
+            
+            // 下拉選擇跳轉到特定分塊
+            document.getElementById('chunkSelect').addEventListener('change', function() {
+                const chunkId = this.value;
+                if (chunkId) {
+                    document.getElementById(`chunk${chunkId}`).scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+            
+            // 處理大型文本，使用自定義的字符限制分塊
+            function chunkText(text) {
+                // 顯示分塊結果區域
+                const chunkedTextSection = document.getElementById('chunkedTextSection');
+                const chunkedTextOutput = document.getElementById('chunkedTextOutput');
+                const chunkSelect = document.getElementById('chunkSelect');
+                
+                // 獲取用戶設置的最大塊大小
+                let maxChunkLength = parseInt(document.getElementById('maxChunkLength').value);
+                
+                // 錯誤處理：如果輸入無效，使用預設值
+                if (isNaN(maxChunkLength) || maxChunkLength <= 0) {
+                    maxChunkLength = 10000;
+                    document.getElementById('maxChunkLength').value = 10000;
+                    alert('字符限制輸入無效，使用預設值 10,000');
+                }
+                
+                // 檢查文本是否需要分塊
                 if (text.length <= maxChunkLength) {
+                    chunkedTextSection.classList.add('hidden');
                     return text;
                 }
                 
-                // 簡單分塊，按行分割然後重組
+                // 分塊處理邏輯
                 const lines = text.split('\n');
                 let chunks = [];
                 let currentChunk = '';
+                let chunkIndex = 1;
                 
                 for (const line of lines) {
                     if ((currentChunk.length + line.length + 1) > maxChunkLength && currentChunk.length > 0) {
@@ -378,7 +451,52 @@ ${chunkedText}
                     chunks.push(currentChunk);
                 }
                 
-                // 添加分隔標記
+                // 生成分塊的HTML
+                const chunksHTML = chunks.map((chunk, index) => {
+                    const num = index + 1;
+                    return `
+                        <div id="chunk${num}" class="chunk p-4 border-b" style="background-color: var(--bg-color); color: var(--text-color);">
+                            <div class="flex justify-between items-center mb-2">
+                                <h3 class="font-bold" style="color: var(--primary-color);">${num}. 文本區塊</h3>
+                                <button id="copyChunk${num}" class="px-2 py-1 rounded text-sm font-medium bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 copy-chunk-btn" data-chunk="${num}">
+                                    複製此區塊
+                                </button>
+                            </div>
+                            <pre class="whitespace-pre-wrap">${chunk}</pre>
+                        </div>
+                    `;
+                });
+                
+                // 更新HTML和下拉選單
+                chunkedTextOutput.innerHTML = chunksHTML.join('');
+                chunkedTextSection.classList.remove('hidden');
+                
+                // 生成下拉選單選項
+                chunkSelect.innerHTML = '<option value="">選擇區塊</option>';
+                chunks.forEach((_, index) => {
+                    const option = document.createElement('option');
+                    option.value = index + 1;
+                    option.textContent = `區塊 ${index + 1}`;
+                    chunkSelect.appendChild(option);
+                });
+                
+                // 為每個區塊的複製按鈕添加事件
+                document.querySelectorAll('.copy-chunk-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const chunkNum = this.dataset.chunk;
+                        const chunkContent = document.querySelector(`#chunk${chunkNum} pre`).textContent;
+                        
+                        copyToClipboard(chunkContent, () => {
+                            const originalText = this.textContent;
+                            this.textContent = '已複製!';
+                            setTimeout(() => {
+                                this.textContent = originalText;
+                            }, 2000);
+                        });
+                    });
+                });
+                
+                // 用於提示詞的文本內容（添加分隔符）
                 if (chunks.length > 1) {
                     return chunks.join('\n\n---===---\n\n');
                 } else {
