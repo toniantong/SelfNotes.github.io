@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>字幕翻譯助手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #5D5CDE;
+            --background-light: #FFFFFF;
+            --text-light: #333333;
+            --background-dark: #181818;
+            --text-dark: #F0F0F0;
+            --accent-light: #EEF2FF;
+            --accent-dark: #2D2D3D;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            .theme-auto {
+                --bg-color: var(--background-dark);
+                --text-color: var(--text-dark);
+                --accent-bg: var(--accent-dark);
+            }
+        }
+        
+        @media (prefers-color-scheme: light) {
+            .theme-auto {
+                --bg-color: var(--background-light);
+                --text-color: var(--text-light);
+                --accent-bg: var(--accent-light);
+            }
+        }
+        
+        .theme-auto {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+        
+        .loading-dots:after {
+            content: '';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+        
+        @keyframes dots {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
+        }
+    </style>
+</head>
+<body class="theme-auto min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-5xl">
+        <h1 class="text-3xl font-bold text-center mb-6" style="color: var(--primary-color)">字幕翻譯助手</h1>
+        
+        <div class="mb-6">
+            <label for="subtitleInput" class="block mb-2 font-medium">輸入帶時間戳的字幕稿</label>
+            <textarea id="subtitleInput" rows="8" class="w-full p-3 border rounded-lg text-base" style="background-color: var(--bg-color); color: var(--text-color); border-color: var(--primary-color);" placeholder="00:00:01,123 --> 00:00:05,678&#10;這是一段帶有時間戳的字幕文本&#10;&#10;00:00:06,000 --> 00:00:10,500&#10;請將帶有時間戳的字幕貼到這裡"></textarea>
+        </div>
+        
+        <div class="flex flex-wrap gap-3 mb-6">
+            <button id="cleanBtn" class="px-4 py-2 rounded-lg font-medium text-white" style="background-color: var(--primary-color)">清除時間戳</button>
+            <button id="generatePromptBtn" class="px-4 py-2 rounded-lg font-medium text-white" style="background-color: var(--primary-color)">生成翻譯提示詞</button>
+            <button id="translateBtn" class="px-4 py-2 rounded-lg font-medium text-white" style="background-color: var(--primary-color)">發送至翻譯</button>
+        </div>
+        
+        <div class="mb-6">
+            <label for="targetLang" class="block mb-2 font-medium">目標語言</label>
+            <select id="targetLang" class="p-3 border rounded-lg text-base w-full md:w-64" style="background-color: var(--bg-color); color: var(--text-color); border-color: var(--primary-color);">
+                <option value="英文">英文</option>
+                <option value="中文">中文</option>
+                <option value="日文">日文</option>
+                <option value="韓文">韓文</option>
+                <option value="法文">法文</option>
+                <option value="德文">德文</option>
+                <option value="西班牙文">西班牙文</option>
+                <option value="義大利文">義大利文</option>
+                <option value="俄文">俄文</option>
+                <option value="葡萄牙文">葡萄牙文</option>
+                <option value="其他">其他</option>
+            </select>
+        </div>
+        
+        <div id="promptSection" class="mb-6 hidden">
+            <label for="promptOutput" class="block mb-2 font-medium">生成的提示詞</label>
+            <div class="relative">
+                <textarea id="promptOutput" rows="6" class="w-full p-3 border rounded-lg text-base" style="background-color: var(--bg-color); color: var(--text-color); border-color: var(--primary-color);" readonly></textarea>
+                <button id="copyPromptBtn" class="absolute top-2 right-2 p-2 rounded bg-gray-200 dark:bg-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+                        <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <div class="mb-6">
+            <label for="cleanedOutput" class="block mb-2 font-medium">清除時間戳後的文本</label>
+            <textarea id="cleanedOutput" rows="8" class="w-full p-3 border rounded-lg text-base" style="background-color: var(--bg-color); color: var(--text-color); border-color: var(--primary-color);" placeholder="清除時間戳後的文本將顯示在這裡"></textarea>
+        </div>
+        
+        <div id="translationSection" class="mb-6">
+            <div class="flex justify-between items-center mb-2">
+                <label for="translationOutput" class="font-medium">翻譯結果</label>
+                <div id="translationStatus" class="text-sm text-gray-500 dark:text-gray-400 hidden">
+                    <span class="loading-dots">正在翻譯中</span>
+                </div>
+            </div>
+            <div id="translationOutput" class="w-full p-3 border rounded-lg min-h-[12rem] overflow-auto" style="background-color: var(--bg-color); color: var(--text-color); border-color: var(--primary-color);"></div>
+        </div>
+    </div>
+
+    <script>
+        // 時間戳移除函數
+        function removeTimeStrings(text) {
+            // 移除 SRT 時間戳格式 (HH:MM:SS,mmm --> HH:MM:SS,mmm)
+            text = text.replace(/\d{2}:\d{2}:\d{2},\d{3}\s*-->\s*\d{2}:\d{2}:\d{2},\d{3}/g, '');
+            
+            // 移除簡化時間格式 (MM:SS)
+            text = text.replace(/\b\d{2}:\d{2}\b/g, '');
+            
+            // 清理多餘的空白行和空格
+            text = text.replace(/\n\s*\n/g, '\n').trim();
+            
+            return text;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const subtitleInput = document.getElementById('subtitleInput');
+            const cleanedOutput = document.getElementById('cleanedOutput');
+            const promptOutput = document.getElementById('promptOutput');
+            const promptSection = document.getElementById('promptSection');
+            const translationOutput = document.getElementById('translationOutput');
+            const translationStatus = document.getElementById('translationStatus');
+            const targetLang = document.getElementById('targetLang');
+            
+            // 清除時間戳按鈕
+            document.getElementById('cleanBtn').addEventListener('click', () => {
+                const inputText = subtitleInput.value;
+                if (!inputText.trim()) {
+                    alert('請先輸入字幕文本');
+                    return;
+                }
+                
+                // 使用更完善的時間戳移除函數
+                const cleanedText = removeTimeStrings(inputText);
+                
+                cleanedOutput.value = cleanedText;
+            });
+            
+            // 生成提示詞按鈕
+            document.getElementById('generatePromptBtn').addEventListener('click', () => {
+                const cleanedText = cleanedOutput.value;
+                if (!cleanedText.trim()) {
+                    alert('請先清除時間戳');
+                    return;
+                }
+                
+                const selectedLang = targetLang.value;
+                const prompt = generateTranslationPrompt(cleanedText, selectedLang);
+                promptOutput.value = prompt;
+                promptSection.classList.remove('hidden');
+            });
+            
+            // 複製提示詞按鈕
+            document.getElementById('copyPromptBtn').addEventListener('click', () => {
+                promptOutput.select();
+                promptOutput.setSelectionRange(0, 99999);
+                
+                try {
+                    window.Poe.sendUserMessage
+                    navigator.clipboard.writeText(promptOutput.value)
+                        .then(() => {
+                            const copyBtn = document.getElementById('copyPromptBtn');
+                            copyBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+                            </svg>`;
+                            setTimeout(() => {
+                                copyBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+                                    <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
+                                </svg>`;
+                            }, 2000);
+                        })
+                        .catch(err => {
+                            console.error('無法複製到剪貼簿:', err);
+                            alert('複製失敗，請手動複製。');
+                        });
+                } catch (err) {
+                    console.error('無法複製到剪貼簿:', err);
+                    alert('請手動複製提示詞。');
+                }
+            });
+            
+            // 發送翻譯按鈕
+            document.getElementById('translateBtn').addEventListener('click', async () => {
+                const cleanedText = cleanedOutput.value;
+                if (!cleanedText.trim()) {
+                    alert('請先清除時間戳');
+                    return;
+                }
+                
+                const selectedLang = targetLang.value;
+                const prompt = generateTranslationPrompt(cleanedText, selectedLang);
+                
+                try {
+                    translationStatus.classList.remove('hidden');
+                    translationOutput.innerHTML = '<div class="text-center py-10">正在翻譯，請稍候...</div>';
+                    
+                    // 註冊處理翻譯響應的處理程序
+                    window.Poe.registerHandler('translation-handler', (result, context) => {
+                        if (result.status === 'error') {
+                            translationOutput.innerHTML = `<div class="text-red-500">翻譯出錯: ${result.responses[0]?.statusText || '未知錯誤'}</div>`;
+                            translationStatus.classList.add('hidden');
+                            return;
+                        }
+                        
+                        // 獲取第一個回應（假設只有一個）
+                        const response = result.responses[0];
+                        
+                        if (response.status === 'incomplete') {
+                            // 更新部分內容
+                            translationOutput.innerHTML = marked.parse(response.content);
+                        } else if (response.status === 'complete') {
+                            // 更新最終內容
+                            translationOutput.innerHTML = marked.parse(response.content);
+                            translationStatus.classList.add('hidden');
+                        }
+                    });
+                    
+                    // 發送至Claude進行翻譯
+                    await window.Poe.sendUserMessage('@Claude-3.7-Sonnet ' + prompt, {
+                        handler: 'translation-handler',
+                        stream: true,
+                        openChat: false
+                    });
+                } catch (err) {
+                    console.error('發送翻譯請求時出錯:', err);
+                    translationOutput.innerHTML = `<div class="text-red-500">發送翻譯請求時出錯: ${err.message || err}</div>`;
+                    translationStatus.classList.add('hidden');
+                }
+            });
+            
+            // 生成翻譯提示詞
+            function generateTranslationPrompt(text, targetLang) {
+                const chunkedText = chunkText(text);
+                const promptTemplate = `請將以下字幕稿翻譯成${targetLang}，保持原始格式和分行，但不要添加任何額外註釋或解釋。請直接提供純翻譯文本，不需要包含原文：
+
+${chunkedText}
+
+提供只有純翻譯文本的回應，不要有額外的說明或標記。`;
+                
+                return promptTemplate;
+            }
+            
+            // 處理大型文本，如果超過一定長度就添加分隔標記
+            function chunkText(text) {
+                const maxChunkLength = 10000; // 假設每個塊的最大長度
+                
+                if (text.length <= maxChunkLength) {
+                    return text;
+                }
+                
+                // 簡單分塊，按行分割然後重組
+                const lines = text.split('\n');
+                let chunks = [];
+                let currentChunk = '';
+                
+                for (const line of lines) {
+                    if ((currentChunk.length + line.length + 1) > maxChunkLength && currentChunk.length > 0) {
+                        chunks.push(currentChunk);
+                        currentChunk = line;
+                    } else {
+                        if (currentChunk.length > 0) {
+                            currentChunk += '\n' + line;
+                        } else {
+                            currentChunk = line;
+                        }
+                    }
+                }
+                
+                if (currentChunk.length > 0) {
+                    chunks.push(currentChunk);
+                }
+                
+                // 添加分隔標記
+                if (chunks.length > 1) {
+                    return chunks.join('\n\n---===---\n\n');
+                } else {
+                    return text;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
