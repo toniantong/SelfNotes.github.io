@@ -27,3 +27,5 @@
 [markdown2html 1.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/markdown2html%201.html)
 
 [GGWaveTransfer.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/GGWaveTransfer.html)
+
+[SrtTranslationAssistant.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/SrtTranslationAssistant.html)
