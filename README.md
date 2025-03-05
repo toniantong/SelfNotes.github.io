@@ -29,3 +29,5 @@
 [GGWaveTransfer.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/GGWaveTransfer.html)
 
 [SrtTranslationAssistant.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/SrtTranslationAssistant.html)
+
+[GGWaveTest.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/GGWaveTest.html)
