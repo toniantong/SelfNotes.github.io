@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRT 翻譯工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .textarea {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 10px;
+            resize: vertical;
+        }
+        .button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+        h2 {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SRT 翻譯工具</h1>
+
+        <!-- 上傳 SRT 文件 -->
+        <div class="section">
+            <h2>上傳 SRT 文件</h2>
+            <input type="file" id="fileInput" accept=".srt">
+        </div>
+
+        <!-- 貼上 SRT 內容 -->
+        <div class="section">
+            <h2>或貼上 SRT 內容</h2>
+            <textarea id="pasteArea" class="textarea" placeholder="請貼上 SRT 內容"></textarea>
+        </div>
+
+        <!-- 顯示原始 SRT 內容 -->
+        <div class="section">
+            <h2>原始 SRT 內容</h2>
+            <div id="originalContent" class="textarea" readonly></div>
+        </div>
+
+        <!-- 翻譯控制 -->
+        <div class="section">
+            <h2>翻譯</h2>
+            <select id="languageSelect">
+                <option value="zh">中文</option>
+                <option value="en">英文</option>
+            </select>
+            <button id="translateButton" class="button">翻譯</button>
+        </div>
+
+        <!-- 顯示翻譯結果及操作按鈕 -->
+        <div class="section">
+            <h2>翻譯後的 SRT 內容</h2>
+            <div id="translatedContent" class="textarea" readonly></div>
+            <button id="copyButton" class="button">複製</button>
+            <button id="downloadButton" class="button">下載</button>
+        </div>
+
+        <!-- 跳轉功能 -->
+        <div class="section">
+            <h2>跳轉到特定部分</h2>
+            <input type="text" id="jumpInput" placeholder="輸入編號或時間戳">
+            <button id="jumpButton" class="button">跳轉</button>
+        </div>
+
+        <!-- 錯誤提示 -->
+        <div id="error" class="error"></div>
+    </div>
+
+    <script>
+        // 事件監聽器
+        document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+        document.getElementById('translateButton').addEventListener('click', translateSRT);
+        document.getElementById('copyButton').addEventListener('click', copyTranslatedContent);
+        document.getElementById('downloadButton').addEventListener('click', downloadTranslatedContent);
+        document.getElementById('jumpButton').addEventListener('click', jumpToSection);
+
+        let originalSRT = '';
+
+        // 處理文件上傳
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    originalSRT = e.target.result;
+                    displayOriginalContent(originalSRT);
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        // 顯示原始內容
+        function displayOriginalContent(content) {
+            document.getElementById('originalContent').innerText = content;
+        }
+
+        // 翻譯 SRT 內容
+        async function translateSRT() {
+            const language = document.getElementById('languageSelect').value;
+            const content = originalSRT || document.getElementById('pasteArea').value;
+            if (!content) {
+                showError('請上傳文件或貼上內容');
+                return;
+            }
+            try {
+                const translated = await sendToLLM(content, language);
+                document.getElementById('translatedContent').innerText = translated;
+            } catch (error) {
+                showError('翻譯失敗：' + error.message);
+            }
+        }
+
+        // 複製翻譯結果
+        function copyTranslatedContent() {
+            const content = document.getElementById('translatedContent').innerText;
+            if (!content) {
+                showError('沒有可複製的內容');
+                return;
+            }
+            navigator.clipboard.writeText(content).then(() => {
+                alert('已複製到剪貼板');
+            });
+        }
+
+        // 下載翻譯結果
+        function downloadTranslatedContent() {
+            const content = document.getElementById('translatedContent').innerText;
+            if (!content) {
+                showError('沒有可下載的內容');
+                return;
+            }
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'translated.srt';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // 跳轉到特定部分
+        function jumpToSection() {
+            const input = document.getElementById('jumpInput').value;
+            const content = document.getElementById('originalContent').innerText;
+            if (!content) {
+                showError('請先上傳或貼上內容');
+                return;
+            }
+            const lines = content.split('\n');
+            let targetLine = -1;
+            lines.forEach((line, index) => {
+                if (line.includes(input)) {
+                    targetLine = index;
+                }
+            });
+            if (targetLine !== -1) {
+                const element = document.getElementById('originalContent');
+                element.scrollTop = (targetLine / lines.length) * element.scrollHeight;
+            } else {
+                showError('未找到相應部分');
+            }
+        }
+
+        // 顯示錯誤信息
+        function showError(message) {
+            document.getElementById('error').innerText = message;
+            setTimeout(() => {
+                document.getElementById('error').innerText = '';
+            }, 3000); // 3秒後清除錯誤提示
+        }
+
+        // 模擬 LLM API 調用（實際應用中需替換為真實 API）
+        async function sendToLLM(content, language) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    // 模擬翻譯：將 "Hello" 替換為 "你好"
+                    resolve(content.replace(/Hello/g, '你好'));
+                }, 1000); // 模擬 1 秒延遲
+            });
+        }
+    </script>
+</body>
+</html>
