@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>手機編輯超大文件助手</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .main-layout {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .file-section, .editor-section, .tools-section {
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+        .code-editor {
+            font-family: monospace;
+            min-height: 300px;
+            line-height: 1.5;
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+        .nav-btn {
+            margin: 2px;
+            padding: 5px 10px;
+            font-size: 16px;
+        }
+        .structure-item {
+            cursor: pointer;
+            padding: 3px;
+            border-bottom: 1px solid #eee;
+        }
+        .structure-item:hover {
+            background-color: #f0f0f0;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ccc;
+        }
+        .tab {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .tab-content {
+            display: none;
+            padding: 10px;
+        }
+        .active {
+            display: block;
+        }
+        @media (max-width: 600px) {
+            .file-section, .editor-section, .tools-section {
+                padding: 5px;
+            }
+            .code-editor {
+                min-height: 200px;
+            }
+            .nav-btn {
+                padding: 3px 6px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-layout">
+        <h2>手機編輯超大文件助手</h2>
+        <div class="file-section">
+            <input type="file" id="upload-file" style="display: none;">
+            <button onclick="document.getElementById('upload-file').click()">上傳文件</button>
+            <button onclick="copyToClipboard()">複製到剪貼簿</button>
+            <button onclick="clearContent()">清空內容</button>
+            <select id="language-select">
+                <option value="python">Python</option>
+                <option value="javascript">JavaScript</option>
+                <option value="html">HTML</option>
+                <option value="css">CSS</option>
+                <option value="markdown">Markdown</option>
+                <option value="text">Text</option>
+            </select>
+            <p id="status-label">狀態: 就緒</p>
+        </div>
+        <div class="editor-section">
+            <div>
+                <button class="nav-btn" onclick="prevChunk()" disabled>上一塊</button>
+                <span id="chunk-info">塊: 0/0</span>
+                <button class="nav-btn" onclick="nextChunk()" disabled>下一塊</button>
+            </div>
+            <div>
+                <button class="nav-btn" onclick="undo()" disabled>撤銷</button>
+                <button class="nav-btn" onclick="redo()" disabled>重做</button>
+            </div>
+            <textarea class="code-editor" id="editor" placeholder="在這裡編輯代碼..." disabled></textarea>
+            <div>
+                <input type="text" id="search-input" placeholder="搜尋...">
+                <button onclick="searchText()">搜尋</button>
+            </div>
+            <div id="search-result"></div>
+        </div>
+        <div class="tools-section">
+            <div class="tabs">
+                <div class="tab" onclick="showTab('structure')">結構</div>
+                <div class="tab" onclick="showTab('bookmarks')">書簽</div>
+                <div class="tab" onclick="showTab('snippets')">代碼片段</div>
+            </div>
+            <div id="structure" class="tab-content">
+                <div id="structure-output"></div>
+            </div>
+            <div id="bookmarks" class="tab-content">
+                <select multiple id="bookmark-list" style="width: 100%; height: 150px;"></select>
+                <div>
+                    <button onclick="addBookmark()">添加書簽</button>
+                    <button onclick="gotoBookmark()">前往書簽</button>
+                    <button onclick="removeBookmark()">刪除書簽</button>
+                </div>
+            </div>
+            <div id="snippets" class="tab-content">
+                <select id="snippet-dropdown"></select>
+                <button onclick="insertSnippet()">插入片段</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentFile = null;
+        let fileContent = "";
+        const chunkSize = 1000; // 每塊大小
+        let currentChunk = 0;
+        let totalChunks = 0;
+        let chunks = [];
+        let history = [];
+        let historyPosition = -1;
+        let language = "python";
+        let bookmarks = [];
+        const snippets = {
+            "python": {
+                "函數定義": "def function_name(params):\n    pass",
+                "if語句": "if condition:\n    # code",
+                "for循環": "for item in collection:\n    # code",
+                "類定義": "class ClassName:\n    def __init__(self):\n        pass"
+            },
+            "javascript": {
+                "函數定義": "function functionName(params) {\n    \n}",
+                "if語句": "if (condition) {\n    // code\n}",
+                "for循環": "for (let i = 0; i < length; i++) {\n    // code\n}",
+                "類定義": "class ClassName {\n    constructor() {\n    }\n}"
+            }
+        };
+
+        // 事件監聽
+        document.getElementById('upload-file').addEventListener('change', uploadFile);
+        document.getElementById('language-select').addEventListener('change', changeLanguage);
+        document.getElementById('editor').addEventListener('input', onEditorChange);
+
+        function uploadFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                loadFile(file.name, e.target.result);
+            };
+            reader.readAsText(file);
+        }
+
+        function loadFile(filename, content) {
+            currentFile = filename;
+            fileContent = content;
+            chunks = [];
+            const lines = content.split('\n');
+            for (let i = 0; i < lines.length; i += chunkSize) {
+                chunks.push(lines.slice(i, i + chunkSize).join('\n'));
+            }
+            totalChunks = chunks.length;
+            currentChunk = 0;
+            if (totalChunks > 0) {
+                document.getElementById('editor').value = chunks[0];
+                document.getElementById('editor').disabled = false;
+                updateChunkInfo();
+                document.querySelector('.editor-section button:nth-child(1)').disabled = true;
+                document.querySelector('.editor-section button:nth-child(3)').disabled = (totalChunks <= 1);
+            }
+            analyzeStructure();
+            updateSnippets();
+            history = [document.getElementById('editor').value];
+            historyPosition = 0;
+            updateHistoryButtons();
+            document.getElementById('status-label').innerText = `狀態: 已加載 ${filename}`;
+        }
+
+        function copyToClipboard() {
+            const content = document.getElementById('editor').value;
+            navigator.clipboard.writeText(content).then(() => {
+                document.getElementById('status-label').innerText = "狀態: 已複製到剪貼簿";
+            }).catch(() => {
+                document.getElementById('status-label').innerText = "狀態: 複製失敗";
+            });
+        }
+
+        function clearContent() {
+            document.getElementById('editor').value = "";
+            chunks = [""];
+            totalChunks = 1;
+            currentChunk = 0;
+            updateChunkInfo();
+            document.querySelector('.editor-section button:nth-child(1)').disabled = true;
+            document.querySelector('.editor-section button:nth-child(3)').disabled = true;
+            history = [""];
+            historyPosition = 0;
+            updateHistoryButtons();
+            document.getElementById('status-label').innerText = "狀態: 已清空內容";
+        }
+
+        function prevChunk() {
+            if (currentChunk > 0) {
+                chunks[currentChunk] = document.getElementById('editor').value;
+                currentChunk--;
+                document.getElementById('editor').value = chunks[currentChunk];
+                updateChunkInfo();
+                document.querySelector('.editor-section button:nth-child(1)').disabled = (currentChunk === 0);
+                document.querySelector('.editor-section button:nth-child(3)').disabled = false;
+                history = [document.getElementById('editor').value];
+                historyPosition = 0;
+                updateHistoryButtons();
+            }
+        }
+
+        function nextChunk() {
+            if (currentChunk < totalChunks - 1) {
+                chunks[currentChunk] = document.getElementById('editor').value;
+                currentChunk++;
+                document.getElementById('editor').value = chunks[currentChunk];
+                updateChunkInfo();
+                document.querySelector('.editor-section button:nth-child(1)').disabled = false;
+                document.querySelector('.editor-section button:nth-child(3)').disabled = (currentChunk >= totalChunks - 1);
+                history = [document.getElementById('editor').value];
+                historyPosition = 0;
+                updateHistoryButtons();
+            }
+        }
+
+        function updateChunkInfo() {
+            document.getElementById('chunk-info').innerText = `塊: ${currentChunk + 1}/${totalChunks}`;
+        }
+
+        function onEditorChange() {
+            if (history.length > 0) {
+                if (historyPosition < history.length - 1) {
+                    history = history.slice(0, historyPosition + 1);
+                }
+                if (history[history.length - 1] !== document.getElementById('editor').value) {
+                    history.push(document.getElementById('editor').value);
+                    historyPosition = history.length - 1;
+                    updateHistoryButtons();
+                }
+            }
+        }
+
+        function undo() {
+            if (historyPosition > 0) {
+                historyPosition--;
+                document.getElementById('editor').value = history[historyPosition];
+                updateHistoryButtons();
+            }
+        }
+
+        function redo() {
+            if (historyPosition < history.length - 1) {
+                historyPosition++;
+                document.getElementById('editor').value = history[historyPosition];
+                updateHistoryButtons();
+            }
+        }
+
+        function updateHistoryButtons() {
+            document.querySelector('.editor-section button:nth-child(4)').disabled = (historyPosition <= 0);
+            document.querySelector('.editor-section button:nth-child(5)').disabled = (historyPosition >= history.length - 1);
+        }
+
+        function searchText() {
+            const searchTerm = document.getElementById('search-input').value;
+            if (!searchTerm) {
+                document.getElementById('search-result').innerHTML = "<p>請輸入搜尋詞</p>";
+                return;
+            }
+            let results = [];
+            chunks.forEach((chunk, i) => {
+                const lines = chunk.split('\n');
+                lines.forEach((line, j) => {
+                    if (line.includes(searchTerm)) {
+                        const lineNum = i * chunkSize + j + 1;
+                        results.push({ chunk: i, line: j, lineNum, content: line });
+                    }
+                });
+            });
+            if (results.length > 0) {
+                let html = "<div style='max-height:150px;overflow-y:auto;'><table style='width:100%'>";
+                html += "<tr><th>塊</th><th>行號</th><th>內容</th></tr>";
+                results.forEach(res => {
+                    const safeLine = res.content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    html += `<tr><td>${res.chunk + 1}</td><td>${res.lineNum}</td><td><a href="#" onclick="gotoLine(${res.chunk}, ${res.line})">${safeLine.slice(0, 50)}${safeLine.length > 50 ? '...' : ''}</a></td></tr>`;
+                });
+                html += "</table></div>";
+                document.getElementById('search-result').innerHTML = html;
+            } else {
+                document.getElementById('search-result').innerHTML = `<p>未找到 '${searchTerm}'</p>`;
+            }
+        }
+
+        function gotoLine(chunkIdx, lineIdx) {
+            if (chunkIdx !== currentChunk) {
+                chunks[currentChunk] = document.getElementById('editor').value;
+                currentChunk = chunkIdx;
+                document.getElementById('editor').value = chunks[chunkIdx];
+                updateChunkInfo();
+                document.querySelector('.editor-section button:nth-child(1)').disabled = (currentChunk === 0);
+                document.querySelector('.editor-section button:nth-child(3)').disabled = (currentChunk >= totalChunks - 1);
+                history = [document.getElementById('editor').value];
+                historyPosition = 0;
+                updateHistoryButtons();
+            }
+            const lines = document.getElementById('editor').value.split('\n');
+            const targetLine = lines[lineIdx];
+            document.getElementById('status-label').innerText = `狀態: 跳轉到第 ${lineIdx + 1} 行: ${targetLine.slice(0, 30)}...`;
+        }
+
+        function analyzeStructure() {
+            const structureOutput = document.getElementById('structure-output');
+            structureOutput.innerHTML = "";
+            if (!fileContent) {
+                structureOutput.innerHTML = "沒有內容可分析";
+                return;
+            }
+            if (language === 'python') {
+                analyzePythonStructure();
+            } else if (language === 'javascript') {
+                analyzeJsStructure();
+            } else {
+                analyzeGeneralStructure();
+            }
+        }
+
+        function analyzePythonStructure() {
+            const lines = fileContent.split('\n');
+            let imports = [], classes = [], functions = [];
+            const classPattern = /^class\s+(\w+)/;
+            const functionPattern = /^def\s+(\w+)/;
+            const importPattern = /^(?:from\s+[\w.]+\s+)?import\s+(.+)/;
+            lines.forEach((line, i) => {
+                line = line.trim();
+                if (line.startsWith('import ') || line.startsWith('from ')) {
+                    const match = importPattern.exec(line);
+                    if (match) imports.push({ line: i, content: line });
+                } else if (line.startsWith('class ')) {
+                    const match = classPattern.exec(line);
+                    if (match) classes.push({ line: i, name: match[1] });
+                } else if (line.startsWith('def ')) {
+                    const match = functionPattern.exec(line);
+                    if (match && (lines[i].indexOf('def ') === lines[i].search(/\S/))) {
+                        functions.push({ line: i, name: match[1] });
+                    }
+                }
+            });
+            let html = "文件結構:<br>";
+            if (imports.length) html += "<br>導入:<br>" + imports.map(imp => `  ${imp.content} (塊 ${Math.floor(imp.line / chunkSize) + 1}, 行 ${imp.line + 1})<br>`).join('');
+            if (classes.length) html += "<br>類:<br>" + classes.map(cls => `  ${cls.name} (塊 ${Math.floor(cls.line / chunkSize) + 1}, 行 ${cls.line + 1})<br>`).join('');
+            if (functions.length) html += "<br>函數:<br>" + functions.map(func => `  ${func.name} (塊 ${Math.floor(func.line / chunkSize) + 1}, 行 ${func.line + 1})<br>`).join('');
+            document.getElementById('structure-output').innerHTML = html;
+        }
+
+        function analyzeJsStructure() {
+            const lines = fileContent.split('\n');
+            let imports = [], classes = [], functions = [], variables = [];
+            const importPattern = /^(?:import|require)\s+(.+)/;
+            const classPattern = /^class\s+(\w+)/;
+            const functionPattern1 = /^function\s+(\w+)/;
+            const functionPattern2 = /^(?:const|let|var)\s+(\w+)\s*=\s*(?:function|\(.*\)\s*=>)/;
+            const variablePattern = /^(?:const|let|var)\s+(\w+)\s*=/;
+            lines.forEach((line, i) => {
+                line = line.trim();
+                if (line.startsWith('import ') || line.startsWith('require')) {
+                    const match = importPattern.exec(line);
+                    if (match) imports.push({ line: i, content: line });
+                } else if (line.startsWith('class ')) {
+                    const match = classPattern.exec(line);
+                    if (match) classes.push({ line: i, name: match[1] });
+                } else if (line.startsWith('function ')) {
+                    const match = functionPattern1.exec(line);
+                    if (match) functions.push({ line: i, name: match[1] });
+                } else if (/^(const|let|var)\s+\w+\s*=\s*function/.test(line) || /^(const|let|var)\s+\w+\s*=\s*\(.*\)\s*=>/.test(line)) {
+                    const match = functionPattern2.exec(line);
+                    if (match) functions.push({ line: i, name: match[1] });
+                } else if (/^(const|let|var)\s+\w+\s*=/.test(line)) {
+                    const match = variablePattern.exec(line);
+                    if (match) variables.push({ line: i, name: match[1] });
+                }
+            });
+            let html = "文件結構:<br>";
+            if (imports.length) html += "<br>導入:<br>" + imports.map(imp => `  ${imp.content} (塊 ${Math.floor(imp.line / chunkSize) + 1}, 行 ${imp.line + 1})<br>`).join('');
+            if (classes.length) html += "<br>類:<br>" + classes.map(cls => `  ${cls.name} (塊 ${Math.floor(cls.line / chunkSize) + 1}, 行 ${cls.line + 1})<br>`).join('');
+            if (functions.length) html += "<br>函數:<br>" + functions.map(func => `  ${func.name} (塊 ${Math.floor(func.line / chunkSize) + 1}, 行 ${func.line + 1})<br>`).join('');
+            if (variables.length) html += "<br>重要變量:<br>" + variables.slice(0, 10).map(varr => `  ${varr.name} (塊 ${Math.floor(varr.line / chunkSize) + 1}, 行 ${varr.line + 1})<br>`).join('');
+            document.getElementById('structure-output').innerHTML = html;
+        }
+
+        function analyzeGeneralStructure() {
+            const lines = fileContent.split('\n');
+            let sections = [];
+            lines.forEach((line, i) => {
+                line = line.trim();
+                if (/^#+\s/.test(line) || /<h[1-6].*?>.*?<\/h[1-6]>/.test(line)) {
+                    sections.push({ line: i, content: line });
+                } else if (/^---$|^***$|^===$/.test(line)) {
+                    if (i > 0 && lines[i - 1].trim()) {
+                        sections.push({ line: i - 1, content: lines[i - 1].trim() + " (分隔段落)" });
+                    }
+                }
+            });
+            let html = "文件結構:<br>";
+            if (sections.length) {
+                html += "<br>段落/部分:<br>" + sections.map(section => `  ${section.content.slice(0, 50)} (塊 ${Math.floor(section.line / chunkSize) + 1}, 行 ${section.line + 1})<br>`).join('');
+            } else {
+                html += chunks.map((chunk, i) => {
+                    const lines = chunk.split('\n');
+                    const nonEmpty = lines.filter(line => line.trim()).length;
+                    return `  塊 ${i + 1}: ${nonEmpty}/${lines.length} 行有內容<br>`;
+                }).join('');
+            }
+            document.getElementById('structure-output').innerHTML = html;
+        }
+
+        function updateSnippets() {
+            const snippetDropdown = document.getElementById('snippet-dropdown');
+            snippetDropdown.innerHTML = "";
+            if (snippets[language]) {
+                Object.keys(snippets[language]).forEach(key => {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.text = key;
+                    snippetDropdown.appendChild(option);
+                });
+            }
+        }
+
+        function addBookmark() {
+            // 書簽功能待實現
+            document.getElementById('status-label').innerText = "狀態: 書簽功能待實現";
+        }
+
+        function gotoBookmark() {
+            // 書簽功能待實現
+            document.getElementById('status-label').innerText = "狀態: 書簽功能待實現";
+        }
+
+        function removeBookmark() {
+            // 書簽功能待實現
+            document.getElementById('status-label').innerText = "狀態: 書簽功能待實現";
+        }
+
+        function insertSnippet() {
+            const selectedSnippet = document.getElementById('snippet-dropdown').value;
+            if (selectedSnippet) {
+                const snippetCode = snippets[language][selectedSnippet];
+                const editor = document.getElementById('editor');
+                const cursorPosition = editor.selectionStart;
+                const currentText = editor.value;
+                editor.value = currentText.slice(0, cursorPosition) + snippetCode + currentText.slice(cursorPosition);
+                onEditorChange();
+            }
+        }
+
+        function changeLanguage() {
+            language = document.getElementById('language-select').value;
+            analyzeStructure();
+            updateSnippets();
+        }
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // 默認顯示結構標籤
+        showTab('structure');
+    </script>
+</body>
+</html>
