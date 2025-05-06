@@ -1,0 +1,185 @@
+  <!DOCTYPE html>
+  <html lang="zh-HK">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>可編輯文本框</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: 'Arial', '微軟正黑體', sans-serif;
+      }
+      
+      body {
+        background-color: #f5f5f5;
+        padding: 20px;
+        min-height: 100vh;
+      }
+      
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+      }
+      
+      h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 20px;
+      }
+      
+      .editor-container {
+        width: 100%;
+        margin-bottom: 20px;
+      }
+      
+      #editor {
+        width: 100%;
+        min-height: 300px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 15px;
+        font-size: 16px;
+        line-height: 1.5;
+        overflow-y: auto;
+        resize: vertical;
+      }
+      
+      .button-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      
+      button {
+        padding: 10px 15px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s;
+      }
+      
+      button:hover {
+        background-color: #45a049;
+      }
+      
+      #file-input {
+        display: none;
+      }
+      
+      @media screen and (max-width: 768px) {
+        .container {
+          padding: 15px;
+        }
+        
+        .button-group {
+          flex-direction: column;
+        }
+        
+        button {
+          width: 100%;
+        }
+      }
+      
+      @media screen and (max-width: 480px) {
+        h1 {
+          font-size: 24px;
+        }
+        
+        #editor {
+          min-height: 200px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>可編輯文本框</h1>
+      
+      <div class="editor-container">
+        <textarea id="editor" placeholder="在此輸入文字..."></textarea>
+      </div>
+      
+      <div class="button-group">
+        <button id="clear-btn">清除</button>
+        <button id="copy-btn">複製</button>
+        <button id="paste-btn">貼上</button>
+        <button id="load-btn">載入檔案</button>
+        <input type="file" id="file-input" accept=".txt,.md,.html,.css,.js">
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const editor = document.getElementById('editor');
+        const clearBtn = document.getElementById('clear-btn');
+        const copyBtn = document.getElementById('copy-btn');
+        const pasteBtn = document.getElementById('paste-btn');
+        const loadBtn = document.getElementById('load-btn');
+        const fileInput = document.getElementById('file-input');
+        
+        // 清除按鈕功能
+        clearBtn.addEventListener('click', function() {
+          editor.value = '';
+          editor.focus();
+        });
+        
+        // 複製按鈕功能
+        copyBtn.addEventListener('click', function() {
+          editor.select();
+          document.execCommand('copy');
+          
+          // 顯示複製成功提示
+          const originalText = copyBtn.textContent;
+          copyBtn.textContent = '已複製!';
+          setTimeout(() => {
+            copyBtn.textContent = originalText;
+          }, 1500);
+        });
+        
+        // 貼上按鈕功能
+        pasteBtn.addEventListener('click', async function() {
+          try {
+            const text = await navigator.clipboard.readText();
+            const cursorPos = editor.selectionStart;
+            const textBefore = editor.value.substring(0, cursorPos);
+            const textAfter = editor.value.substring(cursorPos);
+            
+            editor.value = textBefore + text + textAfter;
+            editor.focus();
+          } catch (err) {
+            alert('無法存取剪貼簿，請手動貼上 (Ctrl+V)');
+          }
+        });
+        
+        // 載入檔案按鈕功能
+        loadBtn.addEventListener('click', function() {
+          fileInput.click();
+        });
+        
+        fileInput.addEventListener('change', function(e) {
+          const file = e.target.files[0];
+          if (!file) return;
+          
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            editor.value = e.target.result;
+          };
+          reader.readAsText(file);
+          
+          // 重置 file input 以便可以重複選擇同一文件
+          fileInput.value = '';
+        });
+      });
+    </script>
+  </body>
+  </html>
