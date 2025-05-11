@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>輸入輸出</title>
+  <style>
+    /* 在此處添加 CSS 樣式 */
+    :root {
+      --max-width: 1080px;
+    }
+
+    html,
+    body {
+      /*height: 100%;*/
+      /*width: 100%;*/
+      margin: 10px;
+      padding: 1px;
+      font-family: Arial, sans-serif;
+      transition: all 0.3s ease;
+    }
+
+    /* 屏幕大小 (1080px) */
+    @media (min-width: 1080px) {
+      body {
+        margin: 10px;
+        margin-left: auto;
+        margin-right: auto;
+        /*max-width: var(--max-width);*/
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div>Input
+    <button id="readFile">讀取檔案</button>
+    <button id="paste">貼上</button>
+    <button id="process">輸入</button>
+    <button id="clear">清除</button>
+  </div>
+  <div style="padding: 10px; border: 1px solid black;
+    white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word;"
+    contenteditable="plaintext-only" id="inputEditor">Hello World</div>
+  <!--contenteditable="plaintext-only" 會自動阻止字串以外的html的標記等和"true"不同-->
+  <div>Output
+    <button id="saveFile">儲存檔案</button>
+    <button id="copy">複制</button>
+    <button id="clearOurput">清除</button>
+    <button id="saveCheckpoint">儲存還原點</button>
+    <button id="restoreCheckpoint">還原</button>
+  </div>
+  <div style="padding: 10px; border: 1px solid black;
+    white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word;"
+    contenteditable="true" id="outputEditor">ABC</div>
+  <script>
+    // 在此處添加 JavaScript 程式碼
+    // 取得對元素的引用
+    const readFileButton = document.getElementById('readFile'); // 讀取檔案按鈕的引用
+    const pasteIputButton = document.getElementById('paste'); // 貼上輸入按鈕的引用
+    const processIputButton = document.getElementById('process'); // 處理輸入按鈕的引用
+    const clearIputButton = document.getElementById('clear'); // 清除輸入按鈕的引用
+    // 讀取檔案功能的隱藏檔案輸入元素
+    const inputEditorDiv = document.getElementById('inputEditor'); // 取得輸入編輯器的引用
+    const saveFileButton = document.getElementById('saveFile'); // 儲存檔案按鈕的引用
+    const copyBin = document.getElementById('copy'); // 複製輸出按鈕的引用
+    const clearOutputBtm = document.getElementById('clearOurput');
+    const outputEditorDiv = document.getElementById('outputEditor'); // 取得輸出編輯器的引用
+    // 讀取檔案按鈕事件 功能 functionality
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.txt, .html, .js, .css, .json, .md, .csv, .tsv, .xml, .yaml, .yml, .ini, .log, .sql, .sh, .bat, .ps1';
+    fileInput.style.display = 'none';
+    document.body.appendChild(fileInput);
+    // 讀取檔案按鈕事件 功能 functionality
+    readFileButton.addEventListener('click', () => {
+      fileInput.click();
+    });
+    fileInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          inputEditorDiv.textContent = e.target.result;
+        };
+        reader.readAsText(file);
+      }
+    });
+    // Paste input button event 功能 functionality
+    pasteIputButton.addEventListener('click', async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        inputEditorDiv.textContent = text;
+      } catch (err) {
+        alert('讀取剪貼簿失敗。請檢查瀏覽器權限。');
+        // 全選輸入區域的文字 Select text
+        const range = document.createRange();
+        range.selectNodeContents(inputEditorDiv);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        console.error('讀取剪貼簿失敗：', err);
+      }
+    });
+    
+    // Process input button event 功能 functionality
+    processIputButton.addEventListener('click', () => {
+      const inputText = inputEditorDiv.textContent;
+      // alert(`處理輸入：${inputText}`);
+      // 在此處添加處理輸入的程式碼
+      outputEditorDiv.textContent = inputText;
+    });
+    
+    // Clear input button event 功能 functionality
+    clearIputButton.addEventListener('click', () => {
+      inputEditorDiv.textContent = '';
+    });
+    
+      // Copy output button event 功能 functionality
+      copyBin.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(outputEditorDiv.textContent);
+          // 全選輸出區域的文字 Select text
+          const range = document.createRange();
+          range.selectNodeContents(outputEditorDiv);
+          const selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);          
+          // 視覺回饋 Visual feedback
+          const originalText = copyBin.textContent;
+          copyBin.textContent = '已複製';
+          copyBin.classList.add('成功');
+
+          // 零點五秒後恢復原始狀態
+          setTimeout(() => {
+            copyBin.textContent = originalText;
+            copyBin.classList.remove('成功');
+          }, 500);
+        } catch (err) {
+          alert('複製到剪貼簿失敗。請檢查瀏覽器權限，您可以手動複制（Ctrl+C/Command+C）');
+          // 全選輸出區域的文字 Select text
+          const range = document.createRange();
+          range.selectNodeContents(outputEditorDiv);
+          const selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range); // 選擇輸出編輯器的內容 Select the content of the output editor
+          console.error('複製到剪貼簿失敗。', err);
+        }
+      });
+    // 創建儲存模態框元素
+    const saveModal = document.createElement('div');
+    saveModal.style.cssText = 'display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);';
+    
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = 'background:white; padding:20px; width:300px; margin:100px auto;';
+    
+    const fileNameInput = document.createElement('input');
+    fileNameInput.placeholder = '檔案名稱';
+    fileNameInput.value = 'output.txt';
+    
+    const cancelSaveBtn = document.createElement('button');
+    cancelSaveBtn.textContent = '取消';
+    
+    const confirmSaveBtn = document.createElement('button');
+    confirmSaveBtn.textContent = '儲存';
+    
+    modalContent.appendChild(fileNameInput);
+    modalContent.appendChild(cancelSaveBtn);
+    modalContent.appendChild(confirmSaveBtn);
+    saveModal.appendChild(modalContent);
+    document.body.appendChild(saveModal);
+
+    // Save file button event 功能 functionality
+    saveFileButton.addEventListener('click', () => {
+      saveModal.style.display = 'block';
+    });
+
+    // 取消儲存按鈕事件
+    cancelSaveBtn.addEventListener('click', () => {
+      saveModal.style.display = 'none';
+    });
+
+    // 儲存按鈕事件
+    confirmSaveBtn.addEventListener('click', () => {
+      const content = outputEditorDiv.textContent;
+      const fileName = fileNameInput.value || 'output.txt';
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const alink = document.createElement('a');
+      alink.href = url;
+      alink.download = fileName;
+      document.body.appendChild(alink);
+      alink.click();
+      document.body.removeChild(alink);
+      URL.revokeObjectURL(url);
+      saveModal.style.display = 'none';
+      
+      // 視覺回饋
+      const originalText = saveFileButton.textContent;
+      saveFileButton.textContent = '已儲存';
+      saveFileButton.classList.add('成功');
+      setTimeout(() => {
+        saveFileButton.textContent = originalText;
+        saveFileButton.classList.remove('成功');
+      }, 500);
+    });
+
+    // 點選模態外部時關閉
+    window.addEventListener('click', (event) => {
+      if (event.target === saveModal) {
+        saveModal.style.display = 'none';
+      }
+    });
+      // 清除輸出 Clear output button event 功能 functionality
+      clearOutputBtm.addEventListener('click', () => {
+        outputEditorDiv.textContent = '';
+      });
+
+      // 還原點功能
+      const saveCheckpointBtn = document.getElementById('saveCheckpoint');
+      const restoreCheckpointBtn = document.getElementById('restoreCheckpoint');
+      let checkpoint = {
+        input: '',
+        output: ''
+      };
+
+      saveCheckpointBtn.addEventListener('click', () => {
+        checkpoint.input = inputEditorDiv.textContent;
+        checkpoint.output = outputEditorDiv.textContent;
+        
+        // 視覺回饋
+        const originalText = saveCheckpointBtn.textContent;
+        saveCheckpointBtn.textContent = '已儲存';
+        saveCheckpointBtn.classList.add('成功');
+        setTimeout(() => {
+          saveCheckpointBtn.textContent = originalText;
+          saveCheckpointBtn.classList.remove('成功');
+        }, 500);
+      });
+
+      restoreCheckpointBtn.addEventListener('click', () => {
+        inputEditorDiv.textContent = checkpoint.input;
+        outputEditorDiv.textContent = checkpoint.output;
+        
+        // 視覺回饋
+        const originalText = restoreCheckpointBtn.textContent;
+        restoreCheckpointBtn.textContent = '已還原';
+        restoreCheckpointBtn.classList.add('成功');
+        setTimeout(() => {
+          restoreCheckpointBtn.textContent = originalText;
+          restoreCheckpointBtn.classList.remove('成功');
+        }, 500);
+      });
+  </script>
+</body>
+</html>
