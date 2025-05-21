@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>字幕合併工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                    }
+                }
+            },
+            darkMode: 'class',
+        }
+    </script>
+    <style>
+        textarea::-webkit-scrollbar {
+            width: 8px;
+        }
+        textarea::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        textarea::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        .dark textarea::-webkit-scrollbar-track {
+            background: #333;
+        }
+        .dark textarea::-webkit-scrollbar-thumb {
+            background: #666;
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-200">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <h1 class="text-3xl font-bold mb-6 text-center text-primary">字幕合併工具</h1>
+        
+        <div class="subtitle-inputs mb-6" id="subtitle-inputs">
+            <div class="subtitle-input mb-4 p-4 border border-gray-300 dark:border-gray-700 rounded-lg">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="block text-lg font-medium">字幕 1</label>
+                    <button type="button" class="text-red-500 hover:text-red-700 delete-btn hidden">
+                        移除
+                    </button>
+                </div>
+                <div class="flex flex-wrap gap-2 mb-3">
+                    <label class="inline-flex items-center bg-primary hover:bg-purple-700 text-white font-medium py-1 px-3 rounded-lg cursor-pointer text-sm transition-colors duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        上傳檔案
+                        <input type="file" class="file-input hidden" accept=".txt,.srt" />
+                    </label>
+                    <button type="button" class="paste-btn bg-blue-500 hover:bg-blue-600 text-white font-medium py-1 px-3 rounded-lg text-sm transition-colors duration-200 inline-flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        貼上
+                    </button>
+                    <button type="button" class="clear-btn bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-3 rounded-lg text-sm transition-colors duration-200 inline-flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        清除
+                    </button>
+                </div>
+                <textarea class="w-full h-40 p-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary text-base" placeholder="輸入字幕內容，格式如: 00:00:02:18 00:00:09:05 字幕文本"></textarea>
+            </div>
+            <div class="subtitle-input mb-4 p-4 border border-gray-300 dark:border-gray-700 rounded-lg">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="block text-lg font-medium">字幕 2</label>
+                    <button type="button" class="text-red-500 hover:text-red-700 delete-btn">
+                        移除
+                    </button>
+                </div>
+                <div class="flex flex-wrap gap-2 mb-3">
+                    <label class="inline-flex items-center bg-primary hover:bg-purple-700 text-white font-medium py-1 px-3 rounded-lg cursor-pointer text-sm transition-colors duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        上傳檔案
+                        <input type="file" class="file-input hidden" accept=".txt,.srt" />
+                    </label>
+                    <button type="button" class="paste-btn bg-blue-500 hover:bg-blue-600 text-white font-medium py-1 px-3 rounded-lg text-sm transition-colors duration-200 inline-flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        貼上
+                    </button>
+                    <button type="button" class="clear-btn bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-3 rounded-lg text-sm transition-colors duration-200 inline-flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        清除
+                    </button>
+                </div>
+                <textarea class="w-full h-40 p-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary text-base" placeholder="輸入字幕內容，格式如: 00:00:02:18 00:00:09:05 字幕文本"></textarea>
+            </div>
+        </div>
+        
+        <div class="flex flex-wrap gap-4 mb-6">
+            <button id="add-subtitle" class="bg-primary hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">
+                新增字幕輸入框
+            </button>
+            <button id="merge-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">
+                合併字幕
+            </button>
+            <button id="example-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">
+                載入範例
+            </button>
+        </div>
+        
+        <div class="result-container p-4 border border-gray-300 dark:border-gray-700 rounded-lg mb-6 hidden" id="result-container">
+            <h2 class="text-xl font-bold mb-3">合併結果:</h2>
+            <div class="flex mb-3">
+                <button id="copy-result" class="bg-primary hover:bg-purple-700 text-white font-bold py-1 px-3 rounded-lg mr-2 text-sm transition-colors duration-200">
+                    複製結果
+                </button>
+                <button id="download-result" class="bg-primary hover:bg-purple-700 text-white font-bold py-1 px-3 rounded-lg text-sm transition-colors duration-200">
+                    下載結果
+                </button>
+            </div>
+            <textarea id="result" class="w-full h-60 p-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary text-base" readonly></textarea>
+        </div>
+
+        <div class="info-container p-4 border border-gray-300 dark:border-gray-700 rounded-lg">
+            <h2 class="text-xl font-bold mb-3">使用說明:</h2>
+            <ul class="list-disc list-inside space-y-2">
+                <li>輸入多個字幕文本，每行格式為: <code class="bg-gray-200 dark:bg-gray-800 px-1 rounded">HH:MM:SS:FF HH:MM:SS:FF 字幕內容</code></li>
+                <li>第一個時間碼為字幕開始時間，第二個為結束時間</li>
+                <li>點擊「合併字幕」後，系統將根據開始時間對所有字幕進行排序</li>
+                <li>可以使用「新增字幕輸入框」按鈕添加更多字幕</li>
+                <li>點擊「載入範例」可查看使用示例</li>
+                <li>合併後的結果可複製或下載為文本文件</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // 檢測暗色模式
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // 解析時間碼為秒數，便於排序
+        function parseTimecode(timecode) {
+            const [hours, minutes, seconds, frames] = timecode.split(':').map(Number);
+            return hours * 3600 + minutes * 60 + seconds + frames / 100; // 假設每秒100幀
+        }
+
+        // 合併多個字幕
+        function mergeSubtitles(subtitleContents) {
+            let allSubtitles = [];
+            
+            // 收集所有字幕
+            for (const content of subtitleContents) {
+                if (!content.trim()) continue;
+                
+                const lines = content.trim().split('\n');
+                for (const line of lines) {
+                    if (line.trim()) {
+                        allSubtitles.push(line.trim());
+                    }
+                }
+            }
+            
+            // 根據起始時間碼排序
+            allSubtitles.sort((a, b) => {
+                try {
+                    const startTimeA = a.split(' ')[0];
+                    const startTimeB = b.split(' ')[0];
+                    return parseTimecode(startTimeA) - parseTimecode(startTimeB);
+                } catch (e) {
+                    console.error("排序錯誤:", e);
+                    return 0;
+                }
+            });
+            
+            return allSubtitles;
+        }
+
+        // 新增字幕輸入框
+        document.getElementById('add-subtitle').addEventListener('click', function() {
+            const subtitleInputs = document.getElementById('subtitle-inputs');
+            const newIndex = subtitleInputs.children.length + 1;
+            
+            const newSubtitleInput = document.createElement('div');
+            newSubtitleInput.className = 'subtitle-input mb-4 p-4 border border-gray-300 dark:border-gray-700 rounded-lg';
+            newSubtitleInput.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <label class="block text-lg font-medium">字幕 ${newIndex}</label>
+                    <button type="button" class="text-red-500 hover:text-red-700 delete-btn">
+                        移除
+                    </button>
+                </div>
+                <div class="flex flex-wrap gap-2 mb-3">
+                    <label class="inline-flex items-center bg-primary hover:bg-purple-700 text-white font-medium py-1 px-3 rounded-lg cursor-pointer text-sm transition-colors duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        上傳檔案
+                        <input type="file" class="file-input hidden" accept=".txt,.srt" />
+                    </label>
+                    <button type="button" class="paste-btn bg-blue-500 hover:bg-blue-600 text-white font-medium py-1 px-3 rounded-lg text-sm transition-colors duration-200 inline-flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        貼上
+                    </button>
+                    <button type="button" class="clear-btn bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-3 rounded-lg text-sm transition-colors duration-200 inline-flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        清除
+                    </button>
+                </div>
+                <textarea class="w-full h-40 p-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary text-base" placeholder="輸入字幕內容，格式如: 00:00:02:18 00:00:09:05 字幕文本"></textarea>
+            `;
+            
+            subtitleInputs.appendChild(newSubtitleInput);
+            updateDeleteButtons();
+            setupFileInputs(newSubtitleInput.querySelector('.file-input'));
+            setupPasteButtons(newSubtitleInput.querySelector('.paste-btn'));
+            setupClearButtons(newSubtitleInput.querySelector('.clear-btn'));
+        });
+
+        // 合併字幕
+        document.getElementById('merge-btn').addEventListener('click', function() {
+            const textareas = document.querySelectorAll('.subtitle-input textarea');
+            const subtitleContents = Array.from(textareas).map(textarea => textarea.value);
+            
+            const mergedSubtitles = mergeSubtitles(subtitleContents);
+            
+            // 顯示結果
+            document.getElementById('result').value = mergedSubtitles.join('\n');
+            document.getElementById('result-container').classList.remove('hidden');
+            
+            // 滾動到結果區域
+            document.getElementById('result-container').scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // 載入範例
+        document.getElementById('example-btn').addEventListener('click', function() {
+            const textareas = document.querySelectorAll('.subtitle-input textarea');
+            if (textareas.length < 2) {
+                // 確保至少有兩個輸入框
+                document.getElementById('add-subtitle').click();
+            }
+            
+            textareas[0].value = "00:00:02:18 00:00:09:05 ♪ The world is bustling ♪\n00:01:28:10 00:01:34:05 ♪ The world is clamoring ♪";
+            textareas[1].value = "00:00:09:05 00:00:15:22 ♪ All for the sake of profit ♪";
+            
+            // 自動合併範例
+            document.getElementById('merge-btn').click();
+        });
+
+        // 複製結果
+        document.getElementById('copy-result').addEventListener('click', function() {
+            const resultTextarea = document.getElementById('result');
+            resultTextarea.select();
+            document.execCommand('copy');
+            
+            // 顯示複製成功的視覺反饋
+            const originalText = this.textContent;
+            this.textContent = '已複製！';
+            setTimeout(() => {
+                this.textContent = originalText;
+            }, 2000);
+        });
+
+        // 下載結果
+        document.getElementById('download-result').addEventListener('click', function() {
+            const result = document.getElementById('result').value;
+            const blob = new Blob([result], { type: 'text/plain;charset=utf-8' });
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'merged_subtitles.txt';
+            link.click();
+            
+            URL.revokeObjectURL(link.href);
+        });
+
+        // 刪除字幕輸入框
+        document.body.addEventListener('click', function(e) {
+            if (e.target.classList.contains('delete-btn')) {
+                const subtitleInput = e.target.closest('.subtitle-input');
+                subtitleInput.remove();
+                
+                // 更新剩餘的字幕輸入框的編號
+                const labels = document.querySelectorAll('.subtitle-input label');
+                labels.forEach((label, index) => {
+                    label.textContent = `字幕 ${index + 1}`;
+                });
+                
+                updateDeleteButtons();
+            }
+        });
+
+        // 更新刪除按鈕的顯示狀態
+        function updateDeleteButtons() {
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+            if (deleteButtons.length <= 1) {
+                deleteButtons[0].classList.add('hidden');
+            } else {
+                deleteButtons.forEach(btn => btn.classList.remove('hidden'));
+            }
+        }
+
+        // 初始化刪除按鈕顯示狀態
+        updateDeleteButtons();
+
+        // 處理檔案上傳功能
+        function setupFileInputs(fileInput) {
+            if (!fileInput) return;
+            
+            fileInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (!file) return;
+                
+                const textarea = this.closest('.subtitle-input').querySelector('textarea');
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    textarea.value = e.target.result;
+                };
+                
+                reader.readAsText(file);
+                
+                // 重置檔案輸入以便下次選擇相同檔案
+                this.value = '';
+            });
+        }
+        
+        // 處理貼上功能
+        function setupPasteButtons(pasteBtn) {
+            if (!pasteBtn) return;
+            
+            pasteBtn.addEventListener('click', async function() {
+                try {
+                    const textarea = this.closest('.subtitle-input').querySelector('textarea');
+                    const clipboardText = await navigator.clipboard.readText();
+                    textarea.value = clipboardText;
+                } catch (err) {
+                    alert('無法訪問剪貼板，請確保您已授予網站剪貼板權限，或手動貼上內容。');
+                    console.error('剪貼板讀取錯誤:', err);
+                }
+            });
+        }
+        
+        // 處理清除功能
+        function setupClearButtons(clearBtn) {
+            if (!clearBtn) return;
+            
+            clearBtn.addEventListener('click', function() {
+                const textarea = this.closest('.subtitle-input').querySelector('textarea');
+                textarea.value = '';
+            });
+        }
+        
+        // 初始設置所有按鈕
+        document.querySelectorAll('.file-input').forEach(setupFileInputs);
+        document.querySelectorAll('.paste-btn').forEach(setupPasteButtons);
+        document.querySelectorAll('.clear-btn').forEach(setupClearButtons);
+    </script>
+</body>
+</html>
