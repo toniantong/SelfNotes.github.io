@@ -3,448 +3,478 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>進階字幕時間合併處理工具</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.13/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.6.0/css/all.min.css">
+    <title>字幕合併工具</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
         body {
-            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            font-family: 'PingFang TC', 'Microsoft JhengHei', Arial, sans-serif;
         }
-        .subtitle-area {
-            height: 200px;
+        textarea {
             resize: vertical;
+            min-height: 120px;
         }
-        .result-area {
-            min-height: 150px;
-            resize: vertical;
+        .btn {
+            transition: all 0.2s ease;
         }
-        #sticky-header {
-            position: sticky;
-            top: 0;
-            z-index: 10;
+        .btn:hover {
+            transform: translateY(-1px);
         }
-        .toast {
-            position: fixed;
-            bottom: 1.5rem;
-            right: 1.5rem;
-            padding: 0.75rem 1.25rem;
-            border-radius: 0.375rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            opacity: 0;
-            transform: translateY(1rem);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-        }
-        .toast.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .step-container {
-            border-left: 3px solid #6366f1;
-            padding-left: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        @media print {
-            .no-print {
-                display: none;
-            }
+        .result-container {
+            white-space: pre-wrap;
+            overflow-x: auto;
         }
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 min-h-screen py-6">
-    <div class="container mx-auto px-4 max-w-6xl">
-        <!-- 標題 -->
-        <header id="sticky-header" class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
-            <h1 class="text-2xl font-bold text-center text-indigo-600 dark:text-indigo-400">進階字幕時間合併處理工具</h1>
-            <p class="text-center text-gray-600 dark:text-gray-300 mt-2">將多組字幕依照時間碼合併處理，處理時間重疊問題</p>
-        </header>
-
-        <!-- 輸入區域 -->
-        <div class="grid md:grid-cols-2 gap-6 mb-6">
-            <!-- 字幕 1 -->
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-lg font-semibold text-indigo-600 dark:text-indigo-400">字幕 1</h2>
-                    <div class="flex gap-2">
-                        <input type="file" id="file1" class="hidden" accept=".srt,.txt">
-                        <button onclick="document.getElementById('file1').click()" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded text-sm flex items-center">
-                            <i class="fas fa-file-import mr-1"></i>匯入
+<body class="bg-gray-50 text-gray-800">
+    <div class="container mx-auto px-4 py-4 max-w-screen-lg">
+        <div class="mb-3">
+            <h1 class="text-xl font-bold text-center text-blue-600">字幕合併工具</h1>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <!-- 輸入1 -->
+            <div class="bg-white p-4 rounded shadow">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="font-semibold">字幕 1</h2>
+                    <div class="space-x-1">
+                        <input type="file" id="file1" class="hidden" accept=".txt,.srt">
+                        <button onclick="document.getElementById('file1').click()" class="btn bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm py-1 px-2 rounded">
+                            匯入
                         </button>
-                        <button onclick="pasteSubtitle('subtitle1')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded text-sm flex items-center">
-                            <i class="fas fa-paste mr-1"></i>貼上
+                        <button onclick="pasteText('subtitle1')" class="btn bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm py-1 px-2 rounded">
+                            貼上
                         </button>
-                        <button onclick="clearSubtitle('subtitle1')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-sm flex items-center">
-                            <i class="fas fa-trash mr-1"></i>清除
+                        <button onclick="clearText('subtitle1')" class="btn bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm py-1 px-2 rounded">
+                            清除
                         </button>
                     </div>
                 </div>
-                <textarea id="subtitle1" class="subtitle-area w-full p-3 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-gray-100" placeholder="請輸入或匯入第一組字幕，格式如：&#10;00:02:53:05 00:02:55:14 Don't be brave.&#10;00:03:09:10 00:03:11:19 There are two rounds left."></textarea>
+                <textarea id="subtitle1" class="w-full border rounded p-2 text-sm" placeholder="輸入格式: 00:02:53:05 00:02:55:14 Don't be brave."></textarea>
             </div>
-
-            <!-- 字幕 2 -->
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-lg font-semibold text-indigo-600 dark:text-indigo-400">字幕 2</h2>
-                    <div class="flex gap-2">
-                        <input type="file" id="file2" class="hidden" accept=".srt,.txt">
-                        <button onclick="document.getElementById('file2').click()" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded text-sm flex items-center">
-                            <i class="fas fa-file-import mr-1"></i>匯入
+            
+            <!-- 輸入2 -->
+            <div class="bg-white p-4 rounded shadow">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="font-semibold">字幕 2</h2>
+                    <div class="space-x-1">
+                        <input type="file" id="file2" class="hidden" accept=".txt,.srt">
+                        <button onclick="document.getElementById('file2').click()" class="btn bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm py-1 px-2 rounded">
+                            匯入
                         </button>
-                        <button onclick="pasteSubtitle('subtitle2')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded text-sm flex items-center">
-                            <i class="fas fa-paste mr-1"></i>貼上
+                        <button onclick="pasteText('subtitle2')" class="btn bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm py-1 px-2 rounded">
+                            貼上
                         </button>
-                        <button onclick="clearSubtitle('subtitle2')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-sm flex items-center">
-                            <i class="fas fa-trash mr-1"></i>清除
+                        <button onclick="clearText('subtitle2')" class="btn bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm py-1 px-2 rounded">
+                            清除
                         </button>
                     </div>
                 </div>
-                <textarea id="subtitle2" class="subtitle-area w-full p-3 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-gray-100" placeholder="請輸入或匯入第二組字幕，格式如：&#10;00:02:54:07 00:03:08:08 Just accept his request!&#10;00:03:09:14 00:03:12:20 What time is it now?"></textarea>
+                <textarea id="subtitle2" class="w-full border rounded p-2 text-sm" placeholder="輸入格式: 00:02:54:07 00:03:08:08 Just accept his request!"></textarea>
             </div>
         </div>
-
+        
         <!-- 選項 -->
-        <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow mb-6">
-            <h3 class="text-lg font-semibold text-indigo-600 dark:text-indigo-400 mb-3">輸出選項</h3>
-            <div class="flex flex-wrap gap-4">
-                <label class="flex items-center">
-                    <input type="checkbox" id="removeMarkers" class="h-4 w-4 text-indigo-600 rounded" checked>
-                    <span class="ml-2 text-gray-700 dark:text-gray-300">移除標記</span>
+        <div class="bg-white p-3 rounded shadow mb-4">
+            <div class="flex flex-wrap items-center">
+                <label class="inline-flex items-center mr-4 mb-1">
+                    <input type="checkbox" id="removeMarkers" class="form-checkbox h-4 w-4 text-blue-600" checked>
+                    <span class="ml-2 text-sm">移除標記</span>
                 </label>
-                <label class="flex items-center">
-                    <input type="checkbox" id="convertToSRT" class="h-4 w-4 text-indigo-600 rounded">
-                    <span class="ml-2 text-gray-700 dark:text-gray-300">轉為 SRT 格式</span>
+                <label class="inline-flex items-center mr-4 mb-1">
+                    <input type="checkbox" id="convertToSRT" class="form-checkbox h-4 w-4 text-blue-600">
+                    <span class="ml-2 text-sm">轉SRT</span>
                 </label>
-                <label class="flex items-center">
-                    <input type="checkbox" id="filterDuplicates" class="h-4 w-4 text-indigo-600 rounded" checked>
-                    <span class="ml-2 text-gray-700 dark:text-gray-300">過濾重複</span>
+                <label class="inline-flex items-center mr-4 mb-1">
+                    <input type="checkbox" id="filterDuplicates" class="form-checkbox h-4 w-4 text-blue-600" checked>
+                    <span class="ml-2 text-sm">過濾重複</span>
                 </label>
-                <label class="flex items-center">
-                    <span class="mr-2 text-gray-700 dark:text-gray-300">時間偏移 (秒):</span>
-                    <input type="number" id="timeOffset" class="w-20 p-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-gray-100" value="0" step="0.1">
-                </label>
-                <label class="flex items-center">
-                    <input type="checkbox" id="showSteps" class="h-4 w-4 text-indigo-600 rounded">
-                    <span class="ml-2 text-gray-700 dark:text-gray-300">顯示處理步驟</span>
-                </label>
+                <div class="flex items-center mb-1">
+                    <label for="timeOffset" class="text-sm mr-2">時間偏移:</label>
+                    <input type="number" id="timeOffset" class="form-input w-20 h-6 text-sm border rounded" value="0" step="0.1">
+                    <span class="ml-1 text-sm">秒</span>
+                </div>
             </div>
         </div>
-
-        <!-- 按鈕 -->
-        <div class="text-center mb-8">
-            <button id="processBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg shadow transform hover:scale-105 transition">
-                <i class="fas fa-cogs mr-2"></i>處理字幕
-            </button>
-            <button id="exampleBtn" class="ml-4 bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg shadow transform hover:scale-105 transition">
-                <i class="fas fa-vial mr-2"></i>載入範例
+        
+        <div class="text-center mb-6">
+            <button id="processBtn" class="btn bg-blue-600 text-white font-medium py-2 px-6 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                處理字幕
             </button>
         </div>
-
-        <!-- 處理步驟區域 (可折疊) -->
-        <div id="stepsContainer" class="space-y-6 mb-8 hidden">
-            <!-- 步驟1：按開始時間排序 -->
-            <div class="step-container">
-                <h3 class="text-lg font-semibold text-indigo-600 dark:text-indigo-400 mb-3">步驟1：按開始時間排序</h3>
-                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
-                    <textarea id="step1Result" class="result-area w-full p-3 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-gray-100"></textarea>
-                    <div class="flex gap-2 mt-3">
-                        <button onclick="copyToClipboard('step1Result')" class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 px-3 py-1.5 rounded text-sm flex items-center">
-                            <i class="far fa-copy mr-1"></i>複製
-                        </button>
-                        <button onclick="downloadContent('step1Result', '步驟1_結果.txt')" class="bg-indigo-200 hover:bg-indigo-300 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-indigo-700 dark:text-indigo-200 px-3 py-1.5 rounded text-sm flex items-center">
-                            <i class="fas fa-download mr-1"></i>下載
-                        </button>
-                    </div>
+        
+        <!-- 結果顯示區域 -->
+        <div id="resultsSection" class="space-y-4 hidden">
+            <!-- 步驟1: 排序後的字幕 -->
+            <div class="bg-white p-4 rounded shadow">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-semibold text-blue-600">步驟1：按開始時間排序</h3>
+                    <button onclick="copyToClipboard('sortedResult')" class="btn bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm py-1 px-2 rounded">
+                        複製
+                    </button>
                 </div>
+                <div id="sortedResult" class="bg-gray-50 p-3 rounded text-sm result-container"></div>
             </div>
-
-            <!-- 步驟2：加入識別碼 -->
-            <div class="step-container">
-                <h3 class="text-lg font-semibold text-indigo-600 dark:text-indigo-400 mb-3">步驟2：加入識別碼 分開 開始 和 結束 時間</h3>
-                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
-                    <textarea id="step2Result" class="result-area w-full p-3 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-gray-100"></textarea>
-                    <div class="flex gap-2 mt-3">
-                        <button onclick="copyToClipboard('step2Result')" class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 px-3 py-1.5 rounded text-sm flex items-center">
-                            <i class="far fa-copy mr-1"></i>複製
-                        </button>
-                        <button onclick="downloadContent('step2Result', '步驟2_結果.txt')" class="bg-indigo-200 hover:bg-indigo-300 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-indigo-700 dark:text-indigo-200 px-3 py-1.5 rounded text-sm flex items-center">
-                            <i class="fas fa-download mr-1"></i>下載
-                        </button>
-                    </div>
+            
+            <!-- 步驟2: 添加識別碼 -->
+            <div class="bg-white p-4 rounded shadow">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-semibold text-blue-600">步驟2：添加識別碼</h3>
+                    <button onclick="copyToClipboard('idResult')" class="btn bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm py-1 px-2 rounded">
+                        複製
+                    </button>
                 </div>
+                <div id="idResult" class="bg-gray-50 p-3 rounded text-sm result-container"></div>
             </div>
-
-            <!-- 步驟3：分別排序 -->
-            <div class="step-container">
-                <h3 class="text-lg font-semibold text-indigo-600 dark:text-indigo-400 mb-3">步驟3：分別排序</h3>
-                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
-                    <textarea id="step3Result" class="result-area w-full p-3 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-gray-100"></textarea>
-                    <div class="flex gap-2 mt-3">
-                        <button onclick="copyToClipboard('step3Result')" class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 px-3 py-1.5 rounded text-sm flex items-center">
-                            <i class="far fa-copy mr-1"></i>複製
-                        </button>
-                        <button onclick="downloadContent('step3Result', '步驟3_結果.txt')" class="bg-indigo-200 hover:bg-indigo-300 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-indigo-700 dark:text-indigo-200 px-3 py-1.5 rounded text-sm flex items-center">
-                            <i class="fas fa-download mr-1"></i>下載
-                        </button>
-                    </div>
+            
+            <!-- 步驟3: 分別排序 -->
+            <div class="bg-white p-4 rounded shadow">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-semibold text-blue-600">步驟3：分別排序</h3>
+                    <button onclick="copyToClipboard('sortedWithIdResult')" class="btn bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm py-1 px-2 rounded">
+                        複製
+                    </button>
                 </div>
+                <div id="sortedWithIdResult" class="bg-gray-50 p-3 rounded text-sm result-container"></div>
             </div>
-
-            <!-- 步驟4：加入時間並合併 -->
-            <div class="step-container">
-                <h3 class="text-lg font-semibold text-indigo-600 dark:text-indigo-400 mb-3">步驟4：加入時間並合併</h3>
-                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
-                    <textarea id="step4Result" class="result-area w-full p-3 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-gray-100"></textarea>
-                    <div class="flex gap-2 mt-3">
-                        <button onclick="copyToClipboard('step4Result')" class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 px-3 py-1.5 rounded text-sm flex items-center">
-                            <i class="far fa-copy mr-1"></i>複製
+            
+            <!-- 步驟4: 合併 -->
+            <div class="bg-white p-4 rounded shadow">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-semibold text-blue-600">步驟4：時間合併</h3>
+                    <button onclick="copyToClipboard('mergedResult')" class="btn bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm py-1 px-2 rounded">
+                        複製
+                    </button>
+                </div>
+                <div id="mergedResult" class="bg-gray-50 p-3 rounded text-sm result-container"></div>
+            </div>
+            
+            <!-- 步驟5: 最終結果 -->
+            <div class="bg-white p-4 rounded shadow">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-semibold text-blue-600">步驟5：最終結果</h3>
+                    <div class="space-x-1">
+                        <button onclick="copyToClipboard('finalResult')" class="btn bg-blue-600 hover:bg-blue-700 text-white text-sm py-1 px-2 rounded">
+                            複製
                         </button>
-                        <button onclick="downloadContent('step4Result', '步驟4_結果.txt')" class="bg-indigo-200 hover:bg-indigo-300 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-indigo-700 dark:text-indigo-200 px-3 py-1.5 rounded text-sm flex items-center">
-                            <i class="fas fa-download mr-1"></i>下載
+                        <button onclick="downloadTxt()" class="btn bg-green-600 hover:bg-green-700 text-white text-sm py-1 px-2 rounded">
+                            下載
+                        </button>
+                        <button id="downloadSrtBtn" onclick="downloadSrt()" class="btn bg-purple-600 hover:bg-purple-700 text-white text-sm py-1 px-2 rounded">
+                            下載SRT
                         </button>
                     </div>
                 </div>
+                <div id="finalResult" class="bg-gray-50 p-3 rounded text-sm result-container"></div>
             </div>
         </div>
-
-        <!-- 結果區域 -->
-        <div id="results" class="space-y-6 mb-8 hidden">
-            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-                <h3 class="text-lg font-semibold text-indigo-600 dark:text-indigo-400 mb-3">最終結果</h3>
-                <textarea id="finalResult" class="result-area w-full p-3 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-gray-100"></textarea>
-                <div class="flex flex-wrap gap-2 mt-3">
-                    <button onclick="copyToClipboard('finalResult')" class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 px-3 py-1.5 rounded text-sm flex items-center">
-                        <i class="far fa-copy mr-1"></i>複製
-                    </button>
-                    <button onclick="downloadContent('finalResult', '合併字幕.txt')" class="bg-indigo-200 hover:bg-indigo-300 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-indigo-700 dark:text-indigo-200 px-3 py-1.5 rounded text-sm flex items-center">
-                        <i class="fas fa-download mr-1"></i>下載
-                    </button>
-                    <button onclick="downloadSRT()" class="bg-green-200 hover:bg-green-300 dark:bg-green-600 dark:hover:bg-green-500 text-green-700 dark:text-green-200 px-3 py-1.5 rounded text-sm flex items-center">
-                        <i class="fas fa-file-download mr-1"></i>下載 SRT
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 頁腳 -->
-        <footer class="mt-12 text-center text-gray-500 dark:text-gray-400 text-sm">
-            <p>© 2023 進階字幕時間合併處理工具 | 將多組字幕依照時間碼合併處理</p>
-        </footer>
-    </div>
-
-    <!-- 提示 -->
-    <div id="toast" class="toast bg-indigo-600 text-white">
-        <span id="toastMessage"></span>
     </div>
 
     <script>
-        // 深色模式支持
-        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.documentElement.classList.add('dark');
-        }
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-            document.documentElement.classList.toggle('dark', e.matches);
+        document.addEventListener('DOMContentLoaded', function() {
+            // 檔案上傳處理
+            document.getElementById('file1').addEventListener('change', function(e) {
+                readFile(e, 'subtitle1');
+            });
+            document.getElementById('file2').addEventListener('change', function(e) {
+                readFile(e, 'subtitle2');
+            });
+            
+            // 處理按鈕點擊
+            document.getElementById('processBtn').addEventListener('click', processSubtitles);
+            
+            // 更新SRT按鈕顯示狀態
+            document.getElementById('convertToSRT').addEventListener('change', function() {
+                document.getElementById('downloadSrtBtn').style.display = 
+                    this.checked ? 'none' : 'inline-block';
+            });
         });
 
-        // 檔案上傳
-        document.getElementById('file1').addEventListener('change', e => readFile(e, 'subtitle1'));
-        document.getElementById('file2').addEventListener('change', e => readFile(e, 'subtitle2'));
-
-        function readFile(e, targetId) {
-            const file = e.target.files[0];
+        // 讀取檔案
+        function readFile(event, targetId) {
+            const file = event.target.files[0];
             if (!file) return;
+            
             const reader = new FileReader();
-            reader.onload = e => {
+            reader.onload = function(e) {
                 document.getElementById(targetId).value = e.target.result;
-                showToast(`已載入 ${file.name}`);
+                showToast(`已載入檔案: ${file.name}`);
             };
             reader.readAsText(file);
         }
-
-        // 貼上與清除
-        async function pasteSubtitle(id) {
+        
+        // 貼上文字
+        async function pasteText(targetId) {
             try {
                 const text = await navigator.clipboard.readText();
-                document.getElementById(id).value = text;
-                showToast(`已貼上到 ${id === 'subtitle1' ? '字幕 1' : '字幕 2'}`);
-            } catch {
-                showToast('無法存取剪貼簿', 'error');
+                document.getElementById(targetId).value = text;
+                showToast('文字已貼上');
+            } catch (err) {
+                showToast('無法存取剪貼簿，請手動貼上', 'error');
             }
         }
-
-        function clearSubtitle(id) {
-            document.getElementById(id).value = '';
-            showToast(`已清除 ${id === 'subtitle1' ? '字幕 1' : '字幕 2'}`);
+        
+        // 清除文字
+        function clearText(targetId) {
+            document.getElementById(targetId).value = '';
+            showToast('已清除內容');
+        }
+        
+        // 複製至剪貼簿
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(text)
+                .then(() => {
+                    showToast('已複製到剪貼簿');
+                })
+                .catch(err => {
+                    showToast('複製失敗', 'error');
+                });
         }
 
-        // 複製與下載
-        function copyToClipboard(id) {
-            const textarea = document.getElementById(id);
-            textarea.select();
-            navigator.clipboard.writeText(textarea.value).then(() => {
-                showToast('已複製到剪貼簿');
-                
-                // 顯示複製成功提示
-                const button = event.target.tagName === 'BUTTON' ? event.target : event.target.parentElement;
-                const originalText = button.innerHTML;
-                button.innerHTML = '<i class="fas fa-check mr-1"></i>已複製';
-                button.classList.add('bg-green-200', 'dark:bg-green-700');
-                
-                setTimeout(() => {
-                    button.innerHTML = originalText;
-                    button.classList.remove('bg-green-200', 'dark:bg-green-700');
-                }, 2000);
-                
-            }).catch(err => showToast('複製失敗: ' + err, 'error'));
-        }
-
-        function downloadContent(id, filename) {
-            const content = document.getElementById(id).value;
-            const blob = new Blob([content], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
+        // 顯示通知提示
+        function showToast(message, type = 'success') {
+            // 移除舊的提示
+            const oldToast = document.querySelector('.toast-message');
+            if (oldToast) {
+                document.body.removeChild(oldToast);
+            }
             
-            // 清理
+            // 創建新提示
+            let toast = document.createElement('div');
+            toast.className = `toast-message fixed bottom-4 right-4 ${type === 'error' ? 'bg-red-600' : 'bg-gray-800'} text-white px-4 py-2 rounded shadow-lg z-50`;
+            toast.style.transition = 'opacity 0.3s, transform 0.3s';
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(10px)';
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            // 顯示提示
             setTimeout(() => {
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }, 100);
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateY(0)';
+            }, 10);
             
-            showToast(`已下載 ${filename}`);
+            // 隱藏並移除提示
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px)';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        document.body.removeChild(toast);
+                    }
+                }, 300);
+            }, 2000);
         }
 
-        function downloadSRT() {
-            const content = document.getElementById('finalResult').value;
-            const isSRT = content.includes(' --> ');
-            const srtContent = isSRT ? content : convertToSRTFormat(parseSubtitles(content));
+        // 下載TXT結果
+        function downloadTxt() {
+            const text = document.getElementById('finalResult').textContent;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = '字幕合併結果.txt';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast('TXT檔案已下載');
+        }
+        
+        // 下載SRT結果
+        function downloadSrt() {
+            const text = document.getElementById('finalResult').textContent;
+            const srtContent = convertToSRTFormat(parseSubtitles(text));
             
             const blob = new Blob([srtContent], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'merged_subtitles.srt';
-            document.body.appendChild(a);
-            a.click();
-            
-            // 清理
-            setTimeout(() => {
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }, 100);
-            
-            showToast('SRT 檔案已下載');
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = '字幕合併結果.srt';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast('SRT檔案已下載');
         }
-
-        // 提示訊息
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            toast.className = `toast show ${type === 'error' ? 'bg-red-500' : 'bg-indigo-600'} text-white`;
-            document.getElementById('toastMessage').textContent = message;
-            setTimeout(() => toast.className = 'toast bg-indigo-600 text-white', 3000);
-        }
-
-        // 處理字幕按鈕
-        document.getElementById('processBtn').addEventListener('click', processSubtitles);
         
-        // 載入範例按鈕
-        document.getElementById('exampleBtn').addEventListener('click', () => {
-            document.getElementById('subtitle1').value = '00:02:53:05 00:02:55:14 Don\'t be brave.\n00:03:09:10 00:03:11:19 There are two rounds left.\n00:03:11:19 00:03:12:23 Don\'t be audacious!';
-            document.getElementById('subtitle2').value = '00:02:54:07 00:03:08:08 Just accept his request!\n00:03:09:14 00:03:12:20 What time is it now?\n00:03:11:19 00:03:12:23 Don\'t be audacious!\n00:03:14:01 00:03:15:13 Just accept his request!';
-            showToast('已載入範例');
-        });
-
-        // 處理字幕
+        // 處理字幕主函數
         function processSubtitles() {
-            const subtitle1 = document.getElementById('subtitle1').value.trim();
-            const subtitle2 = document.getElementById('subtitle2').value.trim();
-            const showSteps = document.getElementById('showSteps').checked;
+            const text1 = document.getElementById('subtitle1').value.trim();
+            const text2 = document.getElementById('subtitle2').value.trim();
             
-            if (!subtitle1 && !subtitle2) {
+            if (!text1 && !text2) {
                 showToast('請至少輸入一組字幕', 'error');
                 return;
             }
-
-            // 處理時間偏移
-            const timeOffset = parseFloat(document.getElementById('timeOffset').value) || 0;
             
-            // 步驟1：合併並按開始時間排序
-            const combinedSubtitles = combineAndSortSubtitles(subtitle1, subtitle2, timeOffset);
-            if (showSteps) {
-                document.getElementById('step1Result').value = combinedSubtitles.join('\n');
-            }
-            
-            // 步驟2：加入識別碼
-            const subtitlesWithIds = addIdentifiers(combinedSubtitles);
-            if (showSteps) {
-                document.getElementById('step2Result').value = subtitlesWithIds.join('\n');
-            }
-            
-            // 步驟3：分別排序時間碼
-            const sortedTimeSubtitles = sortTimeCodesSeperately(subtitlesWithIds);
-            if (showSteps) {
-                document.getElementById('step3Result').value = sortedTimeSubtitles.join('\n');
-            }
-            
-            // 步驟4：加入時間並合併
-            const mergedSubtitles = mergeSubtitlesByTime(sortedTimeSubtitles);
-            if (showSteps) {
-                document.getElementById('step4Result').value = mergedSubtitles.join('\n');
-            }
-            
-            // 步驟5：處理最終結果
-            const finalResultArray = processFinalResult(mergedSubtitles);
-            document.getElementById('finalResult').value = finalResultArray;
-            
-            // 顯示結果
-            if (showSteps) {
-                document.getElementById('stepsContainer').classList.remove('hidden');
-            } else {
-                document.getElementById('stepsContainer').classList.add('hidden');
-            }
-            document.getElementById('results').classList.remove('hidden');
-            
-            // 滾動到結果區域
-            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
-            
-            // 調整所有結果區域的高度
-            autoResizeTextareas();
-            
-            showToast('字幕處理完成！');
-        }
-        
-        // 自動調整所有文本區域的高度
-        function autoResizeTextareas() {
-            document.querySelectorAll('.result-area').forEach(textarea => {
-                textarea.style.height = 'auto';
-                textarea.style.height = `${Math.min(textarea.scrollHeight + 5, 500)}px`;
-            });
-        }
-        
-        // 步驟1：合併並排序字幕
-        function combineAndSortSubtitles(sub1, sub2, timeOffset = 0) {
-            // 解析字幕
-            const parsedSub1 = parseSubtitles(sub1);
-            const parsedSub2 = parseSubtitles(sub2);
-            
-            // 合併字幕
-            const combined = [...parsedSub1, ...parsedSub2];
-            
-            // 應用時間偏移
-            if (timeOffset !== 0) {
-                combined.forEach(sub => {
-                    sub.startTime = offsetTime(sub.startTime, timeOffset);
-                    sub.endTime = offsetTime(sub.endTime, timeOffset);
+            try {
+                // 獲取選項
+                const removeMarkers = document.getElementById('removeMarkers').checked;
+                const convertToSRT = document.getElementById('convertToSRT').checked;
+                const filterDuplicates = document.getElementById('filterDuplicates').checked;
+                const timeOffset = parseFloat(document.getElementById('timeOffset').value) || 0;
+                
+                // 解析字幕
+                const subtitles1 = parseSubtitles(text1);
+                const subtitles2 = parseSubtitles(text2);
+                
+                // 應用時間偏移
+                let allSubtitles = [...subtitles1, ...subtitles2].map(sub => {
+                    if (timeOffset !== 0) {
+                        return {
+                            ...sub,
+                            startTime: offsetTime(sub.startTime, timeOffset),
+                            endTime: offsetTime(sub.endTime, timeOffset)
+                        };
+                    }
+                    return sub;
                 });
+                
+                // 按開始時間排序
+                allSubtitles.sort((a, b) => compareTimecodes(a.startTime, b.startTime));
+                
+                // 顯示排序後的字幕
+                const sortedText = allSubtitles.map(sub => 
+                    `${sub.startTime} ${sub.endTime} ${sub.text}`).join('\n');
+                document.getElementById('sortedResult').textContent = sortedText;
+                
+                // 添加識別碼
+                let withIds = [];
+                allSubtitles.forEach((sub, index) => {
+                    const id = index + 1;
+                    withIds.push({
+                        id: id,
+                        type: 'start',
+                        time: sub.startTime,
+                        text: sub.text
+                    });
+                    withIds.push({
+                        id: id,
+                        type: 'end',
+                        time: sub.endTime,
+                        text: `~~${sub.text}~~`
+                    });
+                });
+                
+                // 顯示添加識別碼後的字幕
+                const idText = withIds.map(item => {
+                    const marker = item.type === 'start' ? '@' : '~';
+                    return `${item.id}${marker} ${item.time} ${item.text}`;
+                }).join('\n');
+                document.getElementById('idResult').textContent = idText;
+                
+                // 按時間排序全部時間點
+                withIds.sort((a, b) => {
+                    const timeComparison = compareTimecodes(a.time, b.time);
+                    if (timeComparison !== 0) return timeComparison;
+                    // 同一時間點，開始時間排在前面
+                    return a.type === 'start' ? -1 : 1;
+                });
+                
+                // 顯示排序後的時間點
+                const sortedWithIdText = withIds.map(item => {
+                    const marker = item.type === 'start' ? '@' : '~';
+                    return `${item.id}${marker} ${item.time} ${item.text}`;
+                }).join('\n');
+                document.getElementById('sortedWithIdResult').textContent = sortedWithIdText;
+                
+                // 處理時間段合併
+                let timeSegments = [];
+                let activeSubtitles = new Map(); // 追蹤當前活躍的字幕
+                
+                for (let i = 0; i < withIds.length - 1; i++) {
+                    const current = withIds[i];
+                    const next = withIds[i + 1];
+                    
+                    // 更新活躍字幕狀態
+                    if (current.type === 'start') {
+                        activeSubtitles.set(current.id, current.text);
+                    } else if (current.type === 'end') {
+                        activeSubtitles.delete(current.id);
+                    }
+                    
+                    // 有活躍字幕時才創建時間段
+                    if (activeSubtitles.size > 0) {
+                        const segment = {
+                            startTime: current.time,
+                            endTime: next.time,
+                            content: []
+                        };
+                        
+                        // 添加當前活躍的字幕
+                        activeSubtitles.forEach((text, id) => {
+                            segment.content.push(`@${id}(${text})`);
+                        });
+                        
+                        timeSegments.push(segment);
+                    }
+                }
+                
+                // 顯示合併後的字幕
+                const mergedText = timeSegments.map(segment => {
+                    const content = segment.content.join('//');
+                    return `${segment.startTime} ${segment.endTime} ${content}`;
+                }).join('\n');
+                document.getElementById('mergedResult').textContent = mergedText;
+                
+                // 處理並顯示最終結果
+                let finalResult = timeSegments;
+                
+                // 過濾重複
+                if (filterDuplicates) {
+                    const seen = new Set();
+                    finalResult = finalResult.filter(segment => {
+                        const key = `${segment.startTime}-${segment.endTime}-${segment.content.join('//')}`;
+                        if (!seen.has(key)) {
+                            seen.add(key);
+                            return true;
+                        }
+                        return false;
+                    });
+                }
+                
+                // 移除標記
+                if (removeMarkers) {
+                    finalResult = finalResult.map(segment => {
+                        return {
+                            ...segment,
+                            content: segment.content.map(c => {
+                                return c.replace(/@\d+\(([^)]+)\)/g, '$1');
+                            })
+                        };
+                    });
+                }
+                
+                // 轉換為字符串
+                let finalText = finalResult.map(segment => {
+                    const content = segment.content.join('//');
+                    return `${segment.startTime} ${segment.endTime} ${content}`;
+                }).join('\n');
+                
+                // 轉換為SRT
+                if (convertToSRT) {
+                    finalText = convertToSRTFormat(parseSubtitles(finalText));
+                }
+                
+                document.getElementById('finalResult').textContent = finalText;
+                
+                // 顯示結果區域
+                document.getElementById('resultsSection').classList.remove('hidden');
+                
+                document.getElementById('downloadSrtBtn').style.display = 
+                    convertToSRT ? 'none' : 'inline-block';
+                
+                showToast('處理完成');
+                
+                // 滾動到結果區域
+                document.getElementById('resultsSection').scrollIntoView({behavior: 'smooth'});
+                
+            } catch (error) {
+                console.error('處理字幕時發生錯誤：', error);
+                showToast('處理失敗: ' + error.message, 'error');
             }
-            
-            // 按開始時間排序
-            combined.sort((a, b) => timeToSeconds(a.startTime) - timeToSeconds(b.startTime));
-            
-            // 轉換回字符串格式
-            return combined.map(sub => `${sub.startTime} ${sub.endTime} ${sub.text}`);
         }
         
         // 解析字幕
@@ -452,20 +482,19 @@
             if (!text) return [];
             
             const lines = text.split('\n');
-            const result = [];
+            const subtitles = [];
             
             for (const line of lines) {
-                const trimmed = line.trim();
-                if (!trimmed) continue;
+                if (!line.trim()) continue;
                 
-                // 嘗試匹配字幕格式：00:00:00:00 00:00:00:00 Text 或 00:00:00 00:00:00 Text
-                const match = trimmed.match(/^(\d{2}:\d{2}:\d{2}(?::\d{2})?)\s+(\d{2}:\d{2}:\d{2}(?::\d{2})?)\s+(.+)$/);
+                // 支持標準格式: 00:00:00:00 00:00:00:00 Text
+                const match = line.match(/^(\d{2}:\d{2}:\d{2}(?::\d{2})?)\s+(\d{2}:\d{2}:\d{2}(?::\d{2})?)\s+(.+)$/);
                 if (match) {
                     // 標準化時間格式 (確保是 00:00:00:00 格式)
                     const startTime = standardizeTimeFormat(match[1]);
                     const endTime = standardizeTimeFormat(match[2]);
                     
-                    result.push({
+                    subtitles.push({
                         startTime,
                         endTime,
                         text: match[3]
@@ -473,7 +502,7 @@
                 }
             }
             
-            return result;
+            return subtitles;
         }
         
         // 標準化時間格式為 00:00:00:00
@@ -483,6 +512,11 @@
                 return time + ':00';
             }
             return time;
+        }
+        
+        // 比較時間碼
+        function compareTimecodes(time1, time2) {
+            return timeToSeconds(time1) - timeToSeconds(time2);
         }
         
         // 時間碼轉為秒數
@@ -513,184 +547,6 @@
         // 時間偏移
         function offsetTime(time, offset) {
             return secondsToTime(timeToSeconds(time) + offset);
-        }
-        
-        // 步驟2：添加識別碼
-        function addIdentifiers(subtitles) {
-            const result = [];
-            
-            for (let i = 0; i < subtitles.length; i++) {
-                const parts = subtitles[i].split(' ');
-                if (parts.length < 3) continue;
-                
-                const id = i + 1;
-                const startTime = parts[0];
-                const endTime = parts[1];
-                const text = parts.slice(2).join(' ');
-                
-                // 添加開始識別碼
-                result.push(`${id}@ ${startTime} ${text}`);
-                // 添加結束識別碼
-                result.push(`${id}~ ${endTime} ~~${text}~~`);
-            }
-            
-            return result;
-        }
-        
-        // 步驟3：分別排序時間碼
-        function sortTimeCodesSeperately(subtitles) {
-            // 解析所有行
-            const parsedLines = subtitles.map(line => {
-                const match = line.match(/^(\d+)([~@])\s+(\d{2}:\d{2}:\d{2}:\d{2})\s+(.+)$/);
-                if (match) {
-                    return {
-                        id: match[1],
-                        type: match[2], // '@' for start, '~' for end
-                        timeCode: match[3],
-                        text: match[4],
-                        line: line
-                    };
-                }
-                return null;
-            }).filter(item => item !== null);
-            
-            // 按時間碼排序
-            parsedLines.sort((a, b) => {
-                const timeCompare = timeToSeconds(a.timeCode) - timeToSeconds(b.timeCode);
-                // 如果時間相同，開始時間('@')優先於結束時間('~')
-                if (timeCompare === 0) {
-                    return a.type === '@' ? -1 : 1;
-                }
-                return timeCompare;
-            });
-            
-            return parsedLines.map(item => item.line);
-        }
-        
-        // 步驟4：加入時間並合併
-        function mergeSubtitlesByTime(sortedSubtitles) {
-            const events = [];
-            const subtitleMap = new Map();
-            
-            // 解析所有事件（開始和結束）
-            for (const line of sortedSubtitles) {
-                const match = line.match(/^(\d+)([~@])\s+(\d{2}:\d{2}:\d{2}:\d{2})\s+(.+)$/);
-                if (match) {
-                    const id = match[1];
-                    const type = match[2]; // '@' for start, '~' for end
-                    const timeCode = match[3];
-                    const text = match[4];
-                    
-                    events.push({
-                        id,
-                        type,
-                        timeCode,
-                        text: text.replace(/^~~|~~$/g, ''), // 移除結束標記的~~符號
-                        originalLine: line
-                    });
-                    
-                    // 保存字幕原始文本到映射
-                    if (type === '@') {
-                        subtitleMap.set(id, text);
-                    }
-                }
-            }
-            
-            // 按時間碼排序所有事件
-            events.sort((a, b) => {
-                const timeCompare = timeToSeconds(a.timeCode) - timeToSeconds(b.timeCode);
-                // 如果時間相同，開始時間('@')優先於結束時間('~')
-                if (timeCompare === 0) {
-                    return a.type === '@' ? -1 : 1;
-                }
-                return timeCompare;
-            });
-            
-            const result = [];
-            const activeSubtitles = new Set(); // 跟蹤當前活躍的字幕
-            
-            // 處理每個時間點
-            for (let i = 0; i < events.length - 1; i++) {
-                const current = events[i];
-                const next = events[i + 1];
-                
-                // 更新活躍的字幕
-                if (current.type === '@') {
-                    activeSubtitles.add(current.id);
-                } else if (current.type === '~') {
-                    activeSubtitles.delete(current.id);
-                }
-                
-                // 創建此時間段的字幕行
-                let lineText = '';
-                
-                // 合併當前活躍的所有字幕
-                if (activeSubtitles.size > 0) {
-                    const texts = [];
-                    for (const id of activeSubtitles) {
-                        const text = subtitleMap.get(id);
-                        if (text) {
-                            texts.push(`@${id}(${text})`);
-                        }
-                    }
-                    lineText = texts.join('//');
-                } else if (current.type === '@' && next.type === '~' && current.id === next.id) {
-                    // 特殊情況：獨立的字幕（開始後立即結束且沒有其他活躍的字幕）
-                    lineText = current.text;
-                }
-                
-                // 只有當有內容時才添加行
-                if (lineText) {
-                    result.push(`${current.timeCode} ${next.timeCode} ${lineText}`);
-                }
-            }
-            
-            return result;
-        }
-        
-        // 步驟5：處理最終結果
-        function processFinalResult(mergedSubtitles) {
-            const removeMarkers = document.getElementById('removeMarkers').checked;
-            const convertToSRT = document.getElementById('convertToSRT').checked;
-            const filterDuplicates = document.getElementById('filterDuplicates').checked;
-            
-            let result = [...mergedSubtitles];
-            
-            // 過濾重複字幕
-            if (filterDuplicates) {
-                const uniqueLines = new Set();
-                result = result.filter(line => {
-                    if (!uniqueLines.has(line)) {
-                        uniqueLines.add(line);
-                        return true;
-                    }
-                    return false;
-                });
-            }
-            
-            // 如果需要移除標記
-            if (removeMarkers) {
-                result = result.map(line => {
-                    const parts = line.split(' ');
-                    if (parts.length < 3) return line;
-                    
-                    const startTime = parts[0];
-                    const endTime = parts[1];
-                    const text = parts.slice(2).join(' ');
-                    
-                    // 移除標記如 @1(...) 和 //
-                    const cleanedText = text.replace(/@\d+\(([^)]+)\)(?:\/\/)?/g, '$1 ').trim();
-                    
-                    return `${startTime} ${endTime} ${cleanedText}`;
-                });
-            }
-            
-            // 如果需要轉換為SRT格式
-            if (convertToSRT) {
-                return convertToSRTFormat(parseSubtitles(result.join('\n')));
-            }
-            
-            return result.join('\n');
         }
         
         // 轉換為SRT格式
@@ -727,26 +583,6 @@
             
             return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')},${ms.toString().padStart(3, '0')}`;
         }
-        
-        // 頁面加載
-        window.addEventListener('DOMContentLoaded', function() {
-            // 為所有結果文本框添加自動調整大小事件
-            document.querySelectorAll('.result-area').forEach(textarea => {
-                textarea.addEventListener('input', function() {
-                    this.style.height = 'auto';
-                    this.style.height = this.scrollHeight + 'px';
-                });
-            });
-            
-            // 如果URL參數中有demo=true，自動載入範例
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('demo') === 'true') {
-                document.getElementById('exampleBtn').click();
-                setTimeout(() => {
-                    document.getElementById('processBtn').click();
-                }, 100);
-            }
-        });
     </script>
 </body>
 </html>
