@@ -16,6 +16,7 @@
         .result-area {
             height: auto;
             min-height: 150px;
+            resize: vertical;
         }
         .hidden-file-input {
             display: none;
@@ -43,7 +44,7 @@
         /* 確保結果區域可以自動擴展 */
         .auto-expand {
             overflow: hidden;
-            resize: none;
+            resize: vertical;
         }
         /* 深色模式支援 */
         @media (prefers-color-scheme: dark) {
@@ -173,10 +174,15 @@
             <div class="step-container">
                 <h3 class="text-xl font-semibold text-indigo-600 mb-3">步驟1：按開始時間排序</h3>
                 <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                    <pre id="step1Result" class="text-gray-700 whitespace-pre-wrap result-area"></pre>
-                    <button onclick="copyToClipboard('step1Result')" class="mt-3 bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-md text-sm">
-                        <i class="far fa-copy mr-1"></i>複製
-                    </button>
+                    <textarea id="step1Result" class="text-gray-700 w-full p-2 border border-gray-300 rounded-md result-area" spellcheck="false"></textarea>
+                    <div class="flex mt-3 space-x-2">
+                        <button onclick="copyToClipboard('step1Result')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-md text-sm">
+                            <i class="far fa-copy mr-1"></i>複製
+                        </button>
+                        <button onclick="downloadContent('step1Result', '步驟1_結果.txt')" class="bg-indigo-200 hover:bg-indigo-300 text-indigo-700 px-3 py-1 rounded-md text-sm">
+                            <i class="fas fa-download mr-1"></i>下載
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -184,10 +190,15 @@
             <div class="step-container">
                 <h3 class="text-xl font-semibold text-indigo-600 mb-3">步驟2：加入識別碼 分開 開始 和 結束 時間</h3>
                 <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                    <pre id="step2Result" class="text-gray-700 whitespace-pre-wrap result-area"></pre>
-                    <button onclick="copyToClipboard('step2Result')" class="mt-3 bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-md text-sm">
-                        <i class="far fa-copy mr-1"></i>複製
-                    </button>
+                    <textarea id="step2Result" class="text-gray-700 w-full p-2 border border-gray-300 rounded-md result-area" spellcheck="false"></textarea>
+                    <div class="flex mt-3 space-x-2">
+                        <button onclick="copyToClipboard('step2Result')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-md text-sm">
+                            <i class="far fa-copy mr-1"></i>複製
+                        </button>
+                        <button onclick="downloadContent('step2Result', '步驟2_結果.txt')" class="bg-indigo-200 hover:bg-indigo-300 text-indigo-700 px-3 py-1 rounded-md text-sm">
+                            <i class="fas fa-download mr-1"></i>下載
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -195,10 +206,15 @@
             <div class="step-container">
                 <h3 class="text-xl font-semibold text-indigo-600 mb-3">步驟3：分別排序</h3>
                 <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                    <pre id="step3Result" class="text-gray-700 whitespace-pre-wrap result-area"></pre>
-                    <button onclick="copyToClipboard('step3Result')" class="mt-3 bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-md text-sm">
-                        <i class="far fa-copy mr-1"></i>複製
-                    </button>
+                    <textarea id="step3Result" class="text-gray-700 w-full p-2 border border-gray-300 rounded-md result-area" spellcheck="false"></textarea>
+                    <div class="flex mt-3 space-x-2">
+                        <button onclick="copyToClipboard('step3Result')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-md text-sm">
+                            <i class="far fa-copy mr-1"></i>複製
+                        </button>
+                        <button onclick="downloadContent('step3Result', '步驟3_結果.txt')" class="bg-indigo-200 hover:bg-indigo-300 text-indigo-700 px-3 py-1 rounded-md text-sm">
+                            <i class="fas fa-download mr-1"></i>下載
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -206,10 +222,15 @@
             <div class="step-container">
                 <h3 class="text-xl font-semibold text-indigo-600 mb-3">步驟4：加入時間並合併</h3>
                 <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                    <pre id="step4Result" class="text-gray-700 whitespace-pre-wrap result-area"></pre>
-                    <button onclick="copyToClipboard('step4Result')" class="mt-3 bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-md text-sm">
-                        <i class="far fa-copy mr-1"></i>複製
-                    </button>
+                    <textarea id="step4Result" class="text-gray-700 w-full p-2 border border-gray-300 rounded-md result-area" spellcheck="false"></textarea>
+                    <div class="flex mt-3 space-x-2">
+                        <button onclick="copyToClipboard('step4Result')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-md text-sm">
+                            <i class="far fa-copy mr-1"></i>複製
+                        </button>
+                        <button onclick="downloadContent('step4Result', '步驟4_結果.txt')" class="bg-indigo-200 hover:bg-indigo-300 text-indigo-700 px-3 py-1 rounded-md text-sm">
+                            <i class="fas fa-download mr-1"></i>下載
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -217,13 +238,18 @@
             <div class="step-container">
                 <h3 class="text-xl font-semibold text-indigo-600 mb-3">步驟5：最終結果</h3>
                 <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                    <pre id="finalResult" class="text-gray-700 whitespace-pre-wrap result-area"></pre>
-                    <button onclick="copyToClipboard('finalResult')" class="mt-3 bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-md text-sm">
-                        <i class="far fa-copy mr-1"></i>複製
-                    </button>
-                    <button id="downloadBtn" class="mt-3 ml-2 bg-indigo-200 hover:bg-indigo-300 text-indigo-700 px-3 py-1 rounded-md text-sm">
-                        <i class="fas fa-download mr-1"></i>下載結果
-                    </button>
+                    <textarea id="finalResult" class="text-gray-700 w-full p-2 border border-gray-300 rounded-md result-area" spellcheck="false"></textarea>
+                    <div class="flex mt-3 space-x-2">
+                        <button onclick="copyToClipboard('finalResult')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-md text-sm">
+                            <i class="far fa-copy mr-1"></i>複製
+                        </button>
+                        <button onclick="downloadContent('finalResult', '最終結果.txt')" class="bg-indigo-200 hover:bg-indigo-300 text-indigo-700 px-3 py-1 rounded-md text-sm">
+                            <i class="fas fa-download mr-1"></i>下載
+                        </button>
+                        <button id="downloadBtn" class="bg-green-200 hover:bg-green-300 text-green-700 px-3 py-1 rounded-md text-sm">
+                            <i class="fas fa-file-download mr-1"></i>下載SRT
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -304,10 +330,14 @@
             showToast('已清除字幕2');
         });
         
-        // 複製功能
+        // 複製功能 - 選取全部文本並複製
         function copyToClipboard(elementId) {
             const element = document.getElementById(elementId);
-            const text = element.textContent;
+            const text = element.value;
+            
+            // 選取文本框內容
+            element.select();
+            element.setSelectionRange(0, element.value.length);
             
             navigator.clipboard.writeText(text).then(function() {
                 // 顯示複製成功提示
@@ -325,6 +355,27 @@
             }).catch(function(err) {
                 showToast('複製失敗: ' + err, 'error');
             });
+        }
+        
+        // 下載內容函數 - 下載特定區域的內容
+        function downloadContent(elementId, filename) {
+            const content = document.getElementById(elementId).value;
+            const blob = new Blob([content], {type: 'text/plain'});
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            
+            // 清理
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+            
+            showToast(`已下載 ${filename}`);
         }
         
         // 顯示提示訊息
@@ -357,9 +408,9 @@
             showToast('已載入範例資料');
         });
         
-        // 下載結果按鈕
+        // 下載SRT格式結果按鈕
         document.getElementById('downloadBtn').addEventListener('click', function() {
-            downloadResult();
+            downloadSRTResult();
         });
         
         function processSubtitles() {
@@ -373,23 +424,23 @@
             
             // 步驟1：解析並按開始時間排序
             const combinedSubtitles = combineAndSortSubtitles(subtitle1, subtitle2);
-            document.getElementById('step1Result').textContent = combinedSubtitles.join('\n');
+            document.getElementById('step1Result').value = combinedSubtitles.join('\n');
             
             // 步驟2：加入識別碼
             const subtitlesWithIds = addIdentifiers(combinedSubtitles);
-            document.getElementById('step2Result').textContent = subtitlesWithIds.join('\n');
+            document.getElementById('step2Result').value = subtitlesWithIds.join('\n');
             
             // 步驟3：分別排序時間碼
             const sortedTimeSubtitles = sortTimeCodesSeperately(subtitlesWithIds);
-            document.getElementById('step3Result').textContent = sortedTimeSubtitles.join('\n');
+            document.getElementById('step3Result').value = sortedTimeSubtitles.join('\n');
             
             // 步驟4：加入時間並合併
             const mergedSubtitles = mergeSubtitlesByTime(sortedTimeSubtitles);
-            document.getElementById('step4Result').textContent = mergedSubtitles.join('\n');
+            document.getElementById('step4Result').value = mergedSubtitles.join('\n');
             
             // 步驟5：最終結果處理
             const finalResultArray = processFinalResult(mergedSubtitles);
-            document.getElementById('finalResult').textContent = finalResultArray.join('\n');
+            document.getElementById('finalResult').value = finalResultArray.join('\n');
             
             // 顯示結果區域
             document.getElementById('results').classList.remove('hidden');
@@ -397,7 +448,18 @@
             // 滾動到結果區域
             document.getElementById('results').scrollIntoView({behavior: 'smooth'});
             
+            // 調整所有文本區域的高度
+            autoResizeTextareas();
+            
             showToast('字幕處理完成！');
+        }
+        
+        // 自動調整文本框高度
+        function autoResizeTextareas() {
+            document.querySelectorAll('.result-area').forEach(textarea => {
+                textarea.style.height = 'auto';
+                textarea.style.height = Math.min(textarea.scrollHeight + 5, 500) + 'px';
+            });
         }
         
         // 步驟1：合併並排序字幕
@@ -474,6 +536,81 @@
             
             // 格式化為 00:00:00:00
             return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${wholeSeconds.toString().padStart(2, '0')}:${frames.toString().padStart(2, '0')}`;
+        }
+        
+        // 轉換時間碼為SRT格式
+        function convertTimeCodeToSRT(timeCode) {
+            const parts = timeCode.split(':');
+            if (parts.length !== 4) return timeCode;
+            
+            const hours = parts[0];
+            const minutes = parts[1];
+            const seconds = parts[2];
+            const frames = parseInt(parts[3]);
+            
+            // 假設25幀/秒，轉換為毫秒
+            const milliseconds = Math.round(frames / 25 * 1000);
+            
+            return `${hours}:${minutes}:${seconds},${milliseconds.toString().padStart(3, '0')}`;
+        }
+        
+        // 下載SRT格式結果
+        function downloadSRTResult() {
+            // 獲取最終結果內容
+            const content = document.getElementById('finalResult').value;
+            
+            // 轉換為SRT格式
+            let srtContent = content;
+            const isAlreadySRT = content.includes(' --> ');
+            
+            if (!isAlreadySRT) {
+                // 解析當前格式並轉換為SRT
+                const lines = content.split('\n');
+                const srtLines = [];
+                
+                let counter = 1;
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    const parts = line.split(' ');
+                    if (parts.length < 3) continue;
+                    
+                    const startTime = parts[0];
+                    const endTime = parts[1];
+                    const text = parts.slice(2).join(' ');
+                    
+                    // 轉換時間碼格式
+                    const startSRT = convertTimeCodeToSRT(startTime);
+                    const endSRT = convertTimeCodeToSRT(endTime);
+                    
+                    srtLines.push(counter.toString());
+                    srtLines.push(`${startSRT} --> ${endSRT}`);
+                    srtLines.push(`${text}`);
+                    srtLines.push(``); // 空行
+                    counter++;
+                }
+                
+                srtContent = srtLines.join('\n');
+            }
+            
+            // 下載SRT檔案
+            const blob = new Blob([srtContent], {type: 'text/plain'});
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'merged_subtitles.srt';
+            document.body.appendChild(a);
+            a.click();
+            
+            // 清理
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+            
+            showToast('SRT檔案已下載');
         }
         
         // 步驟2：添加識別碼
@@ -682,45 +819,6 @@
             return srtResult;
         }
         
-        // 轉換時間碼為SRT格式
-        function convertTimeCodeToSRT(timeCode) {
-            const parts = timeCode.split(':');
-            if (parts.length !== 4) return timeCode;
-            
-            const hours = parts[0];
-            const minutes = parts[1];
-            const seconds = parts[2];
-            const frames = parseInt(parts[3]);
-            
-            // 假設25幀/秒，轉換為毫秒
-            const milliseconds = Math.round(frames / 25 * 1000);
-            
-            return `${hours}:${minutes}:${seconds},${milliseconds.toString().padStart(3, '0')}`;
-        }
-        
-        // 下載結果
-        function downloadResult() {
-            const finalResult = document.getElementById('finalResult').textContent;
-            const convertToSRT = document.getElementById('convertToSRT').checked;
-            
-            const blob = new Blob([finalResult], {type: 'text/plain'});
-            const url = URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = convertToSRT ? 'merged_subtitles.srt' : 'merged_subtitles.txt';
-            document.body.appendChild(a);
-            a.click();
-            
-            // 清理
-            setTimeout(() => {
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }, 100);
-            
-            showToast('檔案已下載');
-        }
-        
         // 自動填充示例數據
         function fillExampleData() {
             document.getElementById('subtitle1').value = '00:02:53:05 00:02:55:14 Don\'t be brave.\n00:03:09:10 00:03:11:19 There are two rounds left.\n00:03:11:19 00:03:12:23 Don\'t be audacious!';
@@ -735,6 +833,14 @@
                 fillExampleData();
                 processSubtitles();
             }
+            
+            // 為所有結果文本框添加輸入事件監聽器，以便調整高度
+            document.querySelectorAll('.result-area').forEach(textarea => {
+                textarea.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = this.scrollHeight + 'px';
+                });
+            });
         });
     </script>
 </body>
