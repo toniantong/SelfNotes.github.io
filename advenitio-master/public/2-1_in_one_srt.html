@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>字幕合併工具</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, Arial, sans-serif;
+            background: #f7f7f7;
+            margin: 0;
+            padding: 2rem;
+            transition: background-color 0.3s;
+        }
+        .dark body {
+            background: #1f2937;
+            color: #e5e7eb;
+        }
+        h1 {
+            margin: 0 0 1.5rem;
+            font-size: 1.8rem;
+            text-align: center;
+            color: #1f2937;
+        }
+        .dark h1 {
+            color: #d1d5db;
+        }
+        .panel {
+            background: #fff;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06);
+        }
+        .dark .panel {
+            background: #374151;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .drop-zone {
+            border: 2px dashed #9ca3af;
+            padding: 2rem;
+            text-align: center;
+            color: #6b7280;
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+        .drop-zone.dragover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+        .dark .drop-zone {
+            border-color: #6b7280;
+            color: #d1d5db;
+        }
+        .dark .drop-zone.dragover {
+            background: #4b5563;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin-top: 0.8rem;
+            font-family: monospace;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            padding: 0.5rem;
+            resize: vertical;
+        }
+        .dark textarea {
+            background: #4b5563;
+            color: #e5e7eb;
+            border-color: #6b7280;
+        }
+        button {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 4px;
+            background: #3b82f6;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        button:hover:not(:disabled) {
+            background: #2563eb;
+            transform: scale(1.05);
+        }
+        button:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+        }
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .options label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #374151;
+        }
+        .dark .options label {
+            color: #d1d5db;
+        }
+        .options input[type="number"] {
+            width: 80px;
+            padding: 0.4rem;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+        }
+        .dark .options input[type="number"] {
+            background: #4b5563;
+            color: #e5e7eb;
+            border-color: #6b7280;
+        }
+        .toast {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            padding: 0.75rem 1.25rem;
+            border-radius: 6px;
+            color: #fff;
+            background: #3b82f6;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transform: translateY(1rem);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .toast.error {
+            background: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <h1>字幕合併工具</h1>
+
+    <div class="panel drop-zone" id="drop">
+        拖放字幕檔案（.txt, .srt, .vtt）或點擊選擇多個檔案
+        <br>
+        <input type="file" id="files" multiple accept=".txt,.srt,.vtt" style="display: none;">
+    </div>
+
+    <div class="panel">
+        <div class="options">
+            <label><input type="checkbox" id="removeMarkers" checked> 移除標記</label>
+            <label><input type="checkbox" id="convertToSRT"> 轉為 SRT 格式</label>
+            <label><input type="checkbox" id="filterDuplicates" checked> 過濾重複</label>
+            <label>時間偏移 (秒): <input type="number" id="timeOffset" value="0" step="0.1"></label>
+        </div>
+        <button id="mergeBtn" disabled>合併字幕</button>
+        <button id="exampleBtn" style="margin-left: 0.8rem;">載入範例</button>
+        <button id="downloadBtn" disabled style="margin-left: 0.8rem;">下載結果</button>
+        <textarea id="output" placeholder="合併結果將顯示在此" readonly></textarea>
+    </div>
+
+    <div id="toast" class="toast">
+        <span id="toastMessage"></span>
+    </div>
+
+    <script>
+        // 深色模式支持
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            document.documentElement.classList.toggle('dark', e.matches);
+        });
+
+        // 元素引用
+        const fileInput = document.getElementById('files');
+        const dropZone = document.getElementById('drop');
+        const mergeBtn = document.getElementById('mergeBtn');
+        const exampleBtn = document.getElementById('exampleBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const output = document.getElementById('output');
+        let fileContents = [];
+
+        // 拖放支持
+        ['dragenter', 'dragover'].forEach(ev => {
+            dropZone.addEventListener(ev, e => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+        });
+        ['dragleave', 'drop'].forEach(ev => {
+            dropZone.addEventListener(ev, e => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+            });
+        });
+        dropZone.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
+        dropZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', e => handleFiles(e.target.files));
+
+        // 處理文件
+        async function handleFiles(files) {
+            fileContents = [];
+            const readers = [...files].map((file, i) => new Promise(resolve => {
+                const reader = new FileReader();
+                reader.onload = () => resolve({ text: reader.result, source: `file${i + 1}` });
+                reader.readAsText(file);
+            }));
+            fileContents = await Promise.all(readers);
+            mergeBtn.disabled = fileContents.length === 0;
+            showToast(`已載入 ${fileContents.length} 個檔案`);
+        }
+
+        // 時間處理
+        const FPS = 25;
+        function parseTime(time) {
+            const parts = time.split(':').map(Number);
+            const [h, m, s, f = 0] = parts.length === 3 ? [...parts, 0] : parts;
+            return (h * 3600 + m * 60 + s) * 1000 + Math.floor(f * 1000 / FPS);
+        }
+        function formatTime(ms) {
+            if (ms < 0) ms = 0;
+            const f = Math.round((ms % 1000) / (1000 / FPS));
+            const totalSec = Math.floor(ms / 1000);
+            const s = totalSec % 60;
+            const m = Math.floor(totalSec / 60) % 60;
+            const h = Math.floor(totalSec / 3600);
+            const pad = n => n.toString().padStart(2, '0');
+            return `${pad(h)}:${pad(m)}:${pad(s)}:${pad(f)}`;
+        }
+        function timeToSRT(ms) {
+            const totalSec = Math.floor(ms / 1000);
+            const msPart = ms % 1000;
+            const s = totalSec % 60;
+            const m = Math.floor(totalSec / 60) % 60;
+            const h = Math.floor(totalSec / 3600);
+            const pad = n => n.toString().padStart(2, '0');
+            return `${pad(h)}:${pad(m)}:${pad(s)},${msPart.toString().padStart(3, '0')}`;
+        }
+
+        // 解析文件
+        function parseFile(text, sourceId) {
+            const lines = text.trim().split(/\r?\n/);
+            const result = [];
+            const timeRegex = /^(\d{2}:\d{2}:\d{2}(?::\d{2})?)\s+(\d{2}:\d{2}:\d{2}(?::\d{2})?)\s+(.+)$/;
+            let srtIndex = 0;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                // 嘗試解析 SRT 格式
+                if (/^\d+$/.test(line) && lines[i + 1]?.includes('-->')) {
+                    const timeLine = lines[++i];
+                    const match = timeLine.match(/(\d{2}:\d{2}:\d{2},\d{3})\s+-->\s+(\d{2}:\d{2}:\d{2},\d{3})/);
+                    if (match) {
+                        const start = match[1].replace(',', ':');
+                        const end = match[2].replace(',', ':');
+                        let text = '';
+                        while (lines[++i]?.trim()) text += lines[i] + '\n';
+                        result.push({ start: parseTime(start), end: parseTime(end), text: text.trim(), source: sourceId });
+                    }
+                    continue;
+                }
+
+                // 解析簡單格式
+                const match = line.match(timeRegex);
+                if (match) {
+                    const start = match[1].includes(':') && match[1].split(':').length === 3 ? match[1] + ':00' : match[1];
+                    const end = match[2].includes(':') && match[2].split(':').length === 3 ? match[2] + ':00' : match[2];
+                    result.push({ start: parseTime(start), end: parseTime(end), text: match[3], source: sourceId });
+                }
+            }
+            return result;
+        }
+
+        // 合併字幕
+        function mergeSubtitles(files) {
+            const cues = files.flatMap(file => parseFile(file.text, file.source));
+            if (!cues.length) {
+                showToast('無有效字幕數據', 'error');
+                return [];
+            }
+
+            const events = cues.flatMap((cue, i) => [
+                { time: cue.start, cue, isStart: true },
+                { time: cue.end, cue, isStart: false }
+            ]).sort((a, b) => a.time - b.time || (a.isStart ? -1 : 1));
+
+            const active = new Map();
+            const result = [];
+            for (let i = 0; i < events.length - 1; i++) {
+                const { time, cue, isStart } = events[i];
+                const nextTime = events[i + 1].time;
+                isStart ? active.set(cue.text, cue) : active.delete(cue.text);
+
+                if (time < nextTime && active.size) {
+                    const mergedText = [...active.values()].map(c => `@${c.source}(${c.text})`).join('//');
+                    result.push({ start: time, end: nextTime, text: mergedText });
+                }
+            }
+            return result;
+        }
+
+        // 最終處理
+        function processOutput(subtitles) {
+            const removeMarkers = document.getElementById('removeMarkers').checked;
+            const convertToSRT = document.getElementById('convertToSRT').checked;
+            const filterDuplicates = document.getElementById('filterDuplicates').checked;
+            const timeOffset = parseFloat(document.getElementById('timeOffset').value) || 0;
+
+            let result = subtitles;
+
+            // 時間偏移
+            if (timeOffset !== 0) {
+                result = result.map(cue => ({
+                    ...cue,
+                    start: Math.max(0, cue.start + timeOffset * 1000),
+                    end: Math.max(0, cue.end + timeOffset * 1000)
+                }));
+            }
+
+            // 過濾重複
+            if (filterDuplicates) {
+                const seen = new Set();
+                result = result.filter(cue => {
+                    const key = `${cue.start}|${cue.end}|${cue.text}`;
+                    if (!seen.has(key)) {
+                        seen.add(key);
+                        return true;
+                    }
+                    return false;
+                });
+            }
+
+            // 格式化輸出
+            result = result.map(cue => {
+                let text = removeMarkers ? cue.text.replace(/@\w+\(([^)]+)\)(?:\/\/)?/g, '$1 ') : cue.text;
+                return `${formatTime(cue.start)} ${formatTime(cue.end)} ${text.trim()}`;
+            });
+
+            // 轉為 SRT
+            if (convertToSRT) {
+                result = result.flatMap((line, i) => {
+                    const [start, end, ...text] = line.split(' ');
+                    return [
+                        `${i + 1}`,
+                        `${timeToSRT(parseTime(start))} --> ${timeToSRT(parseTime(end))}`,
+                        text.join(' '),
+                        ''
+                    ];
+                });
+            }
+
+            return result;
+        }
+
+        // 提示訊息
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.className = `toast show ${type === 'error' ? 'error' : ''}`;
+            document.getElementById('toastMessage').textContent = message;
+            setTimeout(() => toast.className = 'toast', 3000);
+        }
+
+        // 事件處理
+        mergeBtn.addEventListener('click', () => {
+            const merged = mergeSubtitles(fileContents);
+            output.value = processOutput(merged).join('\n');
+            downloadBtn.disabled = !output.value;
+            output.scrollIntoView({ behavior: 'smooth' });
+            showToast('字幕合併完成');
+        });
+
+        exampleBtn.addEventListener('click', () => {
+            fileContents = [
+                { text: '00:02:53:05 00:02:55:14 Don\'t be brave.\n00:03:09:10 00:03:11:19 There are two rounds left.', source: 'file1' },
+                { text: '00:02:54:07 00:03:08:08 Just accept his request!\n00:03:09:14 00:03:12:20 What time is it now?', source: 'file2' }
+            ];
+            mergeBtn.disabled = false;
+            showToast('已載入範例數據');
+            mergeBtn.click();
+        });
+
+        downloadBtn.addEventListener('click', () => {
+            const isSRT = document.getElementById('convertToSRT').checked;
+            const blob = new Blob([output.value], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = isSRT ? 'merged_subtitles.srt' : 'merged_subtitles.txt';
+            a.click();
+            URL.revokeObjectURL(a.href);
+            showToast('已下載結果');
+        });
+
+        // 自適應高度
+        output.addEventListener('input', () => {
+            output.style.height = 'auto';
+            output.style.height = `${Math.min(output.scrollHeight, 500)}px`;
+        });
+    </script>
+</body>
+</html>
