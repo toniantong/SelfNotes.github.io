@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二進制音樂播放器 - Binary Music Player</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/15.1.5/Tone.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .title {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .binary-display {
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+            padding: 40px 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .binary-number {
+            font-size: 4rem;
+            font-weight: bold;
+            letter-spacing: 0.2em;
+            color: #00ff88;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            margin-bottom: 20px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .binary-bits {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .bit {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: 2px solid #ffffff;
+            cursor: pointer;
+        }
+
+        .bit.active {
+            background: #00ff88;
+            color: #000000;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.8);
+            transform: scale(1.1);
+        }
+
+        .bit.inactive {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+        }
+
+        .decimal-display {
+            font-size: 1.5rem;
+            color: #ffffff;
+            margin-top: 15px;
+            opacity: 0.8;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            border: 2px solid #ffffff;
+            border-radius: 25px;
+            padding: 12px 24px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(8px);
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .control-btn.active {
+            background: #00ff88;
+            color: #000000;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .speed-slider {
+            width: 200px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            outline: none;
+        }
+
+        .info-section {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .info-section h3 {
+            color: #00ff88;
+            margin-bottom: 10px;
+        }
+
+        .info-section p {
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .note-display {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .note {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 5px 10px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .note.playing {
+            background: #00ff88;
+            color: #000000;
+            animation: pulse 0.3s ease;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .binary-number {
+                font-size: 2.5rem;
+                letter-spacing: 0.1em;
+            }
+            
+            .bit {
+                width: 45px;
+                height: 45px;
+                font-size: 1.5rem;
+            }
+            
+            .title {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .speed-slider {
+                width: 150px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .binary-number {
+                font-size: 2rem;
+            }
+            
+            .bit {
+                width: 35px;
+                height: 35px;
+                font-size: 1.2rem;
+            }
+            
+            .title {
+                font-size: 1.5rem;
+            }
+            
+            .binary-display {
+                padding: 20px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">二進制音樂播放器</h1>
+        <div class="binary-display">
+            <div class="binary-number" id="binaryDisplay">0000000000</div>
+            <div class="binary-bits" id="binaryBits"></div>
+            <div class="decimal-display">
+                十進制: <span id="decimalDisplay">0</span>
+            </div>
+            <div class="note-display" id="noteDisplay"></div>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" id="playBtn">播放</button>
+            <button class="control-btn" id="pauseBtn">暫停</button>
+            <button class="control-btn" id="resetBtn">重置</button>
+            <button class="control-btn" id="randomBtn">隨機</button>
+        </div>
+
+        <div class="speed-control">
+            <span>速度:</span>
+            <input type="range" class="speed-slider" id="speedSlider" min="1" max="10" value="5">
+            <span id="speedDisplay">5</span>
+        </div>
+
+        <div class="info-section">
+            <h3>關於二進制音樂播放器</h3>
+            <p>
+                這個音樂播放器基於二進制計數原理運作。每一位二進制數字對應一個音符，
+                當該位為1時會播放對應的音符，為0時則保持靜默。
+            </p>
+            <p>
+                隨著二進制數字的遞增，不同的音符組合會創造出獨特的音樂模式。
+                每個位元對應的音符（從右到左）：C4, D4, E4, F4, G4, A4, B4, C5, D5, E5
+            </p>
+            <p>
+                你可以點擊任何二進制位來手動切換其狀態，創造你自己的音樂組合！
+            </p>
+        </div>
+    </div>
+
+    <script>
+        class BinaryMusicPlayer {
+            constructor() {
+                this.currentNumber = 0;
+                this.isPlaying = false;
+                this.intervalId = null;
+                this.speed = 5;
+                this.synths = [];
+                this.notes = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5', 'D5', 'E5'];
+                this.bitCount = 10;
+                
+                this.initializeElements();
+                this.initializeSynths();
+                this.setupEventListeners();
+                this.updateDisplay();
+            }
+
+            initializeElements() {
+                this.binaryDisplay = document.getElementById('binaryDisplay');
+                this.binaryBits = document.getElementById('binaryBits');
+                this.decimalDisplay = document.getElementById('decimalDisplay');
+                this.noteDisplay = document.getElementById('noteDisplay');
+                this.playBtn = document.getElementById('playBtn');
+                this.pauseBtn = document.getElementById('pauseBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.randomBtn = document.getElementById('randomBtn');
+                this.speedSlider = document.getElementById('speedSlider');
+                this.speedDisplay = document.getElementById('speedDisplay');
+            }
+
+            async initializeSynths() {
+                // 等待Tone.js初始化
+                await Tone.start();
+                
+                // 創建合成器
+                for (let i = 0; i < this.bitCount; i++) {
+                    const synth = new Tone.Synth({
+                        oscillator: {
+                            type: "sine"
+                        },
+                        envelope: {
+                            attack: 0.1,
+                            decay: 0.2,
+                            sustain: 0.3,
+                            release: 0.8
+                        }
+                    }).toDestination();
+                    this.synths.push(synth);
+                }
+                
+                this.createBitElements();
+                this.createNoteElements();
+            }
+
+            createBitElements() {
+                this.binaryBits.innerHTML = '';
+                for (let i = this.bitCount - 1; i >= 0; i--) {
+                    const bit = document.createElement('div');
+                    bit.className = 'bit inactive';
+                    bit.textContent = '0';
+                    bit.dataset.position = i;
+                    bit.addEventListener('click', () => this.toggleBit(i));
+                    this.binaryBits.appendChild(bit);
+                }
+            }
+
+            createNoteElements() {
+                this.noteDisplay.innerHTML = '';
+                for (let i = this.bitCount - 1; i >= 0; i--) {
+                    const note = document.createElement('div');
+                    note.className = 'note';
+                    note.textContent = this.notes[i];
+                    note.dataset.position = i;
+                    this.noteDisplay.appendChild(note);
+                }
+            }
+
+            setupEventListeners() {
+                this.playBtn.addEventListener('click', () => this.play());
+                this.pauseBtn.addEventListener('click', () => this.pause());
+                this.resetBtn.addEventListener('click', () => this.reset());
+                this.randomBtn.addEventListener('click', () => this.randomize());
+                
+                this.speedSlider.addEventListener('input', (e) => {
+                    this.speed = parseInt(e.target.value);
+                    this.speedDisplay.textContent = this.speed;
+                    if (this.isPlaying) {
+                        this.pause();
+                        this.play();
+                    }
+                });
+            }
+
+            play() {
+                if (!this.isPlaying) {
+                    this.isPlaying = true;
+                    this.playBtn.classList.add('active');
+                    this.pauseBtn.classList.remove('active');
+                    
+                    const interval = 1100 - (this.speed * 100); // 速度轉換為間隔時間
+                    this.intervalId = setInterval(() => {
+                        this.playCurrentNotes();
+                        this.currentNumber++;
+                        if (this.currentNumber >= Math.pow(2, this.bitCount)) {
+                            this.currentNumber = 0;
+                        }
+                        this.updateDisplay();
+                    }, interval);
+                }
+            }
+
+            pause() {
+                if (this.isPlaying) {
+                    this.isPlaying = false;
+                    this.playBtn.classList.remove('active');
+                    this.pauseBtn.classList.add('active');
+                    
+                    if (this.intervalId) {
+                        clearInterval(this.intervalId);
+                        this.intervalId = null;
+                    }
+                }
+            }
+
+            reset() {
+                this.pause();
+                this.currentNumber = 0;
+                this.updateDisplay();
+            }
+
+            randomize() {
+                const maxValue = Math.pow(2, this.bitCount) - 1;
+                this.currentNumber = Math.floor(Math.random() * (maxValue + 1));
+                this.updateDisplay();
+                this.playCurrentNotes();
+            }
+
+            toggleBit(position) {
+                const bitValue = Math.pow(2, position);
+                this.currentNumber ^= bitValue; // XOR 操作來切換位元
+                this.updateDisplay();
+                this.playCurrentNotes();
+            }
+
+            updateDisplay() {
+                const binaryString = this.currentNumber.toString(2).padStart(this.bitCount, '0');
+                this.binaryDisplay.textContent = binaryString;
+                this.decimalDisplay.textContent = this.currentNumber;
+
+                // 更新位元顯示
+                const bits = this.binaryBits.children;
+                for (let i = 0; i < this.bitCount; i++) {
+                    const bitIndex = this.bitCount - 1 - i;
+                    const bit = bits[i];
+                    const isActive = (this.currentNumber & Math.pow(2, bitIndex)) !== 0;
+                    
+                    bit.textContent = isActive ? '1' : '0';
+                    bit.className = isActive ? 'bit active' : 'bit inactive';
+                }
+            }
+
+            playCurrentNotes() {
+                const noteElements = this.noteDisplay.children;
+                
+                for (let i = 0; i < this.bitCount; i++) {
+                    const bitValue = Math.pow(2, i);
+                    const noteElement = noteElements[this.bitCount - 1 - i];
+                    
+                    if (this.currentNumber & bitValue) {
+                        // 播放音符
+                        this.synths[i].triggerAttackRelease(this.notes[i], '0.5');
+                        
+                        // 視覺效果
+                        noteElement.classList.add('playing');
+                        setTimeout(() => {
+                            noteElement.classList.remove('playing');
+                        }, 300);
+                    }
+                }
+            }
+        }
+
+        // 當頁面載入完成後初始化播放器
+        window.addEventListener('load', () => {
+            new BinaryMusicPlayer();
+        });
+    </script>
+</body>
+</html>
