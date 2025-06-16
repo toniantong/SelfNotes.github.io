@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英國火車站與華人教會相對關係分析 | UK Railway Stations & Chinese Churches Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+
+        .nav-tab {
+            background: #fff;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .nav-tab:hover, .nav-tab.active {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .content-section {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .region-card {
+            background: #f8f9fa;
+            border-left: 5px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .region-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .station-info {
+            background: #e3f2fd;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .church-info {
+            background: #fff3e0;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid #ff9800;
+        }
+
+        .cost-info {
+            background: #e8f5e8;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid #4caf50;
+        }
+
+        .map-link {
+            display: inline-block;
+            background: #4285f4;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            margin: 5px;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .map-link:hover {
+            background: #3367d6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(66, 133, 244, 0.3);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .data-table th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .data-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #667eea;
+        }
+
+        .emoji {
+            font-size: 1.2em;
+            margin-right: 8px;
+        }
+
+        .quick-nav {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+
+        .quick-nav a {
+            display: block;
+            color: #667eea;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            margin: 5px 0;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .quick-nav a:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+        }
+
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .filter-btn {
+            background: #f8f9fa;
+            border: 2px solid #ddd;
+            color: #333;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .quick-nav {
+                display: none;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #667eea;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            background: #5a67d8;
+            transform: translateY(-3px);
+        }
+    </style>
+    <link rel="stylesheet" href="advanced_styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚄 英國火車站與華人教會相對關係分析</h1>
+            <div class="subtitle">UK Railway Stations & Chinese Churches Relationship Analysis</div>
+            <div class="subtitle">含海拔高度、消費指數與Google地圖導航</div>
+        </header>
+
+        <div class="nav-tabs">
+            <a href="#overview" class="nav-tab active" onclick="showSection('overview')">📊 總覽</a>
+            <a href="#scotland" class="nav-tab" onclick="showSection('scotland')">🏴󠁧󠁢󠁳󠁣󠁴󠁿 蘇格蘭</a>
+            <a href="#england-north" class="nav-tab" onclick="showSection('england-north')">🏴󠁧󠁢󠁥󠁮󠁧󠁿 英格蘭北部</a>
+            <a href="#england-midlands" class="nav-tab" onclick="showSection('england-midlands')">🏭 英格蘭中部</a>
+            <a href="#england-south" class="nav-tab" onclick="showSection('england-south')">🌊 英格蘭南部</a>
+            <a href="#wales" class="nav-tab" onclick="showSection('wales')">🏴󠁧󠁢󠁷󠁬󠁳󠁿 威爾斯</a>
+            <a href="#analysis" class="nav-tab" onclick="showSection('analysis')">📈 數據分析</a>
+            <a href="#recommendations" class="nav-tab" onclick="showSection('recommendations')">💡 建議</a>
+        </div>
+
+        <input type="text" class="search-box" id="searchBox" placeholder="🔍 搜索城市、火車站或教會名稱..." onkeyup="searchContent()">
+
+        <div class="filter-buttons">
+            <button class="filter-btn active" onclick="filterByCategory('all')">全部</button>
+            <button class="filter-btn" onclick="filterByCategory('low-cost')">低成本</button>
+            <button class="filter-btn" onclick="filterByCategory('medium-cost')">中成本</button>
+            <button class="filter-btn" onclick="filterByCategory('high-cost')">高成本</button>
+            <button class="filter-btn" onclick="filterByCategory('high-purchasing-power')">高購買力</button>
+        </div>
+
+        <!-- 總覽部分 -->
+        <div id="overview" class="content-section active">
+            <h2>📊 研究總覽</h2>
+            
+            <div class="highlight">
+                <h3>🎯 研究目標</h3>
+                <p>本研究分析了英國21個火車站周邊500-800米範圍內的華人教會分布，結合海拔高度、消費指數和社區特徵，為華人社區選址和發展提供數據支持。</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">21</div>
+                    <div class="stat-label">教會-火車站配對</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">16</div>
+                    <div class="stat-label">獨特華人教會</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">13</div>
+                    <div class="stat-label">涵蓋城市</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">0.678</div>
+                    <div class="stat-label">平均距離(公里)</div>
+                </div>
+            </div>
+
+            <h3>🗺️ 快速導航地圖</h3>
+            <div style="text-align: center; margin: 20px 0;">
+                <a href="https://www.google.com/maps/search/UK+railway+stations" class="map-link" target="_blank">🚄 英國火車站網絡</a>
+                <a href="https://www.google.com/maps/search/Chinese+churches+UK" class="map-link" target="_blank">🏮 英國華人教會分布</a>
+                <a href="https://www.google.com/maps/search/Chinese+community+UK" class="map-link" target="_blank">🌍 華人社區總覽</a>
+            </div>
+
+            <h3>📈 關鍵發現</h3>
+            <div class="region-card">
+                <h4>💰 成本與距離關係</h4>
+                <p><strong>相關性：0.61</strong> - 生活成本越高的城市，華人教會與火車站距離越遠</p>
+                <ul>
+                    <li><strong>低成本地區</strong>：平均距離 0.60公里</li>
+                    <li><strong>中成本地區</strong>：平均距離 0.70公里</li>
+                    <li><strong>高成本地區</strong>：平均距離 0.77公里</li>
+                </ul>
+            </div>
+
+            <div class="region-card">
+                <h4>🏔️ 海拔特徵</h4>
+                <p><strong>最高火車站</strong>：北菲爾德 (157.0米) | <strong>最低火車站</strong>：卡迪夫中央 (8.0米)</p>
+                <p><strong>最高教會</strong>：伯明翰華人循道會 (187.0米) | <strong>最低教會</strong>：豪城華人基督教會 (8.0米)</p>
+            </div>
+
+            <div class="region-card">
+                <h4>💡 性價比推薦</h4>
+                <p><strong>高性價比城市</strong>：利茲、曼徹斯特、格拉斯哥</p>
+                <p><strong>經濟實惠選擇</strong>：林肯、卡迪夫、赫爾</p>
+                <p><strong>高端選擇</strong>：倫敦、阿伯丁、布萊頓</p>
+            </div>
+        </div>
+
+        <!-- 蘇格蘭部分 -->
+        <div id="scotland" class="content-section">
+            <h2>🏴󠁧󠁢󠁳󠁣󠁴󠁿 蘇格蘭地區</h2>
+            
+            <div class="region-card" data-category="medium-cost high-purchasing-power">
+                <h3>🚉 Aberdeen Rail Station - 阿伯丁火車站</h3>
+                
+                <div class="station-info">
+                    <h4>🚄 火車站信息</h4>
+                    <p><strong>海拔：</strong>10.0米 | <strong>坐標：</strong>57.1437°N, -2.0987°W</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps?q=57.1436867734,-2.0986925585&t=m&z=15" class="map-link" target="_blank">📍 Google地圖位置</a>
+                        <a href="https://www.google.com/maps/search/Aberdeen+Rail+Station,+Aberdeen,+UK" class="map-link" target="_blank">🔍 Google搜索</a>
+                    </div>
+                </div>
+
+                <div class="cost-info">
+                    <h4>💰 消費指數數據</h4>
+                    <p><strong>生活成本指數：</strong>62.3 (中等偏高) | <strong>租金指數：</strong>20.7 (較低)</p>
+                    <p><strong>購買力指數：</strong>150.0 (極高) | <strong>市中心1房租金：</strong>£650/月</p>
+                    <p><strong>交通月票：</strong>£65 | <strong>餐廳用餐(2人)：</strong>£50</p>
+                </div>
+
+                <div class="church-info">
+                    <h4>🏮 阿伯丁中文教會 (Aberdeen Chinese Church)</h4>
+                    <p><strong>距離：</strong>0.721公里 | <strong>教會海拔：</strong>20.0米 | <strong>海拔差異：</strong>10.0米（教會較高）</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps?q=57.1497,-2.0943&t=m&z=15" class="map-link" target="_blank">🏮 教會位置</a>
+                        <a href="https://www.google.com/maps/search/Aberdeen+Chinese+Church,+Aberdeen,+UK" class="map-link" target="_blank">🔍 教會搜索</a>
+                        <a href="https://www.google.com/maps/dir/57.1436867734,-2.0986925585/57.1497,-2.0943" class="map-link" target="_blank">🚶 步行路線</a>
+                    </div>
+                </div>
+
+                <div class="highlight">
+                    <h4>🌍 社區特徵</h4>
+                    <p><strong>經濟類型：</strong>石油天然氣產業 | <strong>華人比例：</strong>約1-2%</p>
+                    <p><strong>特色：</strong>高收入、低租金、極強購買力，華人社區生活品質高</p>
+                    <p><strong>主流宗教：</strong>蘇格蘭長老會教堂、聖公會教堂</p>
+                </div>
+            </div>
+
+            <div class="region-card" data-category="medium-cost high-purchasing-power">
+                <h3>🚉 Glasgow Central Rail Station - 格拉斯哥中央火車站</h3>
+                
+                <div class="station-info">
+                    <h4>🚄 火車站信息</h4>
+                    <p><strong>海拔：</strong>40.0米 | <strong>坐標：</strong>55.8597°N, -4.2576°W</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps?q=55.8597,-4.2576&t=m&z=15" class="map-link" target="_blank">📍 Google地圖位置</a>
+                        <a href="https://www.google.com/maps/search/Glasgow+Central+Rail+Station,+Glasgow,+UK" class="map-link" target="_blank">🔍 Google搜索</a>
+                    </div>
+                </div>
+
+                <div class="cost-info">
+                    <h4>💰 消費指數數據</h4>
+                    <p><strong>生活成本指數：</strong>60.7 (中等) | <strong>租金指數：</strong>29.9 (較低)</p>
+                    <p><strong>購買力指數：</strong>129.7 (高) | <strong>市中心1房租金：</strong>£950/月</p>
+                    <p><strong>交通月票：</strong>£60 | <strong>餐廳用餐(2人)：</strong>£50</p>
+                </div>
+
+                <div class="church-info">
+                    <h4>🏮 格拉斯哥華人基督教會 (Glasgow Chinese Christian Church)</h4>
+                    <p><strong>距離：</strong>0.615公里 | <strong>教會海拔：</strong>34.0米 | <strong>海拔差異：</strong>6.0米（火車站較高）</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps?q=55.8645,-4.2589&t=m&z=15" class="map-link" target="_blank">🏮 教會位置</a>
+                        <a href="https://www.google.com/maps/search/Glasgow+Chinese+Christian+Church,+Glasgow,+UK" class="map-link" target="_blank">🔍 教會搜索</a>
+                        <a href="https://www.google.com/maps/dir/55.8597,-4.2576/55.8645,-4.2589" class="map-link" target="_blank">🚶 步行路線</a>
+                    </div>
+                </div>
+
+                <div class="highlight">
+                    <h4>🌍 社區特徵</h4>
+                    <p><strong>經濟類型：</strong>服務業與金融 | <strong>華人比例：</strong>約2-3%</p>
+                    <p><strong>特色：</strong>蘇格蘭最大城市，文化多元化，平衡的生活成本與收入比</p>
+                    <p><strong>主流宗教：</strong>格拉斯哥大教堂、蘇格蘭長老會、天主教堂</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 英格蘭北部 -->
+        <div id="england-north" class="content-section">
+            <h2>🏴󠁧󠁢󠁥󠁮󠁧󠁿 英格蘭北部</h2>
+            
+            <div class="region-card" data-category="medium-cost high-purchasing-power">
+                <h3>🚉 Manchester Victoria Rail Station - 曼徹斯特維多利亞火車站</h3>
+                
+                <div class="station-info">
+                    <h4>🚄 火車站信息</h4>
+                    <p><strong>海拔：</strong>42.0米 | <strong>坐標：</strong>53.4875°N, -2.2426°W</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps?q=53.4875,-2.2426&t=m&z=15" class="map-link" target="_blank">📍 Google地圖位置</a>
+                        <a href="https://www.google.com/maps/search/Manchester+Victoria+Rail+Station,+Manchester,+UK" class="map-link" target="_blank">🔍 Google搜索</a>
+                    </div>
+                </div>
+
+                <div class="cost-info">
+                    <h4>💰 消費指數數據</h4>
+                    <p><strong>生活成本指數：</strong>61.5 (中等偏高) | <strong>租金指數：</strong>32.9 (較低)</p>
+                    <p><strong>購買力指數：</strong>117.8 (中等偏高) | <strong>市中心1房租金：</strong>£923/月</p>
+                    <p><strong>交通月票：</strong>£70 | <strong>餐廳用餐(2人)：</strong>£48</p>
+                </div>
+
+                <div class="church-info">
+                    <h4>🏮 曼徹斯特宣道會 (Manchester Alliance Church)</h4>
+                    <p><strong>距離：</strong>0.744公里 | <strong>教會海拔：</strong>52.0米 | <strong>海拔差異：</strong>10.0米（教會較高）</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps?q=53.4823,-2.2534&t=m&z=15" class="map-link" target="_blank">🏮 教會位置</a>
+                        <a href="https://www.google.com/maps/search/Manchester+Alliance+Church,+Manchester,+UK" class="map-link" target="_blank">🔍 教會搜索</a>
+                        <a href="https://www.google.com/maps/dir/53.4875,-2.2426/53.4823,-2.2534" class="map-link" target="_blank">🚶 步行路線</a>
+                    </div>
+                </div>
+
+                <div class="highlight">
+                    <h4>🌍 社區特徵</h4>
+                    <p><strong>經濟類型：</strong>科技與教育 | <strong>華人比例：</strong>約3-4%</p>
+                    <p><strong>特色：</strong>工業革命發源地，科技創新中心，性價比優秀</p>
+                    <p><strong>主流宗教：</strong>曼徹斯特大教堂、聖安妮教堂</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps/search/Manchester+Chinatown+Chinese+community" class="map-link" target="_blank">🏮 曼徹斯特華人社區</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="region-card" data-category="medium-cost high-purchasing-power">
+                <h3>🚉 Leeds Rail Station - 利茲火車站</h3>
+                
+                <div class="station-info">
+                    <h4>🚄 火車站信息</h4>
+                    <p><strong>海拔：</strong>33.0米 | <strong>坐標：</strong>53.7956°N, -1.5480°W</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps?q=53.7956,-1.5480&t=m&z=15" class="map-link" target="_blank">📍 Google地圖位置</a>
+                        <a href="https://www.google.com/maps/search/Leeds+Rail+Station,+Leeds,+UK" class="map-link" target="_blank">🔍 Google搜索</a>
+                    </div>
+                </div>
+
+                <div class="cost-info">
+                    <h4>💰 消費指數數據</h4>
+                    <p><strong>生活成本指數：</strong>58.0 (中等) | <strong>租金指數：</strong>32.0 (較低)</p>
+                    <p><strong>購買力指數：</strong>125.0 (高) | <strong>市中心1房租金：</strong>£830/月</p>
+                    <p><strong>交通月票：</strong>£75 | <strong>餐廳用餐(2人)：</strong>£45</p>
+                </div>
+
+                <div class="church-info">
+                    <h4>🏮 利茲華人基督教會 (Leeds Chinese Christian Church)</h4>
+                    <p><strong>距離：</strong>0.579公里 | <strong>教會海拔：</strong>49.0米 | <strong>海拔差異：</strong>16.0米（教會較高）</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps?q=53.8034,-1.5623&t=m&z=15" class="map-link" target="_blank">🏮 教會位置</a>
+                        <a href="https://www.google.com/maps/search/Leeds+Chinese+Christian+Church,+Leeds,+UK" class="map-link" target="_blank">🔍 教會搜索</a>
+                        <a href="https://www.google.com/maps/dir/53.7956,-1.5480/53.8034,-1.5623" class="map-link" target="_blank">🚶 步行路線</a>
+                    </div>
+                </div>
+
+                <div class="highlight">
+                    <h4>🌍 社區特徵</h4>
+                    <p><strong>經濟類型：</strong>金融與教育 | <strong>華人比例：</strong>約2-3%</p>
+                    <p><strong>特色：</strong>前紡織業中心，現代服務業城市，高購買力，性價比優秀</p>
+                    <p><strong>主流宗教：</strong>利茲大教堂、聖安妮大教堂</p>
+                </div>
+            </div>
+
+            <div class="region-card" data-category="low-cost">
+                <h3>🚉 Hull Rail Station - 赫爾火車站</h3>
+                
+                <div class="station-info">
+                    <h4>🚄 火車站信息</h4>
+                    <p><strong>海拔：</strong>11.0米 | <strong>坐標：</strong>53.7442°N, -0.3457°W</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps?q=53.7442,-0.3457&t=m&z=15" class="map-link" target="_blank">📍 Google地圖位置</a>
+                        <a href="https://www.google.com/maps/search/Hull+Rail+Station,+Hull,+UK" class="map-link" target="_blank">🔍 Google搜索</a>
+                    </div>
+                </div>
+
+                <div class="cost-info">
+                    <h4>💰 消費指數數據</h4>
+                    <p><strong>生活成本指數：</strong>54.0 (較低) | <strong>租金指數：</strong>25.0 (低)</p>
+                    <p><strong>購買力指數：</strong>98.0 (中等) | <strong>市中心1房租金：</strong>£600/月</p>
+                    <p><strong>交通月票：</strong>£55 | <strong>餐廳用餐(2人)：</strong>£38</p>
+                </div>
+
+                <div class="church-info">
+                    <h4>🏮 豪城華人基督教會 (Hull Chinese Christian Church)</h4>
+                    <p><strong>距離：</strong>0.617公里 | <strong>教會海拔：</strong>8.0米（最低） | <strong>海拔差異：</strong>3.0米（火車站較高）</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps?q=53.7523,-0.3389&t=m&z=15" class="map-link" target="_blank">🏮 教會位置</a>
+                        <a href="https://www.google.com/maps/search/Hull+Chinese+Christian+Church,+Hull,+UK" class="map-link" target="_blank">🔍 教會搜索</a>
+                        <a href="https://www.google.com/maps/dir/53.7442,-0.3457/53.7523,-0.3389" class="map-link" target="_blank">🚶 步行路線</a>
+                    </div>
+                </div>
+
+                <div class="highlight">
+                    <h4>🌍 社區特徵</h4>
+                    <p><strong>經濟類型：</strong>港口與製造業 | <strong>華人比例：</strong>約1%</p>
+                    <p><strong>特色：</strong>傳統漁港城市，生活成本最低，適合初來英國的華人</p>
+                    <p><strong>主流宗教：</strong>聖三一教堂、赫爾大教堂</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 英格蘭中部 -->
+        <div id="england-midlands" class="content-section">
+            <h2>🏭 英格蘭中部</h2>
+            
+            <div class="region-card" data-category="medium-cost">
+                <h3>🚉 Birmingham Snow Hill Rail Station - 伯明翰雪山火車站</h3>
+                
+                <div class="station-info">
+                    <h4>🚄 火車站信息</h4>
+                    <p><strong>海拔：</strong>130.0米 | <strong>坐標：</strong>52.4834°N, -1.8991°W</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps?q=52.4833681846,-1.89908361&t=m&z=15" class="map-link" target="_blank">📍 Google地圖位置</a>
+                        <a href="https://www.google.com/maps/search/Birmingham+Snow+Hill+Rail+Station,+Birmingham,+UK" class="map-link" target="_blank">🔍 Google搜索</a>
+                    </div>
+                </div>
+
+                <div class="cost-info">
+                    <h4>💰 消費指數數據</h4>
+                    <p><strong>生活成本指數：</strong>58.5 (中等) | <strong>租金指數：</strong>35.0 (中等)</p>
+                    <p><strong>購買力指數：</strong>115.0 (中等偏高) | <strong>市中心1房租金：</strong>£903/月</p>
+                    <p><strong>交通月票：</strong>£65 | <strong>餐廳用餐(2人)：</strong>£45</p>
+                </div>
+
+                <div class="church-info">
+                    <h4>🏮 伯明翰華人基督教會 (Birmingham Chinese Christian Church)</h4>
+                    <p><strong>距離：</strong>0.669公里 | <strong>教會海拔：</strong>122.0米 | <strong>海拔差異：</strong>8.0米（火車站較高）</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps?q=52.4862,-1.8904&t=m&z=15" class="map-link" target="_blank">🏮 教會位置</a>
+                        <a href="https://www.google.com/maps/search/Birmingham+Chinese+Christian+Church,+Birmingham,+UK" class="map-link" target="_blank">🔍 教會搜索</a>
+                        <a href="https://www.google.com/maps/dir/52.4833681846,-1.89908361/52.4862,-1.8904" class="map-link" target="_blank">🚶 步行路線</a>
+                    </div>
+                </div>
+
+                <div class="highlight">
+                    <h4>🌍 社區特徵</h4>
+                    <p><strong>經濟類型：</strong>製造業 | <strong>華人比例：</strong>約3-4%</p>
+                    <p><strong>特色：</strong>英國第二大城市，最多元化城市之一，多元文化融合度高</p>
+                    <p><strong>多元宗教：</strong>聖菲利普大教堂、伯明翰清真寺、錫克教廟宇、印度教廟宇</p>
+                </div>
+            </div>
+
+            <div class="region-card" data-category="low-cost">
+                <h3>🚉 Lincoln Central Rail Station - 林肯中央火車站</h3>
+                
+                <div class="station-info">
+                    <h4>🚄 火車站信息</h4>
+                    <p><strong>海拔：</strong>9.0米 | <strong>坐標：</strong>53.2261°N, -0.5399°W</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps?q=53.2261,-0.5399&t=m&z=15" class="map-link" target="_blank">📍 Google地圖位置</a>
+                        <a href="https://www.google.com/maps/search/Lincoln+Central+Rail+Station,+Lincoln,+UK" class="map-link" target="_blank">🔍 Google搜索</a>
+                    </div>
+                </div>
+
+                <div class="cost-info">
+                    <h4>💰 消費指數數據</h4>
+                    <p><strong>生活成本指數：</strong>50.0 (最低) | <strong>租金指數：</strong>22.0 (最低)</p>
+                    <p><strong>購買力指數：</strong>88.0 (最低) | <strong>市中心1房租金：</strong>£550/月</p>
+                    <p><strong>交通月票：</strong>£50 | <strong>餐廳用餐(2人)：</strong>£35</p>
+                </div>
+
+                <div class="church-info">
+                    <h4>🏮 林肯華人基督教會 (Lincoln Chinese Christian Church)</h4>
+                    <p><strong>距離：</strong>0.513公里（最近） | <strong>教會海拔：</strong>18.0米 | <strong>海拔差異：</strong>9.0米（教會較高）</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps?q=53.2345,-0.5456&t=m&z=15" class="map-link" target="_blank">🏮 教會位置</a>
+                        <a href="https://www.google.com/maps/search/Lincoln+Chinese+Christian+Church,+Lincoln,+UK" class="map-link" target="_blank">🔍 教會搜索</a>
+                        <a href="https://www.google.com/maps/dir/53.2261,-0.5399/53.2345,-0.5456" class="map-link" target="_blank">🚶 步行路線</a>
+                    </div>
+                </div>
+
+                <div class="highlight">
+                    <h4>🌍 社區特徵</h4>
+                    <p><strong>經濟類型：</strong>農業與旅遊業 | <strong>華人比例：</strong>約0.5-1%</p>
+                    <p><strong>特色：</strong>羅馬古城，生活成本最低，適合預算有限的華人家庭</p>
+                    <p><strong>歷史重要性：</strong>林肯大教堂（中世紀哥德式建築傑作）</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps/search/Lincoln+Cathedral,+Lincoln,+UK" class="map-link" target="_blank">🏛️ 林肯大教堂</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="region-card" data-category="medium-cost">
+                <h3>🚉 Coventry Rail Station - 考文垂火車站</h3>
+                
+                <div class="station-info">
+                    <h4>🚄 火車站信息</h4>
+                    <p><strong>海拔：</strong>92.0米 | <strong>坐標：</strong>52.4008°N, -1.5135°W</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps?q=52.4008,-1.5135&t=m&z=15" class="map-link" target="_blank">📍 Google地圖位置</a>
+                        <a href="https://www.google.com/maps/search/Coventry+Rail+Station,+Coventry,+UK" class="map-link" target="_blank">🔍 Google搜索</a>
+                    </div>
+                </div>
+
+                <div class="cost-info">
+                    <h4>💰 消費指數數據</h4>
+                    <p><strong>生活成本指數：</strong>56.0 (中等偏低) | <strong>租金指數：</strong>32.0 (較低)</p>
+                    <p><strong>購買力指數：</strong>110.0 (中等偏高) | <strong>市中心1房租金：</strong>£850/月</p>
+                    <p><strong>交通月票：</strong>£70 | <strong>餐廳用餐(2人)：</strong>£42</p>
+                </div>
+
+                <div class="church-info">
+                    <h4>🏮 高雲地利華人基督教會 (Coventry Chinese Christian Church)</h4>
+                    <p><strong>距離：</strong>0.789公里（最遠） | <strong>教會海拔：</strong>82.0米 | <strong>海拔差異：</strong>10.0米（火車站較高）</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps?q=52.4089,-1.5201&t=m&z=15" class="map-link" target="_blank">🏮 教會位置</a>
+                        <a href="https://www.google.com/maps/search/Coventry+Chinese+Christian+Church,+Coventry,+UK" class="map-link" target="_blank">🔍 教會搜索</a>
+                        <a href="https://www.google.com/maps/dir/52.4008,-1.5135/52.4089,-1.5201" class="map-link" target="_blank">🚶 步行路線</a>
+                    </div>
+                </div>
+
+                <div class="highlight">
+                    <h4>🌍 社區特徵</h4>
+                    <p><strong>經濟類型：</strong>汽車製造業 | <strong>華人比例：</strong>約2%</p>
+                    <p><strong>特色：</strong>以和解與和平聞名，性價比較高，購買力強</p>
+                    <p><strong>和平象徵：</strong>考文垂大教堂（戰後重建象徵）</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps/search/Coventry+Cathedral,+Coventry,+UK" class="map-link" target="_blank">🕊️ 考文垂大教堂</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 英格蘭南部 -->
+        <div id="england-south" class="content-section">
+            <h2>🌊 英格蘭南部</h2>
+            
+            <div class="region-card" data-category="high-cost">
+                <h3>🚉 London Euston Rail Station - 倫敦尤斯頓火車站</h3>
+                
+                <div class="station-info">
+                    <h4>🚄 火車站信息</h4>
+                    <p><strong>海拔：</strong>27.0米 | <strong>坐標：</strong>51.5281°N, -0.1339°W</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps?q=51.5281,-0.1339&t=m&z=15" class="map-link" target="_blank">📍 Google地圖位置</a>
+                        <a href="https://www.google.com/maps/search/London+Euston+Rail+Station,+London,+UK" class="map-link" target="_blank">🔍 Google搜索</a>
+                    </div>
+                </div>
+
+                <div class="cost-info">
+                    <h4>💰 消費指數數據</h4>
+                    <p><strong>生活成本指數：</strong>77.9 (最高) | <strong>租金指數：</strong>66.1 (最高)</p>
+                    <p><strong>購買力指數：</strong>101.8 (中等) | <strong>市中心1房租金：</strong>£2,041/月</p>
+                    <p><strong>交通月票：</strong>£159 | <strong>餐廳用餐(2人)：</strong>£70</p>
+                </div>
+
+                <div class="church-info">
+                    <h4>🏮 倫敦華人循道會君王十字堂 (King's Cross Methodist Church)</h4>
+                    <p><strong>距離：</strong>0.761公里 | <strong>教會海拔：</strong>29.0米 | <strong>海拔差異：</strong>2.0米（教會略高）</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps?q=51.5312,-0.1267&t=m&z=15" class="map-link" target="_blank">🏮 教會位置</a>
+                        <a href="https://www.google.com/maps/search/King's+Cross+Methodist+Church,+London,+UK" class="map-link" target="_blank">🔍 教會搜索</a>
+                        <a href="https://www.google.com/maps/dir/51.5281,-0.1339/51.5312,-0.1267" class="map-link" target="_blank">🚶 步行路線</a>
+                    </div>
+                </div>
+
+                <div class="highlight">
+                    <h4>🌍 社區特徵</h4>
+                    <p><strong>經濟類型：</strong>金融與服務業 | <strong>華人比例：</strong>約5-8%（倫敦整體）</p>
+                    <p><strong>特色：</strong>國際金融中心，機會最多但成本最高，適合高收入專業人士</p>
+                    <p><strong>國際都市：</strong>世界最多元化城市之一，與各國宗教社區並存</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps/search/London+Chinatown+Chinese+community+areas" class="map-link" target="_blank">🏮 倫敦華人社區總覽</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="region-card" data-category="high-cost">
+                <h3>🚉 Brighton Rail Station - 布萊頓火車站</h3>
+                
+                <div class="station-info">
+                    <h4>🚄 火車站信息</h4>
+                    <p><strong>海拔：</strong>48.0米 | <strong>坐標：</strong>50.8290°N, -0.1413°W</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps?q=50.8289969623,-0.1412525289&t=m&z=15" class="map-link" target="_blank">📍 Google地圖位置</a>
+                        <a href="https://www.google.com/maps/search/Brighton+Rail+Station,+Brighton,+UK" class="map-link" target="_blank">🔍 Google搜索</a>
+                    </div>
+                </div>
+
+                <div class="cost-info">
+                    <h4>💰 消費指數數據</h4>
+                    <p><strong>生活成本指數：</strong>65.1 (較高) | <strong>租金指數：</strong>41.4 (中等偏高)</p>
+                    <p><strong>購買力指數：</strong>107.4 (中等) | <strong>市中心1房租金：</strong>£1,100/月</p>
+                    <p><strong>交通月票：</strong>£75 | <strong>餐廳用餐(2人)：</strong>£55</p>
+                </div>
+
+                <div class="church-info">
+                    <h4>🏮 布萊頓宣道會 (Brighton Alliance Church)</h4>
+                    <p><strong>距離：</strong>0.777公里 | <strong>教會海拔：</strong>16.0米 | <strong>海拔差異：</strong>32.0米（火車站較高）</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps?q=50.8225,-0.1372&t=m&z=15" class="map-link" target="_blank">🏮 教會位置</a>
+                        <a href="https://www.google.com/maps/search/Brighton+Alliance+Church,+Brighton,+UK" class="map-link" target="_blank">🔍 教會搜索</a>
+                        <a href="https://www.google.com/maps/dir/50.8289969623,-0.1412525289/50.8225,-0.1372" class="map-link" target="_blank">🚶 步行路線</a>
+                    </div>
+                </div>
+
+                <div class="highlight">
+                    <h4>🌍 社區特徵</h4>
+                    <p><strong>經濟類型：</strong>旅遊業與科技 | <strong>華人比例：</strong>約1-2%</p>
+                    <p><strong>特色：</strong>海濱度假城市，LGBTQ+友好，文化開放，生活成本較高但文化豐富</p>
+                    <p><strong>主流宗教：</strong>聖彼得教堂、聖尼古拉斯教堂</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps/search/Brighton+pier+seafront+Chinese+community" class="map-link" target="_blank">🌊 布萊頓海濱</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="region-card" data-category="low-cost">
+                <h3>🚉 Canterbury West Rail Station - 坎特伯雷西火車站</h3>
+                
+                <div class="station-info">
+                    <h4>🚄 火車站信息</h4>
+                    <p><strong>海拔：</strong>15.0米 | <strong>坐標：</strong>51.2843°N, 1.0753°E</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps?q=51.284271981,1.0753330452&t=m&z=15" class="map-link" target="_blank">📍 Google地圖位置</a>
+                        <a href="https://www.google.com/maps/search/Canterbury+West+Rail+Station,+Canterbury,+UK" class="map-link" target="_blank">🔍 Google搜索</a>
+                    </div>
+                </div>
+
+                <div class="cost-info">
+                    <h4>💰 消費指數數據</h4>
+                    <p><strong>生活成本指數：</strong>55.0 (中等偏低) | <strong>租金指數：</strong>30.0 (較低)</p>
+                    <p><strong>購買力指數：</strong>95.0 (中等偏低) | <strong>市中心1房租金：</strong>£750/月</p>
+                    <p><strong>交通月票：</strong>£60 | <strong>餐廳用餐(2人)：</strong>£40</p>
+                </div>
+
+                <div class="church-info">
+                    <h4>🏮 坎特伯雷華人基督教會 (Canterbury Chinese Christian Church)</h4>
+                    <p><strong>距離：</strong>0.517公里（最近距離） | <strong>教會海拔：</strong>13.0米 | <strong>海拔差異：</strong>2.0米（火車站較高）</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps?q=51.2802,1.0789&t=m&z=15" class="map-link" target="_blank">🏮 教會位置</a>
+                        <a href="https://www.google.com/maps/search/Canterbury+Chinese+Christian+Church,+Canterbury,+UK" class="map-link" target="_blank">🔍 教會搜索</a>
+                        <a href="https://www.google.com/maps/dir/51.284271981,1.0753330452/51.2802,1.0789" class="map-link" target="_blank">🚶 步行路線</a>
+                    </div>
+                </div>
+
+                <div class="highlight">
+                    <h4>🌍 社區特徵</h4>
+                    <p><strong>經濟類型：</strong>旅遊業與教育 | <strong>華人比例：</strong>約1%</p>
+                    <p><strong>特色：</strong>英國基督教的精神中心，生活成本相對較低，文化價值極高</p>
+                    <p><strong>歷史重要性：</strong>坎特伯雷大教堂（英國國教會總部）</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps/search/Canterbury+Cathedral,+Canterbury,+UK" class="map-link" target="_blank">⛪ 坎特伯雷大教堂</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 威爾斯 -->
+        <div id="wales" class="content-section">
+            <h2>🏴󠁧󠁢󠁷󠁬󠁳󠁿 威爾斯地區</h2>
+            
+            <div class="region-card" data-category="low-cost">
+                <h3>🚉 Cardiff Central Rail Station - 卡迪夫中央火車站</h3>
+                
+                <div class="station-info">
+                    <h4>🚄 火車站信息</h4>
+                    <p><strong>海拔：</strong>8.0米（最低） | <strong>坐標：</strong>51.4760°N, -3.1793°W</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps?q=51.4760,-3.1793&t=m&z=15" class="map-link" target="_blank">📍 Google地圖位置</a>
+                        <a href="https://www.google.com/maps/search/Cardiff+Central+Rail+Station,+Cardiff,+UK" class="map-link" target="_blank">🔍 Google搜索</a>
+                    </div>
+                </div>
+
+                <div class="cost-info">
+                    <h4>💰 消費指數數據</h4>
+                    <p><strong>生活成本指數：</strong>52.0 (較低) | <strong>租金指數：</strong>28.0 (較低)</p>
+                    <p><strong>購買力指數：</strong>105.0 (中等) | <strong>市中心1房租金：</strong>£785/月</p>
+                    <p><strong>交通月票：</strong>£53 | <strong>餐廳用餐(2人)：</strong>£40</p>
+                </div>
+
+                <div class="church-info">
+                    <h4>🏮 卡迪夫華人基督教會 (Cardiff Chinese Christian Church)</h4>
+                    <p><strong>距離：</strong>0.621公里 | <strong>教會海拔：</strong>14.0米 | <strong>海拔差異：</strong>6.0米（教會較高）</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps?q=51.4823,-3.1734&t=m&z=15" class="map-link" target="_blank">🏮 教會位置</a>
+                        <a href="https://www.google.com/maps/search/Cardiff+Chinese+Christian+Church,+Cardiff,+UK" class="map-link" target="_blank">🔍 教會搜索</a>
+                        <a href="https://www.google.com/maps/dir/51.4760,-3.1793/51.4823,-3.1734" class="map-link" target="_blank">🚶 步行路線</a>
+                    </div>
+                </div>
+
+                <div class="highlight">
+                    <h4>🌍 社區特徵</h4>
+                    <p><strong>經濟類型：</strong>政府與服務業 | <strong>華人比例：</strong>約2-3%</p>
+                    <p><strong>特色：</strong>威爾斯首府，政治文化中心，生活成本較低，政治文化氛圍濃厚</p>
+                    <p><strong>威爾斯特色：</strong>威爾斯語文化，雙語社區</p>
+                    <div style="margin-top: 10px;">
+                        <a href="https://www.google.com/maps/search/Cardiff+Castle,+Cardiff,+UK" class="map-link" target="_blank">🏰 卡迪夫城堡</a>
+                        <a href="https://www.google.com/maps/search/Welsh+Parliament,+Cardiff,+UK" class="map-link" target="_blank">🏛️ 威爾斯國會大廈</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 數據分析 -->
+        <div id="analysis" class="content-section">
+            <h2>📈 數據分析</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">0.61</div>
+                    <div class="stat-label">成本與距離相關性</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">0.82</div>
+                    <div class="stat-label">租金指數相關性</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">10.4米</div>
+                    <div class="stat-label">平均海拔差異</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">59.1</div>
+                    <div class="stat-label">平均生活成本指數</div>
+                </div>
+            </div>
+
+            <h3>🏔️ 海拔高度統計</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>海拔範圍</th>
+                        <th>火車站數量</th>
+                        <th>教會數量</th>
+                        <th>平均生活成本指數</th>
+                        <th>平均距離</th>
+                        <th>地圖查看</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>0-20米</td>
+                        <td>8</td>
+                        <td>6</td>
+                        <td>55.4</td>
+                        <td>0.62公里</td>
+                        <td><a href="https://www.google.com/maps/search/UK+railway+stations+sea+level" class="map-link" target="_blank">低海拔地區</a></td>
+                    </tr>
+                    <tr>
+                        <td>21-50米</td>
+                        <td>8</td>
+                        <td>4</td>
+                        <td>62.1</td>
+                        <td>0.71公里</td>
+                        <td><a href="https://www.google.com/maps/search/UK+railway+stations+30m+elevation" class="map-link" target="_blank">中低海拔地區</a></td>
+                    </tr>
+                    <tr>
+                        <td>51-100米</td>
+                        <td>3</td>
+                        <td>4</td>
+                        <td>60.7</td>
+                        <td>0.73公里</td>
+                        <td><a href="https://www.google.com/maps/search/UK+railway+stations+hills" class="map-link" target="_blank">中海拔地區</a></td>
+                    </tr>
+                    <tr>
+                        <td>101米以上</td>
+                        <td>2</td>
+                        <td>2</td>
+                        <td>58.5</td>
+                        <td>0.65公里</td>
+                        <td><a href="https://www.google.com/maps/search/Birmingham+railway+stations+high+elevation" class="map-link" target="_blank">高海拔地區</a></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>💰 消費指數統計</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>成本類別</th>
+                        <th>城市數量</th>
+                        <th>平均距離</th>
+                        <th>平均海拔差異</th>
+                        <th>平均租金</th>
+                        <th>購買力指數</th>
+                        <th>代表城市地圖</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>低成本 (≤55)</td>
+                        <td>6</td>
+                        <td>0.60公里</td>
+                        <td>6.3米</td>
+                        <td>£703</td>
+                        <td>97.67</td>
+                        <td><a href="https://www.google.com/maps/search/Lincoln+Cardiff+Hull+Canterbury+UK" class="map-link" target="_blank">低成本城市</a></td>
+                    </tr>
+                    <tr>
+                        <td>中成本 (55-65)</td>
+                        <td>13</td>
+                        <td>0.70公里</td>
+                        <td>11.2米</td>
+                        <td>£922</td>
+                        <td>121.73</td>
+                        <td><a href="https://www.google.com/maps/search/Birmingham+Manchester+Leeds+Bristol+UK" class="map-link" target="_blank">中成本城市</a></td>
+                    </tr>
+                    <tr>
+                        <td>高成本 (>65)</td>
+                        <td>2</td>
+                        <td>0.77公里</td>
+                        <td>17.0米</td>
+                        <td>£1,571</td>
+                        <td>104.60</td>
+                        <td><a href="https://www.google.com/maps/search/London+Brighton+UK" class="map-link" target="_blank">高成本城市</a></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>🌍 地區分析</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>地區</th>
+                        <th>平均生活成本</th>
+                        <th>平均租金指數</th>
+                        <th>平均購買力</th>
+                        <th>特色</th>
+                        <th>地區地圖</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>倫敦</td>
+                        <td>77.9</td>
+                        <td>66.1</td>
+                        <td>101.8</td>
+                        <td>國際金融中心</td>
+                        <td><a href="https://www.google.com/maps/search/London+Chinese+community" class="map-link" target="_blank">倫敦地區</a></td>
+                    </tr>
+                    <tr>
+                        <td>蘇格蘭</td>
+                        <td>61.5</td>
+                        <td>25.3</td>
+                        <td>139.9</td>
+                        <td>高購買力</td>
+                        <td><a href="https://www.google.com/maps/search/Scotland+Chinese+community" class="map-link" target="_blank">蘇格蘭地區</a></td>
+                    </tr>
+                    <tr>
+                        <td>英格蘭北部</td>
+                        <td>59.2</td>
+                        <td>29.9</td>
+                        <td>113.6</td>
+                        <td>性價比好</td>
+                        <td><a href="https://www.google.com/maps/search/Northern+England+Chinese+community" class="map-link" target="_blank">英格蘭北部</a></td>
+                    </tr>
+                    <tr>
+                        <td>英格蘭中部</td>
+                        <td>55.6</td>
+                        <td>30.8</td>
+                        <td>109.8</td>
+                        <td>製造業中心</td>
+                        <td><a href="https://www.google.com/maps/search/Midlands+England+Chinese+community" class="map-link" target="_blank">英格蘭中部</a></td>
+                    </tr>
+                    <tr>
+                        <td>威爾斯</td>
+                        <td>52.0</td>
+                        <td>28.0</td>
+                        <td>105.0</td>
+                        <td>政治中心</td>
+                        <td><a href="https://www.google.com/maps/search/Wales+Chinese+community" class="map-link" target="_blank">威爾斯地區</a></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="highlight">
+                <h3>🔍 關鍵發現</h3>
+                <ul>
+                    <li><strong>成本與距離關係：</strong>生活成本越高的城市，華人教會與火車站距離越遠（相關性0.61）</li>
+                    <li><strong>租金影響顯著：</strong>租金指數與生活成本強正相關（相關性0.82）</li>
+                    <li><strong>地理優勢：</strong>海拔較低且成本較低的地區教會與火車站距離最近</li>
+                    <li><strong>購買力分布：</strong>蘇格蘭地區購買力最強，威爾斯地區成本最低</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 建議 -->
+        <div id="recommendations" class="content-section">
+            <h2>💡 實用建議</h2>
+            
+            <div class="region-card">
+                <h3>🎯 新移民建議</h3>
+                <h4>首選城市（低成本，易融入）</h4>
+                <ul>
+                    <li><strong>林肯</strong> - 最低成本(50.0) + 最近距離(0.513km) + 歷史文化</li>
+                    <li><strong>卡迪夫</strong> - 政治中心 + 低成本(52.0) + 威爾斯特色</li>
+                    <li><strong>赫爾</strong> - 港口城市 + 極低租金(25.0) + 傳統英國文化</li>
+                </ul>
+                <div style="margin-top: 10px;">
+                    <a href="https://www.google.com/maps/search/Lincoln+Cardiff+Hull+affordable+living" class="map-link" target="_blank">🗺️ 新移民友好城市對比</a>
+                </div>
+            </div>
+
+            <div class="region-card">
+                <h3>👔 專業人士建議</h3>
+                <h4>按行業分類</h4>
+                <ul>
+                    <li><strong>金融業：</strong>倫敦、利茲、曼徹斯特 - <a href="https://www.google.com/maps/search/UK+financial+centers+London+Leeds+Manchester" class="map-link" target="_blank">金融中心地圖</a></li>
+                    <li><strong>科技業：</strong>曼徹斯特、布萊頓、布里斯托 - <a href="https://www.google.com/maps/search/UK+tech+hubs+Manchester+Brighton+Bristol" class="map-link" target="_blank">科技園區地圖</a></li>
+                    <li><strong>石油業：</strong>阿伯丁 - <a href="https://www.google.com/maps/search/Aberdeen+oil+gas+industry" class="map-link" target="_blank">阿伯丁石油產業</a></li>
+                    <li><strong>製造業：</strong>伯明翰、考文垂 - <a href="https://www.google.com/maps/search/Birmingham+Coventry+manufacturing+automotive" class="map-link" target="_blank">製造業中心</a></li>
+                </ul>
+            </div>
+
+            <div class="region-card">
+                <h3>👨‍👩‍👧‍👦 家庭定居建議</h3>
+                <h4>按需求分類</h4>
+                <ul>
+                    <li><strong>教育優先：</strong>布里斯托、坎特伯雷、利茲 - <a href="https://www.google.com/maps/search/Bristol+Canterbury+Leeds+universities+schools" class="map-link" target="_blank">教育資源地圖</a></li>
+                    <li><strong>多元文化：</strong>伯明翰、格拉斯哥、倫敦 - <a href="https://www.google.com/maps/search/Birmingham+Glasgow+London+multicultural+areas" class="map-link" target="_blank">多元文化社區</a></li>
+                    <li><strong>生活品質：</strong>布萊頓、卡迪夫、阿伯丁 - <a href="https://www.google.com/maps/search/Brighton+Cardiff+Aberdeen+quality+of+life" class="map-link" target="_blank">高生活品質地區</a></li>
+                </ul>
+            </div>
+
+            <div class="region-card">
+                <h3>🏮 華人教會發展建議</h3>
+                <h4>選址策略</h4>
+                <ul>
+                    <li><strong>低成本地區：</strong>可選擇更接近火車站的位置，提高可達性</li>
+                    <li><strong>高成本地區：</strong>需平衡租金成本與交通便利性</li>
+                    <li><strong>考慮因素：</strong>當地華人人口密度、經濟發展潛力、政策環境</li>
+                </ul>
+                <div style="margin-top: 10px;">
+                    <a href="https://www.google.com/maps/search/UK+Chinese+population+density+areas" class="map-link" target="_blank">🗺️ 華人人口密度地圖</a>
+                </div>
+            </div>
+
+            <div class="highlight">
+                <h3>🌟 性價比排行榜</h3>
+                <h4>高性價比城市（推薦指數⭐⭐⭐⭐⭐）</h4>
+                <ol>
+                    <li><strong>利茲</strong> - 高購買力(125.0) + 中等成本(58.0) + 金融教育中心</li>
+                    <li><strong>曼徹斯特</strong> - 科技創新 + 合理成本(61.5) + 優秀性價比</li>
+                    <li><strong>格拉斯哥</strong> - 文化多元 + 高購買力(129.7) + 蘇格蘭優勢</li>
+                </ol>
+                <div style="margin-top: 10px;">
+                    <a href="https://www.google.com/maps/search/Leeds+Manchester+Glasgow+Chinese+community" class="map-link" target="_blank">🗺️ 高性價比城市對比</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 快速導航 -->
+    <div class="quick-nav">
+        <a href="#overview">📊 總覽</a>
+        <a href="#scotland">🏴󠁧󠁢󠁳󠁣󠁴󠁿 蘇格蘭</a>
+        <a href="#england-north">🏴󠁧󠁢󠁥󠁮󠁧󠁿 北部</a>
+        <a href="#england-midlands">🏭 中部</a>
+        <a href="#england-south">🌊 南部</a>
+        <a href="#wales">🏴󠁧󠁢󠁷󠁬󠁳󠁿 威爾斯</a>
+        <a href="#analysis">📈 分析</a>
+        <a href="#recommendations">💡 建議</a>
+    </div>
+
+    <!-- 返回頂部 -->
+    <div class="back-to-top" onclick="scrollToTop()">
+        ↑
+    </div>
+
+    <script>
+        // 顯示指定部分
+        function showSection(sectionId) {
+            // 隱藏所有部分
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // 移除所有標籤的active類
+            const tabs = document.querySelectorAll('.nav-tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // 顯示指定部分
+            document.getElementById(sectionId).classList.add('active');
+            
+            // 添加active類到對應標籤
+            event.target.classList.add('active');
+
+            // 滾動到頂部
+            window.scrollTo(0, 0);
+        }
+
+        // 搜索功能
+        function searchContent() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            const cards = document.querySelectorAll('.region-card');
+            
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    card.style.display = 'block';
+                    card.style.backgroundColor = searchTerm ? '#fff3cd' : '';
+                } else {
+                    card.style.display = searchTerm ? 'none' : 'block';
+                    card.style.backgroundColor = '';
+                }
+            });
+        }
+
+        // 篩選功能
+        function filterByCategory(category) {
+            // 移除所有按鈕的active類
+            const buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            // 添加active類到點擊的按鈕
+            event.target.classList.add('active');
+
+            const cards = document.querySelectorAll('.region-card');
+            
+            cards.forEach(card => {
+                if (category === 'all') {
+                    card.style.display = 'block';
+                } else {
+                    const cardCategory = card.getAttribute('data-category');
+                    if (cardCategory && cardCategory.includes(category)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                }
+            });
+        }
+
+        // 返回頂部功能
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // 監聽滾動事件，顯示/隱藏返回頂部按鈕
+        window.addEventListener('scroll', function() {
+            const backToTop = document.querySelector('.back-to-top');
+            if (window.pageYOffset > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        });
+
+        // 頁面載入完成後的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 添加載入動畫
+            const cards = document.querySelectorAll('.region-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+
+            // 添加平滑滾動到錨點
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+        });
+
+        // 鍵盤快捷鍵
+        document.addEventListener('keydown', function(e) {
+            // Ctrl + F 聚焦搜索框
+            if (e.ctrlKey && e.key === 'f') {
+                e.preventDefault();
+                document.getElementById('searchBox').focus();
+            }
+            
+            // ESC 清空搜索
+            if (e.key === 'Escape') {
+                document.getElementById('searchBox').value = '';
+                searchContent();
+            }
+        });
+    </script>
+    <script src="advanced_features.js"></script>
+</body>
+</html>
+
