@@ -36,7 +36,8 @@
 - 餐廳用餐(2人)：**£50**
 
 **華人宗教設施：**
-- 🏮 **阿伯丁中文教會** (Aberdeen Chinese Church)
+- 🏮 **阿伯丁中文教會** (Aberdeen Chinese Church)[亞巴甸華人基督教會 Aberdeen Chinese Christian Church](https://aberdeenchinesecc.org.uk/tc/)[皇冠台浸信會教堂 Crown Terrace Baptist Church,
+1 Crown Terrace, Aberdeen, AB11 6HE](https://maps.app.goo.gl/KXqRVqKtXL5UvPp39)[主日聚會](https://aberdeenchinesecc.org.uk/tc/主日聚會/)
   - 距離：0.721公里
   - 教會海拔：20.0米
   - 海拔差異：10.0米（教會較高）
@@ -69,10 +70,12 @@
 - 交通月票：**£60**
 
 **華人宗教設施：**
-- 🏮 **格拉斯哥華人基督教會** (Glasgow Chinese Christian Church)
-  - 距離：0.772公里
-  - 教會海拔：34.0米
-  - 海拔差異：19.0米（教會較高）
+- 🏮 **格拉斯哥華人基督教會** (Glasgow Chinese Christian Church)[格拉斯哥華人基督教會](https://glaccc.org/zh-hans/)[Glasgow Chinese Christian Church](https://maps.app.goo.gl/MxJ6CAHThm8CUpi5A)广东堂和英文堂主日崇拜, 1.30pm[56 Clarendon Pl, Glasgow G20 7PZ英國](https://maps.app.goo.gl/UZ3gPd5mvG4qFsuM8)
+
+[St. George's Cross · Glasgow 地鐵站](https://maps.app.goo.gl/RtDB4Rm429taxQBc7)
+  - 距離：0.32公里?
+  - 教會海拔：34.0米?
+  - 海拔差異：19.0米（教會較高）?
   - 🗺️ **[教會Google地圖位置](https://www.google.com/maps?q=55.8645,-4.2589&t=m&z=15)**
   - 🔍 **[教會Google搜索](https://www.google.com/maps/search/Glasgow+Chinese+Christian+Church,+Glasgow,+UK)**
   - 📍 **[火車站到教會路線](https://www.google.com/maps/dir/55.8573,-4.2507/55.8645,-4.2589)**
