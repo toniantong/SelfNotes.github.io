@@ -1,3 +1,4 @@
+
 # 英國火車站與華人教會相對關係分析（含海拔、消費指數與Google地圖連結）
 
 ## 匹配火車站與華人/非華人宗教社區關係列表
@@ -38,9 +39,9 @@
 **華人宗教設施：**
 - 🏮 **阿伯丁中文教會** (Aberdeen Chinese Church)[亞巴甸華人基督教會 Aberdeen Chinese Christian Church](https://aberdeenchinesecc.org.uk/tc/)[皇冠台浸信會教堂 Crown Terrace Baptist Church,
 1 Crown Terrace, Aberdeen, AB11 6HE](https://maps.app.goo.gl/KXqRVqKtXL5UvPp39)[主日聚會](https://aberdeenchinesecc.org.uk/tc/主日聚會/)
-  - 距離：0.721公里
+  - 距離：0.322公里?
   - 教會海拔：20.0米
-  - 海拔差異：10.0米（教會較高）
+  - 海拔差異：10.0米（教會較高）?
   - 🗺️ **[教會Google地圖位置](https://www.google.com/maps?q=57.1497,-2.0943&t=m&z=15)**
   - 🔍 **[教會Google搜索](https://www.google.com/maps/search/Aberdeen+Chinese+Church,+Aberdeen,+UK)**
   - 📍 **[火車站到教會路線](https://www.google.com/maps/dir/57.1436867734,-2.0986925585/57.1497,-2.0943)**
