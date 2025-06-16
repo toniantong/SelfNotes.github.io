@@ -53,3 +53,5 @@
 [2-1_in_one_srt.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/2-1_in_one_srt.html)
 
 [binary-piano.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/binary-piano.html)
+
+[uk_chinese_churches_analysis.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/uk_chinese_churches_analysis.html)
