@@ -1,22 +1,7 @@
 
-# 英國火車站與華人教會相對關係分析（含海拔、消費指數與Google地圖連結）
-
-## 匹配火車站與華人/非華人宗教社區關係列表
-
-本分析展示了21個火車站周邊的華人教會與當地主流宗教社區的相對關係，包括地理位置、海拔高度、消費指數、社區特徵和文化多樣性，並提供Google地圖連結以便實地查看。
-
----
-
-## 🗺️ 快速導航地圖連結
-
-### 📍 互動地圖總覽
 - [**英國華人教會與火車站分布總覽**](https://www.google.com/maps/d/viewer?mid=1example) *(自定義地圖)*
 - [**英國火車站網絡**](https://www.google.com/maps/search/UK+railway+stations)
 - [**英國華人社區分布**](https://www.google.com/maps/search/Chinese+churches+UK)
-
----
-
-## 🚄 按火車站分組的社區關係分析（含Google地圖連結）
 
 ### 🏴󠁧󠁢󠁳󠁣󠁴󠁿 蘇格蘭地區
 
@@ -37,6 +22,7 @@
 - 餐廳用餐(2人)：**£50**
 
 **華人宗教設施：**
+![Aberdeen Chinese Christian Church · Aberdeen](https://streetviewpixels-pa.googleapis.com/v1/thumbnail?panoid=OuoHxBGbS7bQN8cdsxFMUg&cb_client=search.gws-prod.gps&w=900&h=900&yaw=0.3817096&pitch=0&thumbfov=100)
 - 🏮 **阿伯丁中文教會** (Aberdeen Chinese Church)[亞巴甸華人基督教會 Aberdeen Chinese Christian Church](https://aberdeenchinesecc.org.uk/tc/)[皇冠台浸信會教堂 Crown Terrace Baptist Church,
 1 Crown Terrace, Aberdeen, AB11 6HE](https://maps.app.goo.gl/KXqRVqKtXL5UvPp39)[主日聚會](https://aberdeenchinesecc.org.uk/tc/主日聚會/)
   - 距離：0.322公里?
@@ -72,6 +58,7 @@
 
 **華人宗教設施：**
 - 🏮 **格拉斯哥華人基督教會** (Glasgow Chinese Christian Church)[格拉斯哥華人基督教會](https://glaccc.org/zh-hans/)[Glasgow Chinese Christian Church](https://maps.app.goo.gl/MxJ6CAHThm8CUpi5A)广东堂和英文堂主日崇拜, 1.30pm[56 Clarendon Pl, Glasgow G20 7PZ英國](https://maps.app.goo.gl/UZ3gPd5mvG4qFsuM8)
+![Findlay Church 芬尼西人教会](https://glaccc.org/wp-content/uploads/2015/02/IMAG1100-150x150.jpg)
 
 [St. George's Cross · Glasgow 地鐵站](https://maps.app.goo.gl/RtDB4Rm429taxQBc7)
   - 距離：0.32公里?
@@ -144,7 +131,8 @@
 - 餐廳用餐(2人)：**£45**
 
 **華人宗教設施：**
-- 🏮 **伯明翰華人基督教會** (Birmingham Chinese Christian Church)
+![Warley Baptist Church · Oldbury](https://lh3.googleusercontent.com/p/AF1QipM12vC6EO9LhfseBmHyNB8J6UbGEMiOxBMLVORQ=w900-h900-p-k-no)
+- 🏮 **伯明翰華人基督教會** (Birmingham Chinese Christian Church)[伯明翰華人基督教會 Birmingham Chinese Christian Church](https://bcccuk.org/教會簡介/聚會/)
   - 距離：0.669公里
   - 教會海拔：122.0米
   - 海拔差異：8.0米（火車站較高）
@@ -171,7 +159,25 @@
 - 🔍 **[Google搜索](https://www.google.com/maps/search/Birmingham+Moor+Street+Rail+Station,+Birmingham,+UK)**
 
 **華人宗教設施：**
-- 🏮 **伯明翰中華福音教會** (Birmingham Chinese Evangelical Church)
+- 🏮 **伯明翰中華福音教會** (Birmingham Chinese Evangelical Church)[伯明翰中華福音教會 (BCEC)](https://thebcec.org.uk/zh-hant/)
+- 有三個地址?
+主日崇拜地址 (伯明翰市中心) :
+BCEC Central
+伯明翰中華福音教會
+Birmingham Chinese Evangelical Church (BCEC)
+14 Upper Gough Street
+Birmingham, B1 1JG
+主日崇拜地址 (伯明翰南部)：
+BCEC South
+Shirley Community Church
+1 Green Ln, Shirley
+Solihull, B90 1AA
+主日崇拜地址 (伯明翰北部)：
+BCEC North
+Sutton Coldfield United Reformed Church
+1 Brassington Avenue, Sutton Coldfield
+B73 6AA
+- [Birmingham Chinese Evangelical Church (BCEC)](https://maps.app.goo.gl/Hk2gNuEzo1HTSUND9)
   - 距離：0.691公里
   - 教會海拔：146.0米
   - 海拔差異：23.0米（教會較高）
@@ -529,8 +535,10 @@
 - 交通月票：**£159**
 - 餐廳用餐(2人)：**£70**
 
+![Methodist Chaplaincy House · Londres](https://streetviewpixels-pa.googleapis.com/v1/thumbnail?panoid=u4HnquriI0zllMg7N6vaew&cb_client=search.gws-prod.gps&w=900&h=900&yaw=250.37071&pitch=0&thumbfov=100)
 **華人宗教設施：**
-- 🏮 **倫敦華人循道會君王十字堂** (King's Cross Methodist Church)
+- 🏮 **倫敦華人循道會君王十字堂** (King's Cross Methodist Church)[](https://www.kxmc.org.uk/)
+[58A Birkenhead St, London WC1H 8BB英國](https://maps.app.goo.gl/i6q8x4utffWg6Wus6)
   - 距離：0.761公里
   - 教會海拔：29.0米
   - 海拔差異：2.0米（教會略高）
@@ -584,8 +592,9 @@
 - 🗺️ **[Google地圖位置](https://www.google.com/maps?q=53.4875,-2.2426&t=m&z=15)**
 - 🔍 **[Google搜索](https://www.google.com/maps/search/Manchester+Victoria+Rail+Station,+Manchester,+UK)**
 
+![Unit 9, The Quadrangle, Hulme Street, Manchester, M1 5GL, United Kingdom](https://www.manallch.org/the7/wp-content/uploads/2022/01/Alliance-Centre-Full-1536x864.jpg)
 **華人宗教設施：**
-- 🏮 **曼徹斯特宣道會** (Manchester Alliance Church)
+- 🏮 **曼徹斯特宣道會** (Manchester Alliance Church)[曼徹斯特宣道中心](https://www.manallch.org/崇拜時間及地點/?lang=zh-hant)[曼徹斯特宣道會 Manchester Alliance Church](https://maps.app.goo.gl/ZGsMhEBgExfEvhEH8)
   - 距離：0.744公里
   - 教會海拔：52.0米
   - 海拔差異：10.0米（教會較高）
@@ -624,6 +633,7 @@
 - 餐廳用餐(2人)：**£40**
 
 **華人宗教設施：**
+![Cardiff Chinese Christian Church · Cardiff](https://streetviewpixels-pa.googleapis.com/v1/thumbnail?panoid=Q249_6WiErbeuQ-LQwdnHg&cb_client=search.gws-prod.gps&w=900&h=900&yaw=239.68434&pitch=0&thumbfov=100)
 - 🏮 **卡迪夫華人基督教會** (Cardiff Chinese Christian Church)
   - 距離：0.621公里
   - 教會海拔：14.0米
@@ -642,7 +652,9 @@
 - 🔍 **[Google搜索](https://www.google.com/maps/search/Cardiff+Queen+Street+Rail+Station,+Cardiff,+UK)**
 
 **華人宗教設施：**
-- 🏮 **卡迪夫華人基督教會** (Cardiff Chinese Christian Church)
+![卡迪夫华人基督教会 Cardiff Chinese Christian Church](http://www.cuclife.com/uploads/allimg/130608/1-13060P95R70-L.jpg)
+- 🏮 **卡迪夫華人基督教會** (Cardiff Chinese Christian Church)[Cardiff Chinese Christian Church · Cardiff](https://maps.app.goo.gl/Vetcw4wFgr8qoBvo6)
+
   - 距離：0.620公里
   - 教會海拔：14.0米
   - 海拔差異：3.0米（火車站較高）
@@ -895,40 +907,3 @@
 ### 🏔️ 按海拔排序
 1. **最高火車站** - [北菲爾德 (157.0m)](https://www.google.com/maps?q=52.408205022,-1.9658445265&t=m&z=15)
 2. **最低火車站** - [卡迪夫中央 (8.0m)](https://www.google.com/maps?q=51.4760,-3.1793&t=m&z=15)
-
----
-
-## 📋 數據來源與方法
-
-### 數據來源
-- **地理數據**：英國火車站位置數據、華人教會位置調查
-- **海拔數據**：Open-Meteo海拔API
-- **消費數據**：Numbeo 2025、英國國家統計局、各城市官方數據
-- **社區數據**：英國宗教社區統計、人口普查數據
-- **地圖數據**：Google Maps API、OpenStreetMap
-
-### 分析方法
-- **空間分析**：地理距離計算、海拔差異分析
-- **統計分析**：相關性分析、分組比較
-- **經濟分析**：消費指數比較、購買力評估
-- **地圖整合**：Google Maps連結生成、路線規劃
-
-### 地圖連結說明
-- **位置連結**：直接定位到具體坐標，縮放級別15
-- **搜索連結**：使用地點名稱搜索，便於查看周邊設施
-- **路線連結**：提供兩點間的步行導航路線
-- **區域連結**：展示特定區域或社區的整體分布
-
-### 數據限制
-- 華人教會數據基於2024-2025年調查，可能存在遺漏
-- 消費指數反映2025年上半年情況，具有時效性
-- 部分小型華人教會可能未包含在分析中
-- Google Maps連結可能因地圖更新而變化
-
----
-
-*本分析為英國華人社區地理分布和經濟環境的綜合研究，結合Google地圖導航功能，為華人移居、教會發展和社區規劃提供數據支持和實地導航參考。*
-
-*最後更新：2025年6月16日*
-*地圖連結更新：2025年6月16日*
-
