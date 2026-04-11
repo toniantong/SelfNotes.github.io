@@ -1,0 +1,1 @@
+[|                     |                   |                     |        |           |          |                  |         |         |           |           |            |            |          |](simplenote://note/a24d438f82c647ff95fbb61a10fbdeab)
