@@ -68,6 +68,9 @@
 
 [forever-in-debt.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/forever-in-debt.html)
 
+
+[forever-in-debt.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/forever-debt-calc.html)
+
 ```
-forever-in-debt.html
+forever-debt-calc.html
 ```
