@@ -59,3 +59,5 @@
 [Analysis_of_the_Relationship_Between_British_Train_Stations_and_Chinese_Churches.md](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/Analysis_of_the_Relationship_Between_British_Train_Stations_and_Chinese_Churches.md)[英國火車站與華人教會相對關係分析!](https://github.com/toniantong/SelfNotes.github.io/blob/main/advenitio-master%2Fpublic%2FAnalysis_of_the_Relationship_Between_British_Train_Stations_and_Chinese_Churches.md)
 
 [FUSANA的事實核查](https://github.com/toniantong/SelfNotes.github.io/blob/main/advenitio-master%2Fpublic%2FUSANA.md)
+
+[loan_simulator](https://github.com/toniantong/SelfNotes.github.io/blob/main/advenitio-master%2Fpublic%2Floan_simulator.html)
