@@ -64,4 +64,4 @@
 
 [loan_simulator](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/loan_simulator.html)
 
-[repayment_calculator.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/repayment_calculator.html)
+[repayment_calculator](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/repayment_calculator.html)
