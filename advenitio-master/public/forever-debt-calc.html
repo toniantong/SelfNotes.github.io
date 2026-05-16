@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>極限還款金額計算器</title>
+    <style>
+        :root {
+            --primary-color: #2b6cb0;
+            --bg-color: #edf2f7;
+            --card-bg: #ffffff;
+            --text-main: #2d3748;
+            --text-muted: #718096;
+            --danger-bg: #fff5f5;
+            --danger-border: #fc8181;
+            --danger-text: #c53030;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .calculator-container {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 420px;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-main);
+            font-size: 0.95rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper span {
+            position: absolute;
+            left: 12px;
+            color: var(--text-muted);
+            font-weight: bold;
+        }
+
+        .input-wrapper.percent span {
+            left: auto;
+            right: 12px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .input-wrapper.currency input { padding-left: 28px; }
+        .input-wrapper.percent input { padding-right: 28px; }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.2);
+        }
+
+        .result-box {
+            margin-top: 2rem;
+            background-color: var(--danger-bg);
+            border-left: 5px solid var(--danger-border);
+            padding: 1.25rem;
+            border-radius: 8px;
+        }
+
+        .result-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--danger-text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--danger-text);
+            word-break: break-word;
+        }
+
+        .explanation {
+            margin-top: 1.5rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            background: #f7fafc;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px dashed #cbd5e0;
+        }
+
+        /* 隱藏預設的上下箭頭 */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="calculator-container">
+        <h2>極限還款金額計算器</h2>
+        
+        <div class="input-group">
+            <label for="principal">輸入本金 (總欠款)</label>
+            <div class="input-wrapper currency">
+                <span>$</span>
+                <input type="number" id="principal" placeholder="例如：1000000" min="0" step="10000">
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="annualRate">實際年利率 (APR)</label>
+            <div class="input-wrapper percent">
+                <input type="number" id="annualRate" placeholder="例如：5.5" min="0" step="0.1">
+                <span>%</span>
+            </div>
+        </div>
+
+        <div class="result-box">
+            <div class="result-label">極限還款金額 (最低利息門檻)</div>
+            <div class="result-value" id="resultAmount">$ 0.00</div>
+        </div>
+
+        <div class="explanation">
+            <strong>💡 這是什麼意思？</strong><br>
+            顯示的金額為您每個月產生的「純利息」。如果您的每月還款金額 <strong>等於或低於</strong> 這個數字，代表您付的錢全被利息吃掉，本金將永遠不會減少，陷入「永遠還不完」的債務迴圈。
+        </div>
+    </div>
+
+    <script>
+        // 取得 DOM 元素
+        const principalInput = document.getElementById('principal');
+        const rateInput = document.getElementById('annualRate');
+        const resultAmount = document.getElementById('resultAmount');
+
+        // 計算與更新結果的函數
+        function calculateLimit() {
+            const principal = parseFloat(principalInput.value);
+            const annualRate = parseFloat(rateInput.value);
+
+            // 檢查輸入是否為有效數字且大於0
+            if (isNaN(principal) || isNaN(annualRate) || principal <= 0 || annualRate < 0) {
+                resultAmount.textContent = '$ 0.00';
+                return;
+            }
+
+            // 計算每月利息: 本金 * (年利率 / 100) / 12個月
+            const monthlyInterestRate = (annualRate / 100) / 12;
+            const limitPayment = principal * monthlyInterestRate;
+
+            // 將結果格式化為帶有逗號的貨幣格式 (保留小數點後兩位)
+            resultAmount.textContent = '$ ' + limitPayment.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        // 綁定輸入事件，實現即時互動 (使用者一輸入即刻計算，不需按鈕)
+        principalInput.addEventListener('input', calculateLimit);
+        rateInput.addEventListener('input', calculateLimit);
+    </script>
+
+</body>
+</html>
