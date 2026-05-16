@@ -60,4 +60,6 @@
 
 [FUSANA的事實核查](https://github.com/toniantong/SelfNotes.github.io/blob/main/advenitio-master%2Fpublic%2FUSANA.md)
 
-[loan_simulator](https://github.com/toniantong/SelfNotes.github.io/blob/main/advenitio-master%2Fpublic%2Floan_simulator.html)
+[loan_simulator.html](https://github.com/toniantong/SelfNotes.github.io/blob/main/advenitio-master%2Fpublic%2Floan_simulator.html)
+
+[loan_simulator](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/loan_simulator.html)
