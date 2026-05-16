@@ -65,3 +65,9 @@
 [loan_simulator](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/loan_simulator.html)
 
 [repayment-calculator](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/repayment-calculator.html)
+
+[forever-in-debt.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/forever-in-debt.html)
+
+```
+forever-in-debt.html
+```
