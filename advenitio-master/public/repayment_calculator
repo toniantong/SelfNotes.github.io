@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>貸款還款期數視覺化計算器</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* 自定義一些平滑過渡效果 */
+        .transition-all {
+            transition-property: all;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 300ms;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans text-gray-800 p-4 md:p-8 flex items-center justify-center">
+
+    <div class="max-w-4xl w-full bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row">
+        
+        <!-- 左側：輸入表單 -->
+        <div class="w-full md:w-1/2 p-6 md:p-8 border-b md:border-b-0 md:border-r border-gray-100 bg-white">
+            <h1 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                <svg class="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                貸款還款計算器
+            </h1>
+            
+            <form id="loanForm" class="space-y-5" onsubmit="event.preventDefault(); calculateLoan();">
+                <!-- 貸款本金 -->
+                <div>
+                    <label for="principal" class="block text-sm font-medium text-gray-700 mb-1">貸款本金 (元)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
+                        <input type="number" id="principal" required min="1" step="any" placeholder="例如: 1000000"
+                            class="pl-8 w-full rounded-lg border-gray-300 border focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none py-2 px-3 transition-all"
+                            oninput="calculateLoan()">
+                    </div>
+                </div>
+
+                <!-- 年利率 -->
+                <div>
+                    <label for="rate" class="block text-sm font-medium text-gray-700 mb-1">年利率 (%)</label>
+                    <div class="relative">
+                        <input type="number" id="rate" required min="0.01" step="any" placeholder="例如: 2.5"
+                            class="w-full rounded-lg border-gray-300 border focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none py-2 px-3 transition-all"
+                            oninput="calculateLoan()">
+                        <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">%</span>
+                    </div>
+                </div>
+
+                <!-- 每月還款額 -->
+                <div>
+                    <label for="monthlyPayment" class="block text-sm font-medium text-gray-700 mb-1">每月還款額 (元)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
+                        <input type="number" id="monthlyPayment" required min="1" step="any" placeholder="例如: 15000"
+                            class="pl-8 w-full rounded-lg border-gray-300 border focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none py-2 px-3 transition-all"
+                            oninput="calculateLoan()">
+                    </div>
+                </div>
+
+                <!-- 錯誤訊息提示 -->
+                <div id="errorMessage" class="hidden text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-200">
+                </div>
+            </form>
+        </div>
+
+        <!-- 右側：計算結果與視覺化 -->
+        <div class="w-full md:w-1/2 p-6 md:p-8 bg-gray-50 flex flex-col justify-center">
+            
+            <div id="emptyState" class="text-center text-gray-400">
+                <svg class="mx-auto h-12 w-12 mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <p>請在左側輸入資料以查看結果</p>
+            </div>
+
+            <div id="resultState" class="hidden opacity-0 transition-opacity duration-500">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">還款結果</h2>
+                
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+                        <p class="text-xs text-indigo-600 font-semibold mb-1">所需總期數</p>
+                        <p class="text-xl font-bold text-gray-900" id="resTotalMonths">0 期</p>
+                    </div>
+                    <div class="bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+                        <p class="text-xs text-indigo-600 font-semibold mb-1">需時日</p>
+                        <p class="text-xl font-bold text-gray-900" id="resTime">0 年 0 個月</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="p-3">
+                        <p class="text-xs text-gray-500 font-semibold mb-1">貸款總本金</p>
+                        <p class="text-lg font-bold text-gray-800" id="resPrincipal">$0</p>
+                    </div>
+                    <div class="p-3">
+                        <p class="text-xs text-gray-500 font-semibold mb-1">支付總利息</p>
+                        <p class="text-lg font-bold text-red-500" id="resInterest">$0</p>
+                    </div>
+                </div>
+
+                <!-- 圖表容器 -->
+                <div class="relative h-48 w-full">
+                    <canvas id="loanChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        let myChart = null;
+
+        function calculateLoan() {
+            const P = parseFloat(document.getElementById('principal').value);
+            const r_annual = parseFloat(document.getElementById('rate').value);
+            const M = parseFloat(document.getElementById('monthlyPayment').value);
+            
+            const emptyState = document.getElementById('emptyState');
+            const resultState = document.getElementById('resultState');
+            const errorMessage = document.getElementById('errorMessage');
+
+            // 基本驗證：確保有輸入且為正數
+            if (!P || !r_annual || !M || P <= 0 || r_annual <= 0 || M <= 0) {
+                resultState.classList.add('hidden');
+                resultState.classList.remove('opacity-100');
+                emptyState.classList.remove('hidden');
+                errorMessage.classList.add('hidden');
+                return;
+            }
+
+            // 計算月利率
+            const r = (r_annual / 100) / 12;
+            
+            // 首月利息
+            const firstMonthInterest = P * r;
+
+            // 檢查每月還款額是否足以支付利息
+            if (M <= firstMonthInterest) {
+                errorMessage.innerHTML = `<strong>無法還清！</strong><br>您的每月還款額 ($${M.toLocaleString()}) 小於或等於每月產生的利息 ($${firstMonthInterest.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})})。貸款本金將永遠無法減少。`;
+                errorMessage.classList.remove('hidden');
+                resultState.classList.add('hidden');
+                resultState.classList.remove('opacity-100');
+                emptyState.classList.add('hidden');
+                return;
+            }
+
+            // 隱藏錯誤與空狀態
+            errorMessage.classList.add('hidden');
+            emptyState.classList.add('hidden');
+            resultState.classList.remove('hidden');
+            
+            // 延遲添加 opacity 達成淡入效果
+            setTimeout(() => {
+                resultState.classList.add('opacity-100');
+            }, 50);
+
+            // 核心公式計算：期數 n = log(M / (M - P * r)) / log(1 + r)
+            const n = Math.log(M / (M - P * r)) / Math.log(1 + r);
+            
+            // 總期數無條件進位 (因為最後一期通常是不滿整個月的餘額)
+            const totalMonths = Math.ceil(n);
+            
+            // 計算年與月
+            const years = Math.floor(totalMonths / 12);
+            const months = totalMonths % 12;
+            
+            // 計算精確的總支付金額與利息
+            // 總還款額精確值（包含最後一期未滿的尾數）
+            const exactTotalPayment = n * M; 
+            const totalInterest = exactTotalPayment - P;
+
+            // 更新 DOM 文字
+            document.getElementById('resTotalMonths').innerText = `${totalMonths} 期`;
+            
+            let timeStr = "";
+            if (years > 0) timeStr += `${years} 年 `;
+            if (months > 0 || years === 0) timeStr += `${months} 個月`;
+            document.getElementById('resTime').innerText = timeStr;
+
+            document.getElementById('resPrincipal').innerText = `$${P.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
+            document.getElementById('resInterest').innerText = `$${totalInterest.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
+
+            // 更新圖表
+            updateChart(P, totalInterest);
+        }
+
+        function updateChart(principal, interest) {
+            const ctx = document.getElementById('loanChart').getContext('2d');
+            
+            if (myChart) {
+                myChart.destroy();
+            }
+
+            myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['貸款本金', '總利息'],
+                    datasets: [{
+                        data: [principal, interest],
+                        backgroundColor: [
+                            'rgba(79, 70, 229, 0.8)', // Indigo-600
+                            'rgba(239, 68, 68, 0.8)'  // Red-500
+                        ],
+                        hoverBackgroundColor: [
+                            'rgba(79, 70, 229, 1)',
+                            'rgba(239, 68, 68, 1)'
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                font: {
+                                    family: 'sans-serif'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed !== null) {
+                                        label += new Intl.NumberFormat('zh-Hant-TW', { style: 'currency', currency: 'TWD', maximumFractionDigits: 0 }).format(context.parsed);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '65%' // 甜甜圈的內部圓圈大小
+                }
+            });
+        }
+    </script>
+</body>
+</html>
