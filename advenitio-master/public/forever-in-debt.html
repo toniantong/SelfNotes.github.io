@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>無間地獄貸款計算機</title>
+    <style>
+        :root {
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border-color: #d1d5db;
+            --focus-ring: #3b82f6;
+            --danger-color: #ef4444;
+            --danger-bg: #fef2f2;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .calculator-card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            text-align: center;
+            color: var(--text-main);
+        }
+
+        .input-group {
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper::before {
+            content: "$";
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 0.75rem 0.75rem 0.75rem 1.8rem;
+            font-size: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--focus-ring);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        .result-box {
+            margin-top: 1.5rem;
+            padding: 1.25rem;
+            border-radius: 8px;
+            background-color: var(--danger-bg);
+            border: 1px solid #fecaca;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            display: none; /* 預設隱藏，有數值才顯示 */
+        }
+
+        .result-box.show {
+            opacity: 1;
+            transform: translateY(0);
+            display: block;
+        }
+
+        .result-title {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .result-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--danger-color);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-desc {
+            font-size: 0.875rem;
+            color: var(--danger-color);
+            font-weight: 500;
+        }
+
+        /* 隱藏 Chrome/Safari 的數字輸入框上下箭頭 */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="calculator-card">
+        <h2>永遠還不完的貸款條件</h2>
+        
+        <div class="input-group">
+            <label for="principal">貸款本金 (元)</label>
+            <div class="input-wrapper">
+                <input type="number" id="principal" placeholder="例如: 100000" min="1" step="any">
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="monthly-payment">每月還款額 (元)</label>
+            <div class="input-wrapper">
+                <input type="number" id="monthly-payment" placeholder="例如: 1000" min="1" step="any">
+            </div>
+        </div>
+
+        <div class="result-box" id="result-box">
+            <div class="result-title">當實際年利率達到或超過</div>
+            <div class="result-value" id="rate-result">0%</div>
+            <div class="result-desc">這筆貸款將永遠無法還清！</div>
+        </div>
+    </div>
+
+    <script>
+        const principalInput = document.getElementById('principal');
+        const monthlyPaymentInput = document.getElementById('monthly-payment');
+        const resultBox = document.getElementById('result-box');
+        const rateResult = document.getElementById('rate-result');
+
+        function calculateEndlessRate() {
+            const principal = parseFloat(principalInput.value);
+            const monthlyPayment = parseFloat(monthlyPaymentInput.value);
+
+            // 確保輸入的數值是有效且大於 0 的數字
+            if (!isNaN(principal) && principal > 0 && !isNaN(monthlyPayment) && monthlyPayment > 0) {
+                // 計算公式: (每月還款額 / 本金) * 12個月 * 100%
+                const annualInterestRate = (monthlyPayment / principal) * 12 * 100;
+                
+                rateResult.textContent = annualInterestRate.toFixed(2) + '%';
+                resultBox.classList.add('show');
+            } else {
+                resultBox.classList.remove('show');
+            }
+        }
+
+        // 綁定輸入事件，達成即時互動效果
+        principalInput.addEventListener('input', calculateEndlessRate);
+        monthlyPaymentInput.addEventListener('input', calculateEndlessRate);
+    </script>
+</body>
+</html>
