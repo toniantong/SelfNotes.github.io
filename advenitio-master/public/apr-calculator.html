@@ -106,6 +106,40 @@
             color: var(--text-muted);
         }
 
+        .tenor-input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .tenor-input-wrapper {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .tenor-input-wrapper span {
+            position: absolute;
+            right: 12px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        input#months-input {
+            width: 100%;
+            padding: 10px 40px 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input#months-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
         .results-section {
             margin-top: 30px;
             padding-top: 20px;
@@ -193,7 +227,13 @@
                 <div class="term-subtitle">相當於 <span id="years-val">1.0</span> 年</div>
             </div>
         </div>
-        <input type="range" id="months" min="6" max="120" value="12" step="1">
+        <input type="range" id="months" min="6" max="480" value="12" step="1">
+        <div class="tenor-input-group">
+            <div class="tenor-input-wrapper">
+                <input type="number" id="months-input" value="12" min="6" max="480" step="1" placeholder="輸入期數">
+                <span>期</span>
+            </div>
+        </div>
     </div>
 
     <!-- 結果顯示區 -->
@@ -218,6 +258,7 @@
     const elInterest = document.getElementById('interest');
     const elTotal = document.getElementById('total-repayment');
     const elMonthsSlider = document.getElementById('months');
+    const elMonthsInput = document.getElementById('months-input');
     
     const displayMonths = document.getElementById('months-val');
     const displayYears = document.getElementById('years-val');
@@ -268,6 +309,9 @@
         displayMonths.innerText = months;
         displayYears.innerText = (months / 12).toFixed(1);
 
+        // 同步輸入框與滑桿
+        elMonthsInput.value = months;
+
         // 計算每月供款
         const monthlyPayment = total / months;
         displayMonthlyPay.innerText = formatCurrency(monthlyPayment);
@@ -300,7 +344,20 @@
     });
 
     // 事件監聽器：滑桿拖曳時即時更新
-    elMonthsSlider.addEventListener('input', updateCalculations);
+    elMonthsSlider.addEventListener('input', () => {
+        updateCalculations();
+    });
+
+    // 事件監聽器：手動輸入期數
+    elMonthsInput.addEventListener('input', () => {
+        let months = parseInt(elMonthsInput.value) || 6;
+        // 限制範圍
+        if (months < 6) months = 6;
+        if (months > 480) months = 480;
+        elMonthsInput.value = months;
+        elMonthsSlider.value = months;
+        updateCalculations();
+    });
 
     // 初始載入時計算一次
     updateCalculations();
