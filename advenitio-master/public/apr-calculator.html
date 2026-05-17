@@ -270,11 +270,11 @@
                 <div class="term-subtitle">相當於 <span id="years-val">1.0</span> 年</div>
             </div>
         </div>
-        <input type="range" id="months" min="1" max="480" value="12" step="1">
+        <input type="range" id="months" min="1" max="1440" value="12" step="1">
         <div class="tenor-input-group">
             <button class="tenor-button" id="btn-decrease" title="減少期數">−</button>
             <div class="tenor-input-wrapper">
-                <input type="number" id="months-input" value="12" min="1" max="480" step="1" placeholder="輸入期數">
+                <input type="number" id="months-input" value="12" min="1" max="1440" step="1" placeholder="輸入期數">
                 <span>期</span>
             </div>
             <button class="tenor-button" id="btn-increase" title="增加期數">+</button>
@@ -361,7 +361,7 @@
 
         // 更新按鈕狀態
         btnDecrease.disabled = months <= 1;
-        btnIncrease.disabled = months >= 480;
+        btnIncrease.disabled = months >= 1440;
 
         // 計算每月供款
         const monthlyPayment = total / months;
@@ -404,7 +404,7 @@
         let months = parseInt(elMonthsInput.value) || 1;
         // 限制範圍
         if (months < 1) months = 1;
-        if (months > 480) months = 480;
+        if (months > 1440) months = 1440;
         elMonthsInput.value = months;
         elMonthsSlider.value = months;
         updateCalculations();
@@ -423,7 +423,7 @@
     // 事件監聽器：增加期數按鈕
     btnIncrease.addEventListener('click', () => {
         let months = parseInt(elMonthsSlider.value) || 1;
-        if (months < 480) {
+        if (months < 1440) {
             months++;
             elMonthsSlider.value = months;
             updateCalculations();
