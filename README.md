@@ -11,7 +11,7 @@
 [to-jyutping](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/to-jyutping.html)
 ---
 
-[index](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/index.htm)
+[index](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/index.html)
 
 [YTSubDl.htm](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/YTSubDl.htm)
 [documentation.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/documentation.html)
