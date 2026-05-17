@@ -110,6 +110,7 @@
             display: flex;
             gap: 10px;
             margin-top: 10px;
+            align-items: center;
         }
 
         .tenor-input-wrapper {
@@ -138,6 +139,48 @@
         input#months-input:focus {
             outline: none;
             border-color: var(--primary-color);
+        }
+
+        .tenor-button-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .tenor-button {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--border-color);
+            background-color: var(--highlight);
+            color: var(--primary-color);
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tenor-button:hover {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .tenor-button:active {
+            transform: scale(0.95);
+        }
+
+        .tenor-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .tenor-button:disabled:hover {
+            background-color: var(--highlight);
+            color: var(--primary-color);
+            border-color: var(--border-color);
         }
 
         .results-section {
@@ -229,10 +272,12 @@
         </div>
         <input type="range" id="months" min="1" max="480" value="12" step="1">
         <div class="tenor-input-group">
+            <button class="tenor-button" id="btn-decrease" title="減少期數">−</button>
             <div class="tenor-input-wrapper">
                 <input type="number" id="months-input" value="12" min="1" max="480" step="1" placeholder="輸入期數">
                 <span>期</span>
             </div>
+            <button class="tenor-button" id="btn-increase" title="增加期數">+</button>
         </div>
     </div>
 
@@ -259,6 +304,8 @@
     const elTotal = document.getElementById('total-repayment');
     const elMonthsSlider = document.getElementById('months');
     const elMonthsInput = document.getElementById('months-input');
+    const btnDecrease = document.getElementById('btn-decrease');
+    const btnIncrease = document.getElementById('btn-increase');
     
     const displayMonths = document.getElementById('months-val');
     const displayYears = document.getElementById('years-val');
@@ -312,6 +359,10 @@
         // 同步輸入框與滑桿
         elMonthsInput.value = months;
 
+        // 更新按鈕狀態
+        btnDecrease.disabled = months <= 1;
+        btnIncrease.disabled = months >= 480;
+
         // 計算每月供款
         const monthlyPayment = total / months;
         displayMonthlyPay.innerText = formatCurrency(monthlyPayment);
@@ -357,6 +408,26 @@
         elMonthsInput.value = months;
         elMonthsSlider.value = months;
         updateCalculations();
+    });
+
+    // 事件監聽器：減少期數按鈕
+    btnDecrease.addEventListener('click', () => {
+        let months = parseInt(elMonthsSlider.value) || 1;
+        if (months > 1) {
+            months--;
+            elMonthsSlider.value = months;
+            updateCalculations();
+        }
+    });
+
+    // 事件監聽器：增加期數按鈕
+    btnIncrease.addEventListener('click', () => {
+        let months = parseInt(elMonthsSlider.value) || 1;
+        if (months < 480) {
+            months++;
+            elMonthsSlider.value = months;
+            updateCalculations();
+        }
     });
 
     // 初始載入時計算一次
