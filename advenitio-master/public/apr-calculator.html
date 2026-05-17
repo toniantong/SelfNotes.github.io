@@ -227,10 +227,10 @@
                 <div class="term-subtitle">相當於 <span id="years-val">1.0</span> 年</div>
             </div>
         </div>
-        <input type="range" id="months" min="6" max="480" value="12" step="1">
+        <input type="range" id="months" min="1" max="480" value="12" step="1">
         <div class="tenor-input-group">
             <div class="tenor-input-wrapper">
-                <input type="number" id="months-input" value="12" min="6" max="480" step="1" placeholder="輸入期數">
+                <input type="number" id="months-input" value="12" min="1" max="480" step="1" placeholder="輸入期數">
                 <span>期</span>
             </div>
         </div>
@@ -350,9 +350,9 @@
 
     // 事件監聽器：手動輸入期數
     elMonthsInput.addEventListener('input', () => {
-        let months = parseInt(elMonthsInput.value) || 6;
+        let months = parseInt(elMonthsInput.value) || 1;
         // 限制範圍
-        if (months < 6) months = 6;
+        if (months < 1) months = 1;
         if (months > 480) months = 480;
         elMonthsInput.value = months;
         elMonthsSlider.value = months;
