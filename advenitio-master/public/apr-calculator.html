@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>互動式貸款與實際年利率(APR)計算機</title>
+    <style>
+        :root {
+            --primary-color: #0056b3;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --text-muted: #666666;
+            --border-color: #dddddd;
+            --highlight: #e9ecef;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', "Microsoft JhengHei", "PingFang HK", sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .calculator-card {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 500px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-top: 0;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper span {
+            position: absolute;
+            left: 12px;
+            color: var(--text-muted);
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px 12px 12px 30px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .term-display {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .term-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .results-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px dashed var(--border-color);
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--highlight);
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-size: 15px;
+            color: var(--text-muted);
+        }
+
+        .result-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .apr-value {
+            font-size: 24px;
+            color: #d9534f; /* Highlight APR in red-ish color */
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .calculator-card {
+                padding: 20px;
+            }
+            .result-value {
+                font-size: 18px;
+            }
+            .apr-value {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="calculator-card">
+    <h2>互動貸款與 APR 計算機</h2>
+
+    <!-- 基本輸入區 -->
+    <div class="input-group">
+        <label for="principal">本金 (Principal)</label>
+        <div class="input-wrapper">
+            <span>$</span>
+            <input type="number" id="principal" value="100000" min="0" step="1000">
+        </div>
+    </div>
+
+    <div class="input-group">
+        <label for="interest">總利息 (Total Interest)</label>
+        <div class="input-wrapper">
+            <span>$</span>
+            <input type="number" id="interest" value="5000" min="0" step="100">
+        </div>
+    </div>
+
+    <div class="input-group">
+        <label for="total-repayment">總還款額 (Total Repayment)</label>
+        <div class="input-wrapper">
+            <span>$</span>
+            <input type="number" id="total-repayment" value="105000" min="0" step="1000">
+        </div>
+    </div>
+
+    <!-- 互動期數調整區 -->
+    <div class="input-group" style="margin-top: 30px;">
+        <div class="slider-header">
+            <label for="months">還款期數 (Tenor)</label>
+            <div style="text-align: right;">
+                <div class="term-display"><span id="months-val">12</span> 個月</div>
+                <div class="term-subtitle">相當於 <span id="years-val">1.0</span> 年</div>
+            </div>
+        </div>
+        <input type="range" id="months" min="6" max="120" value="12" step="1">
+    </div>
+
+    <!-- 結果顯示區 -->
+    <div class="results-section">
+        <div class="result-row">
+            <div class="result-label">假設固定每月供款</div>
+            <div class="result-value" id="monthly-payment">$0.00</div>
+        </div>
+        <div class="result-row">
+            <div class="result-label">估計實際年利率 (APR)</div>
+            <div class="result-value apr-value" id="apr-rate">0.00%</div>
+        </div>
+        <div style="font-size: 11px; color: #999; margin-top: 10px; line-height: 1.4;">
+            * 實際年利率 (APR) 是根據內部回報率 (IRR) 方法計算的參考數值。計算假設每月還款額為固定金額且還款期距相等。
+        </div>
+    </div>
+</div>
+
+<script>
+    // 獲取 DOM 元素
+    const elPrincipal = document.getElementById('principal');
+    const elInterest = document.getElementById('interest');
+    const elTotal = document.getElementById('total-repayment');
+    const elMonthsSlider = document.getElementById('months');
+    
+    const displayMonths = document.getElementById('months-val');
+    const displayYears = document.getElementById('years-val');
+    const displayMonthlyPay = document.getElementById('monthly-payment');
+    const displayAPR = document.getElementById('apr-rate');
+
+    // 格式化貨幣
+    const formatCurrency = (num) => {
+        return '$' + parseFloat(num).toLocaleString('zh-HK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
+
+    // 使用二分法計算內部回報率 (IRR) 以推算實際年利率 (APR)
+    function calculateAPR(principal, monthlyPayment, months) {
+        if (principal <= 0 || monthlyPayment <= 0 || months <= 0 || principal >= (monthlyPayment * months)) {
+            return 0;
+        }
+
+        let low = 0.0;
+        let high = 1.0; // 每月利率 100% 作為上限
+        let r = 0;
+        let tolerance = 1e-6;
+
+        for (let i = 0; i < 100; i++) {
+            r = (low + high) / 2;
+            // 淨現值 (PV) 公式：PV = Pmt * (1 - (1+r)^-n) / r
+            let pv = monthlyPayment * (1 - Math.pow(1 + r, -months)) / r;
+            
+            if (Math.abs(pv - principal) < tolerance) break;
+            
+            if (pv > principal) {
+                low = r; // 現值過高，需要更高的折現率 (r)
+            } else {
+                high = r; // 現值過低，需要更低的折現率 (r)
+            }
+        }
+        
+        // 將每月利率年化 (Nominal Annual Rate)
+        return r * 12 * 100; 
+    }
+
+    // 主更新邏輯
+    function updateCalculations() {
+        const principal = parseFloat(elPrincipal.value) || 0;
+        const total = parseFloat(elTotal.value) || 0;
+        const months = parseInt(elMonthsSlider.value) || 1;
+
+        // 更新期數與年期顯示
+        displayMonths.innerText = months;
+        displayYears.innerText = (months / 12).toFixed(1);
+
+        // 計算每月供款
+        const monthlyPayment = total / months;
+        displayMonthlyPay.innerText = formatCurrency(monthlyPayment);
+
+        // 計算並顯示實際年利率
+        const apr = calculateAPR(principal, monthlyPayment, months);
+        displayAPR.innerText = apr.toFixed(2) + '%';
+    }
+
+    // 事件監聽器：連動「總利息」與「總還款額」
+    elPrincipal.addEventListener('input', () => {
+        const p = parseFloat(elPrincipal.value) || 0;
+        const i = parseFloat(elInterest.value) || 0;
+        elTotal.value = p + i;
+        updateCalculations();
+    });
+
+    elInterest.addEventListener('input', () => {
+        const p = parseFloat(elPrincipal.value) || 0;
+        const i = parseFloat(elInterest.value) || 0;
+        elTotal.value = p + i;
+        updateCalculations();
+    });
+
+    elTotal.addEventListener('input', () => {
+        const p = parseFloat(elPrincipal.value) || 0;
+        const total = parseFloat(elTotal.value) || 0;
+        elInterest.value = Math.max(0, total - p); // 利息不能為負
+        updateCalculations();
+    });
+
+    // 事件監聽器：滑桿拖曳時即時更新
+    elMonthsSlider.addEventListener('input', updateCalculations);
+
+    // 初始載入時計算一次
+    updateCalculations();
+</script>
+
+</body>
+</html>
