@@ -3,6 +3,6 @@ document.write(`
     <a href="index.html">index</a>
     <a href="ONEZTT.html" target="_blank">ONEZTT</a>
     <br>
-    <a href="On-Test.html">On-Test</a>
+    <a href="On-Test.html">On-Test.html</a>
 </p>
 `);
