@@ -76,6 +76,4 @@
 
 [apr-calculator](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/apr-calculator.html)
 
-[loan-calculator](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/loan-calculator.html)
-
-[loan-calclator](https://github.com/toniantong/SelfNotes.github.io/blob/main/advenitio-master%2Fpublic%2Floan-calclator.html)
+[loan-calclator](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/loan-calclator.html)
