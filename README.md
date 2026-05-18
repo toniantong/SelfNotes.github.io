@@ -80,4 +80,6 @@
 
 [LCM_GCD](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/LCM_GCD.html)
 
-[prime.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/prime.html)
+[prime](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/prime.html)
+
+[Karnaugh_Maps](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/Karnaugh_Maps.html)
