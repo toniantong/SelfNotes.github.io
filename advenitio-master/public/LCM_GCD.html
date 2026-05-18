@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>數字分析工具 (GCD, LCM 與質因數分解)</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --background-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #e1e4e8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        button {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #357abd;
+        }
+
+        .error {
+            color: #d9534f;
+            font-size: 14px;
+            margin-top: -10px;
+            margin-bottom: 10px;
+            display: none;
+        }
+
+        .result-section {
+            display: none;
+        }
+
+        .result-item {
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 0;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-title {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding-left: 10px;
+        }
+
+        ul li {
+            position: relative;
+            padding-left: 15px;
+            margin-bottom: 5px;
+        }
+
+        ul li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .card { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>數字分析工具</h1>
+    
+    <div class="card">
+        <label for="numberInput">請輸入數字 (最多 6 個，以空格或逗號分隔)：</label>
+        <input type="text" id="numberInput" placeholder="例如：12, 18, 24" autocomplete="off">
+        <div id="errorMsg" class="error"></div>
+        <button onclick="calculate()">計算</button>
+    </div>
+
+    <div id="resultCard" class="card result-section">
+        <div class="result-item">
+            <div class="result-title">已輸入的數字</div>
+            <div id="resNumbers"></div>
+        </div>
+        
+        <div class="result-item">
+            <div class="result-title">最大公因數 (GCD)</div>
+            <div id="resGCD"></div>
+        </div>
+
+        <div class="result-item">
+            <div class="result-title">最小公倍數 (LCM)</div>
+            <div id="resLCM"></div>
+        </div>
+
+        <div class="result-item">
+            <div class="result-title">最小公倍數 &divide; 每個數字</div>
+            <ul id="resLCMDiv"></ul>
+        </div>
+
+        <div class="result-item">
+            <div class="result-title">每個數字 &divide; 最大公因數</div>
+            <ul id="resNumDivGCD"></ul>
+        </div>
+
+        <div class="result-item">
+            <div class="result-title">每個數字的質因數分解</div>
+            <ul id="resPrimeNum"></ul>
+        </div>
+
+        <div class="result-item">
+            <div class="result-title">最大公因數與最小公倍數的質因數分解</div>
+            <ul id="resPrimeGCDLCM"></ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 數學輔助函數
+    const gcd = (a, b) => b === 0 ? a : gcd(b, a % b);
+    const lcm = (a, b) => (a * b) / gcd(a, b);
+
+    const getArrayGCD = (arr) => arr.reduce((acc, val) => gcd(acc, val));
+    const getArrayLCM = (arr) => arr.reduce((acc, val) => lcm(acc, val));
+
+    // 質因數分解，回傳格式化的 HTML 字串 (例如: 2<sup>3</sup> &times; 3)
+    function getPrimeFactorization(num) {
+        if (num <= 1) return num.toString();
+        let factors = {};
+        let d = 2;
+        let n = num;
+        
+        while (n >= d * d) {
+            if (n % d === 0) {
+                factors[d] = (factors[d] || 0) + 1;
+                n /= d;
+            } else {
+                d++;
+            }
+        }
+        if (n > 1) {
+            factors[n] = (factors[n] || 0) + 1;
+        }
+
+        let strParts = [];
+        for (let prime in factors) {
+            if (factors[prime] > 1) {
+                strParts.push(`${prime}<sup>${factors[prime]}</sup>`);
+            } else {
+                strParts.push(`${prime}`);
+            }
+        }
+        return strParts.join(' &times; ');
+    }
+
+    function calculate() {
+        const input = document.getElementById('numberInput').value;
+        const errorMsg = document.getElementById('errorMsg');
+        const resultCard = document.getElementById('resultCard');
+
+        // 解析輸入
+        // 支援逗號或空格分隔，過濾掉空字串
+        let numbers = input.split(/[\s,]+/).filter(item => item !== '').map(Number);
+
+        // 驗證輸入
+        if (numbers.length === 0) {
+            showError("請輸入至少一個數字。");
+            return;
+        }
+        if (numbers.length > 6) {
+            showError("最多只能輸入 6 個數字。");
+            return;
+        }
+        if (numbers.some(isNaN) || numbers.some(n => n <= 0 || !Number.isInteger(n))) {
+            showError("請輸入有效的正整數。");
+            return;
+        }
+
+        // 清除錯誤並顯示結果區塊
+        errorMsg.style.display = 'none';
+        resultCard.style.display = 'block';
+
+        // 核心計算
+        const valGCD = getArrayGCD(numbers);
+        const valLCM = getArrayLCM(numbers);
+
+        // 1. 已輸入的數字
+        document.getElementById('resNumbers').innerHTML = numbers.join(', ');
+
+        // 2 & 3. GCD & LCM
+        document.getElementById('resGCD').innerHTML = valGCD;
+        document.getElementById('resLCM').innerHTML = valLCM;
+
+        // 4. LCM / 每個數字
+        const lcmDivList = document.getElementById('resLCMDiv');
+        lcmDivList.innerHTML = '';
+        numbers.forEach(n => {
+            const li = document.createElement('li');
+            li.innerHTML = `${valLCM} &divide; ${n} = <b>${valLCM / n}</b>`;
+            lcmDivList.appendChild(li);
+        });
+
+        // 5. 每個數字 / GCD
+        const numDivGCDList = document.getElementById('resNumDivGCD');
+        numDivGCDList.innerHTML = '';
+        numbers.forEach(n => {
+            const li = document.createElement('li');
+            li.innerHTML = `${n} &divide; ${valGCD} = <b>${n / valGCD}</b>`;
+            numDivGCDList.appendChild(li);
+        });
+
+        // 6. 每個數的質因數分解
+        const primeNumList = document.getElementById('resPrimeNum');
+        primeNumList.innerHTML = '';
+        numbers.forEach(n => {
+            const li = document.createElement('li');
+            li.innerHTML = `${n} = ${getPrimeFactorization(n)}`;
+            primeNumList.appendChild(li);
+        });
+
+        // 7. GCD 和 LCM 的質因數分解
+        const primeGCDLCMList = document.getElementById('resPrimeGCDLCM');
+        primeGCDLCMList.innerHTML = `
+            <li><b>最大公因數 (${valGCD}):</b> ${getPrimeFactorization(valGCD)}</li>
+            <li><b>最小公倍數 (${valLCM}):</b> ${getPrimeFactorization(valLCM)}</li>
+        `;
+    }
+
+    function showError(msg) {
+        const errorMsg = document.getElementById('errorMsg');
+        errorMsg.textContent = msg;
+        errorMsg.style.display = 'block';
+        document.getElementById('resultCard').style.display = 'none';
+    }
+    
+    // 支援按 Enter 鍵計算
+    document.getElementById('numberInput').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            calculate();
+        }
+    });
+</script>
+
+</body>
+</html>
