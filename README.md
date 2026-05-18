@@ -79,3 +79,5 @@
 [loan-calclator](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/loan-calclator.html)
 
 [LCM_GCD](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/LCM_GCD.html)
+
+[prime.html]{https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/prime.html)
