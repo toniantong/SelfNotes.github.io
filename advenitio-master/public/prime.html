@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>區間質數尋找器</title>
+    <style>
+        /* 基礎全域設定與響應式排版 */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* 主容器樣式 */
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-size: 1.6rem;
+        }
+
+        /* 輸入區塊排版 */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        /* 按鈕樣式 */
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        /* 輸出結果區塊 */
+        .result-box {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            min-height: 80px;
+            word-wrap: break-word;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        .error-msg {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .highlight {
+            color: #27ae60;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>區間質數尋找器</h1>
+        
+        <div class="input-group">
+            <label for="num1">輸入第一個數字：</label>
+            <input type="number" id="num1" placeholder="例如：10" step="any">
+        </div>
+        
+        <div class="input-group">
+            <label for="num2">輸入第二個數字：</label>
+            <input type="number" id="num2" placeholder="例如：50" step="any">
+        </div>
+        
+        <button onclick="calculatePrimes()">找出質數</button>
+        
+        <div class="result-box" id="result">
+            請輸入兩個數字，系統將會找出包含這兩個數字之間的所有質數。
+        </div>
+    </div>
+
+    <script>
+        /**
+         * 判斷是否為質數
+         * @param {number} num 欲判斷的整數
+         * @returns {boolean}
+         */
+        function isPrime(num) {
+            // 小於等於 1 的數字不是質數
+            if (num <= 1) return false;
+            // 2 是唯一的偶數質數
+            if (num === 2) return true;
+            // 排除其他偶數
+            if (num % 2 === 0) return false;
+            
+            // 檢查到根號 num 即可，節省效能
+            const limit = Math.sqrt(num);
+            for (let i = 3; i <= limit; i += 2) {
+                if (num % i === 0) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /**
+         * 處理輸入、運算並顯示結果
+         */
+        function calculatePrimes() {
+            const input1 = document.getElementById('num1').value;
+            const input2 = document.getElementById('num2').value;
+            const resultBox = document.getElementById('result');
+
+            // 檢查是否有輸入
+            if (input1 === '' || input2 === '') {
+                resultBox.innerHTML = '<span class="error-msg">錯誤：請確保兩個輸入框皆已填入數字！</span>';
+                return;
+            }
+
+            // 將輸入轉換為數字，並無條件捨去小數 (Math.floor)
+            const val1 = Math.floor(Number(input1));
+            const val2 = Math.floor(Number(input2));
+
+            // 確認大小順序，以確保迴圈能正確執行
+            const min = Math.min(val1, val2);
+            const max = Math.max(val1, val2);
+
+            const primeList = [];
+
+            // 遍歷區間尋找質數
+            for (let i = min; i <= max; i++) {
+                if (isPrime(i)) {
+                    primeList.push(i);
+                }
+            }
+
+            // 格式化輸出結果
+            if (primeList.length > 0) {
+                resultBox.innerHTML = `
+                    從 <strong>${min}</strong> 到 <strong>${max}</strong> 之間共有 <span class="highlight">${primeList.length}</span> 個質數：<br><br>
+                    ${primeList.join(', ')}
+                `;
+            } else {
+                resultBox.innerHTML = `從 <strong>${min}</strong> 到 <strong>${max}</strong> 之間 <strong>沒有</strong> 找到任何質數。`;
+            }
+        }
+    </script>
+</body>
+</html>
