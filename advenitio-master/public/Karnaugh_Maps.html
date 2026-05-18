@@ -1,1 +1,360 @@
-<--!-->
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>卡諾圖 (Karnaugh Map) 互動工具</title>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-color: #f3f4f6;
+            --text-color: #1f2937;
+            --border-color: #d1d5db;
+            --cell-bg: #ffffff;
+            --cell-hover: #e0e7ff;
+            --val-1-bg: #4f46e5;
+            --val-x-bg: #f59e0b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+            margin: 0;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        p.subtitle {
+            color: #4b5563;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+
+        /* K-Map Grid Styles */
+        .kmap-wrapper {
+            background: #ffffff;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            margin-bottom: 2rem;
+            overflow-x: auto;
+            max-width: 100%;
+        }
+
+        .kmap-container {
+            display: grid;
+            grid-template-columns: 60px repeat(4, 70px);
+            grid-template-rows: 60px repeat(4, 70px);
+            gap: 4px;
+            background: var(--border-color);
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .header-cell, .kmap-cell, .empty-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .header-cell {
+            background: #f9fafb;
+            color: #4b5563;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+
+        .empty-cell {
+            background: transparent;
+            position: relative;
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+
+        /* Diagonal line and labels for the top-left cell */
+        .empty-cell::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom right, transparent 48%, var(--border-color) 49%, var(--border-color) 51%, transparent 52%);
+        }
+        .empty-cell .lbl-cd {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+        }
+        .empty-cell .lbl-ab {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+        }
+
+        .kmap-cell {
+            background: var(--cell-bg);
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+            position: relative;
+        }
+
+        .kmap-cell:hover {
+            background: var(--cell-hover);
+        }
+
+        .kmap-cell[data-value="1"] {
+            background: var(--val-1-bg);
+            color: white;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+        }
+
+        .kmap-cell[data-value="X"] {
+            background: var(--val-x-bg);
+            color: white;
+        }
+
+        .kmap-cell .minterm-lbl {
+            position: absolute;
+            bottom: 3px;
+            right: 4px;
+            font-size: 0.6rem;
+            font-weight: normal;
+            color: #9ca3af;
+        }
+        .kmap-cell[data-value="1"] .minterm-lbl,
+        .kmap-cell[data-value="X"] .minterm-lbl {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Controls & Results */
+        .controls {
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        button {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 6px;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .results {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .results h3 {
+            margin-top: 0;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .results p {
+            margin: 0.75rem 0;
+            font-size: 1.1rem;
+            line-height: 1.5;
+        }
+
+        .results span.data {
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            color: var(--primary-color);
+            word-break: break-all;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            .kmap-container {
+                grid-template-columns: 45px repeat(4, 55px);
+                grid-template-rows: 45px repeat(4, 55px);
+            }
+            .header-cell {
+                font-size: 0.9rem;
+            }
+            .kmap-cell {
+                font-size: 1.1rem;
+            }
+            .empty-cell .lbl-cd, .empty-cell .lbl-ab {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>4變數 卡諾圖 (Karnaugh Map)</h1>
+    <p class="subtitle">點擊格子切換數值 ( 0 &rarr; 1 &rarr; X )</p>
+    
+    <div class="controls">
+        <button onclick="resetMap()">重設所有數值</button>
+        <button onclick="fillZeros()" style="background-color: #6b7280;">全填 0</button>
+    </div>
+
+    <div class="kmap-wrapper">
+        <div class="kmap-container" id="kmap">
+            <!-- Grid 內容將由 JavaScript 動態生成 -->
+        </div>
+    </div>
+
+    <div class="results">
+        <h3>布林函數狀態 (Boolean Function State)</h3>
+        <p><strong>Minterms &Sigma;m :</strong> <span class="data" id="minterms">無</span></p>
+        <p><strong>Maxterms &Pi;M :</strong> <span class="data" id="maxterms">0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15</span></p>
+        <p><strong>Don't Cares (d) :</strong> <span class="data" id="dontcares">無</span></p>
+    </div>
+
+    <script>
+        // Gray code 序列 (用於卡諾圖的行列標題)
+        const cols = ['00', '01', '11', '10'];
+        const rows = ['00', '01', '11', '10'];
+        
+        // 映射網格座標到 Minterm 索引值 (二進位 AB CD)
+        const mintermMap = [
+            [0, 1, 3, 2],       // AB = 00
+            [4, 5, 7, 6],       // AB = 01
+            [12, 13, 15, 14],   // AB = 11
+            [8, 9, 11, 10]      // AB = 10
+        ];
+
+        const kmapContainer = document.getElementById('kmap');
+        let cellData = new Array(16).fill(0); // 儲存 0, 1, 或 'X'
+
+        function initMap() {
+            kmapContainer.innerHTML = '';
+            
+            // 左上角留白欄位與變數標籤 (AB \ CD)
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'empty-cell';
+            emptyCell.innerHTML = '<span class="lbl-cd">CD</span><span class="lbl-ab">AB</span>';
+            kmapContainer.appendChild(emptyCell);
+
+            // 頂部欄位標題 (CD)
+            cols.forEach(col => {
+                const header = document.createElement('div');
+                header.className = 'header-cell';
+                header.innerText = col;
+                kmapContainer.appendChild(header);
+            });
+
+            // 生成列與資料格
+            rows.forEach((row, rowIndex) => {
+                // 左側列標題 (AB)
+                const rowHeader = document.createElement('div');
+                rowHeader.className = 'header-cell';
+                rowHeader.innerText = row;
+                kmapContainer.appendChild(rowHeader);
+
+                // 資料格 (Minterms)
+                cols.forEach((col, colIndex) => {
+                    const mIndex = mintermMap[rowIndex][colIndex];
+                    const cell = document.createElement('div');
+                    cell.className = 'kmap-cell';
+                    cell.dataset.mindex = mIndex;
+                    cell.dataset.value = "0";
+                    
+                    // 顯示數值與右下角的 Minterm 編號
+                    cell.innerHTML = `
+                        <span class="val-txt">0</span>
+                        <span class="minterm-lbl">m${mIndex}</span>
+                    `;
+                    
+                    // 點擊事件
+                    cell.addEventListener('click', () => toggleCell(cell, mIndex));
+                    kmapContainer.appendChild(cell);
+                });
+            });
+            
+            updateResults();
+        }
+
+        // 切換格子狀態的邏輯 (0 -> 1 -> X -> 0)
+        function toggleCell(cell, mIndex) {
+            let currentVal = cell.dataset.value;
+            let newVal = "0";
+            
+            if (currentVal === "0") newVal = "1";
+            else if (currentVal === "1") newVal = "X";
+            else newVal = "0";
+
+            cell.dataset.value = newVal;
+            cell.querySelector('.val-txt').innerText = newVal;
+            
+            // 更新狀態陣列
+            cellData[mIndex] = (newVal === "X") ? "X" : parseInt(newVal);
+            
+            updateResults();
+        }
+
+        // 重設所有狀態
+        function resetMap() {
+            cellData.fill(0);
+            document.querySelectorAll('.kmap-cell').forEach(cell => {
+                cell.dataset.value = "0";
+                cell.querySelector('.val-txt').innerText = "0";
+            });
+            updateResults();
+        }
+
+        // 填滿 0 (方便重新開始)
+        function fillZeros() {
+            resetMap();
+        }
+
+        // 更新 Minterms, Maxterms 與 Don't Cares 的輸出字串
+        function updateResults() {
+            const minterms = [];
+            const maxterms = [];
+            const dontcares = [];
+
+            // 遍歷 0~15 索引
+            for (let i = 0; i < 16; i++) {
+                if (cellData[i] === 1) minterms.push(i);
+                else if (cellData[i] === 0) maxterms.push(i);
+                else if (cellData[i] === 'X') dontcares.push(i);
+            }
+
+            document.getElementById('minterms').innerText = minterms.length > 0 ? minterms.join(', ') : '無';
+            document.getElementById('maxterms').innerText = maxterms.length > 0 ? maxterms.join(', ') : '無';
+            document.getElementById('dontcares').innerText = dontcares.length > 0 ? dontcares.join(', ') : '無';
+        }
+
+        // 初始化網格
+        initMap();
+    </script>
+</body>
+</html>
