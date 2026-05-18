@@ -75,3 +75,5 @@
 [forever-in-debt.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/forever-debt-calc.html)
 
 [apr-calculator](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/apr-calculator.html)
+
+[loan-calculator](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/loan-calculator.html)
