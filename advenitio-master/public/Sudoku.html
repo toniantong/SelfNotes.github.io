@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>互動式數獨解題器</title>
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --hover-color: #357ABD;
+            --bg-color: #F5F7FA;
+            --grid-border: #34495E;
+            --cell-border: #BDC3C7;
+            --text-color: #2C3E50;
+            --solved-color: #27AE60;
+            --error-color: #E74C3C;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            color: var(--grid-border);
+        }
+
+        .description {
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            color: #7f8c8d;
+            text-align: center;
+        }
+
+        /* 數獨棋盤容器 */
+        #sudoku-board {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 0;
+            border: 3px solid var(--grid-border);
+            background-color: var(--grid-border);
+            max-width: 450px;
+            width: 100%;
+            aspect-ratio: 1;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        /* 單個格子 */
+        .cell {
+            background-color: white;
+            border: 1px solid var(--cell-border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .cell input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--text-color);
+            background: transparent;
+            outline: none;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        /* 移除數字輸入框的上下箭頭 */
+        .cell input::-webkit-outer-spin-button,
+        .cell input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .cell input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .cell input:focus {
+            background-color: #E8F0FE;
+        }
+
+        /* 解答出來的數字顏色 */
+        .cell input.solved {
+            color: var(--solved-color);
+            font-weight: normal;
+        }
+
+        /* 錯誤提示顏色 */
+        .cell input.error {
+            background-color: #FDEDEC;
+            color: var(--error-color);
+        }
+
+        /* 3x3 粗框分隔線 */
+        .border-right { border-right: 2px solid var(--grid-border) !important; }
+        .border-bottom { border-bottom: 2px solid var(--grid-border) !important; }
+
+        /* 控制面板 */
+        .controls {
+            margin-top: 25px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        button:hover {
+            background-color: var(--hover-color);
+        }
+
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #clear-btn { background-color: #95A5A6; }
+        #clear-btn:hover { background-color: #7F8C8D; }
+        
+        #demo-btn { background-color: #F39C12; }
+        #demo-btn:hover { background-color: #D68910; }
+
+        /* 狀態訊息 */
+        #message {
+            margin-top: 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            height: 24px;
+        }
+
+        .msg-success { color: var(--solved-color); }
+        .msg-error { color: var(--error-color); }
+
+        /* 手機版適應 */
+        @media (max-width: 480px) {
+            .cell input { font-size: 1.2rem; }
+            button { padding: 10px 15px; font-size: 0.95rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>數獨解題器</h1>
+    <div class="description">請在下方輸入已知數字（1-9），然後點擊「自動解題」</div>
+
+    <div id="sudoku-board">
+        <!-- JavaScript 會自動產生 81 個格子 -->
+    </div>
+
+    <div class="controls">
+        <button id="demo-btn">載入範例</button>
+        <button id="clear-btn">清除盤面</button>
+        <button id="solve-btn">自動解題</button>
+    </div>
+
+    <div id="message"></div>
+
+    <script>
+        const boardElement = document.getElementById('sudoku-board');
+        const solveBtn = document.getElementById('solve-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const demoBtn = document.getElementById('demo-btn');
+        const messageEl = document.getElementById('message');
+        const inputs = [];
+
+        // 初始化 9x9 棋盤
+        function createBoard() {
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    
+                    // 添加 3x3 區塊的邊界線
+                    if (col === 2 || col === 5) cell.classList.add('border-right');
+                    if (row === 2 || row === 5) cell.classList.add('border-bottom');
+
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.inputMode = 'numeric';
+                    input.maxLength = 1;
+                    input.dataset.row = row;
+                    input.dataset.col = col;
+
+                    // 限制只能輸入 1-9
+                    input.addEventListener('input', function(e) {
+                        this.value = this.value.replace(/[^1-9]/g, '');
+                        this.classList.remove('solved', 'error');
+                        clearMessage();
+                    });
+
+                    inputs.push(input);
+                    cell.appendChild(input);
+                    boardElement.appendChild(cell);
+                }
+            }
+        }
+
+        // 從畫面獲取目前的二維陣列盤面
+        function getBoard() {
+            const board = [];
+            for (let i = 0; i < 9; i++) {
+                board.push(new Array(9).fill(0));
+            }
+            inputs.forEach(input => {
+                const r = parseInt(input.dataset.row);
+                const c = parseInt(input.dataset.col);
+                board[r][c] = input.value ? parseInt(input.value) : 0;
+            });
+            return board;
+        }
+
+        // 將解題結果更新到畫面上
+        function setBoard(board) {
+            inputs.forEach(input => {
+                const r = parseInt(input.dataset.row);
+                const c = parseInt(input.dataset.col);
+                if (input.value === "") {
+                    input.value = board[r][c];
+                    input.classList.add('solved'); // 標記為程式計算出的解答
+                }
+            });
+        }
+
+        // 顯示訊息
+        function showMessage(text, isError = false) {
+            messageEl.textContent = text;
+            messageEl.className = isError ? 'msg-error' : 'msg-success';
+        }
+
+        function clearMessage() {
+            messageEl.textContent = '';
+        }
+
+        // 清除按鈕功能
+        clearBtn.addEventListener('click', () => {
+            inputs.forEach(input => {
+                input.value = '';
+                input.classList.remove('solved', 'error');
+            });
+            clearMessage();
+        });
+
+        // 載入範例題目
+        demoBtn.addEventListener('click', () => {
+            clearBtn.click();
+            const demoData = [
+                [5,3,0,0,7,0,0,0,0],
+                [6,0,0,1,9,5,0,0,0],
+                [0,9,8,0,0,0,0,6,0],
+                [8,0,0,0,6,0,0,0,3],
+                [4,0,0,8,0,3,0,0,1],
+                [7,0,0,0,2,0,0,0,6],
+                [0,6,0,0,0,0,2,8,0],
+                [0,0,0,4,1,9,0,0,5],
+                [0,0,0,0,8,0,0,7,9]
+            ];
+            inputs.forEach(input => {
+                const r = parseInt(input.dataset.row);
+                const c = parseInt(input.dataset.col);
+                if (demoData[r][c] !== 0) {
+                    input.value = demoData[r][c];
+                }
+            });
+        });
+
+        // ======= 數獨解題演算法 (Backtracking) =======
+
+        // 檢查數字在該位置是否合法
+        function isValid(board, row, col, num) {
+            // 檢查行與列
+            for (let i = 0; i < 9; i++) {
+                if (board[row][i] === num) return false;
+                if (board[i][col] === num) return false;
+            }
+            // 檢查 3x3 區塊
+            const startRow = Math.floor(row / 3) * 3;
+            const startCol = Math.floor(col / 3) * 3;
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (board[startRow + i][startCol + j] === num) return false;
+                }
+            }
+            return true;
+        }
+
+        // 檢查使用者輸入的題目本身有沒有衝突
+        function isInitialBoardValid(board) {
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    const num = board[r][c];
+                    if (num !== 0) {
+                        board[r][c] = 0; // 暫時移除自己
+                        if (!isValid(board, r, c, num)) {
+                            board[r][c] = num; // 復原
+                            return false;
+                        }
+                        board[r][c] = num; // 復原
+                    }
+                }
+            }
+            return true;
+        }
+
+        // 遞迴解題函數
+        function solve(board) {
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    if (board[r][c] === 0) {
+                        for (let num = 1; num <= 9; num++) {
+                            if (isValid(board, r, c, num)) {
+                                board[r][c] = num;
+                                if (solve(board)) return true;
+                                board[r][c] = 0; // 回溯
+                            }
+                        }
+                        return false; // 1-9 都填不進去，此路不通
+                    }
+                }
+            }
+            return true; // 已經沒有空格，解題完成
+        }
+
+        // 解題按鈕點擊事件
+        solveBtn.addEventListener('click', () => {
+            const board = getBoard();
+            
+            // 1. 檢查初始輸入是否合法
+            if (!isInitialBoardValid(board)) {
+                showMessage('輸入的題目有誤（有重複數字衝突）！', true);
+                return;
+            }
+
+            // 2. 執行解題
+            if (solve(board)) {
+                setBoard(board);
+                showMessage('解題成功！');
+            } else {
+                showMessage('此數獨無解！', true);
+            }
+        });
+
+        // 啟動程式
+        createBoard();
+
+    </script>
+</body>
+</html>
