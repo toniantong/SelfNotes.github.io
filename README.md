@@ -83,3 +83,5 @@
 [prime](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/prime.html)
 
 [Karnaugh_Maps](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/Karnaugh_Maps.html)
+
+[Sudoku](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/Sudoku.html)
