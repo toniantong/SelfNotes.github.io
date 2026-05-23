@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>因數計算機</title>
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+            font-size: 1.8rem;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="number"] {
+            flex: 1;
+            padding: 12px 15px;
+            font-size: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--primary-color);
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 1rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #357ABD;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .result-box {
+            display: none;
+            background-color: #f9fbff;
+            border: 1px solid #dce8f4;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .result-box h3 {
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .factors-list {
+            font-size: 1.2rem;
+            word-break: break-all;
+            line-height: 1.6;
+            color: var(--primary-color);
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .pairs-list {
+            list-style: none;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px dashed #ccc;
+        }
+
+        .pairs-list li {
+            padding: 4px 0;
+            color: #555;
+            font-family: monospace;
+            font-size: 1.05rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 響應式調整 */
+        @media (max-width: 480px) {
+            .input-group {
+                flex-direction: column;
+            }
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>因數計算機</h1>
+        <p class="subtitle">輸入一個正整數，找出它所有的正因數與配對。</p>
+        
+        <div class="input-group">
+            <input type="number" id="numberInput" placeholder="輸入數字，例如：90" min="1" onkeypress="handleEnter(event)">
+            <button onclick="calculate()">計算</button>
+        </div>
+
+        <div id="resultBox" class="result-box">
+            <h3>計算結果：</h3>
+            <div id="factorsDisplay" class="factors-list"></div>
+            
+            <h3>乘法配對：</h3>
+            <ul id="pairsDisplay" class="pairs-list"></ul>
+        </div>
+    </div>
+
+    <script>
+        // 監聽 Enter 鍵
+        function handleEnter(event) {
+            if (event.key === 'Enter') {
+                calculate();
+            }
+        }
+
+        function calculate() {
+            const inputVal = document.getElementById('numberInput').value;
+            const num = parseInt(inputVal, 10);
+            
+            // 驗證輸入
+            if (isNaN(num) || num <= 0) {
+                alert('請輸入大於 0 的正整數！');
+                return;
+            }
+
+            // 1. 計算所有因數
+            let factors = [];
+            for (let i = 1; i <= Math.sqrt(num); i++) {
+                if (num % i === 0) {
+                    factors.push(i);
+                    // 避免完全平方數重複加入（例如 36 的因數 6）
+                    if (i !== num / i) {
+                        factors.push(num / i);
+                    }
+                }
+            }
+            
+            // 將因數由小到大排序
+            factors.sort((a, b) => a - b);
+
+            // 2. 顯示因數列表
+            const factorsDisplay = document.getElementById('factorsDisplay');
+            factorsDisplay.innerHTML = factors.join(', ');
+
+            // 3. 顯示兩兩配對
+            const pairsDisplay = document.getElementById('pairsDisplay');
+            pairsDisplay.innerHTML = ''; // 清空先前的結果
+            
+            let left = 0;
+            let right = factors.length - 1;
+            
+            while (left <= right) {
+                const li = document.createElement('li');
+                li.innerHTML = `${factors[left]} &times; ${factors[right]} = <strong>${num}</strong>`;
+                pairsDisplay.appendChild(li);
+                left++;
+                right--;
+            }
+
+            // 顯示結果區塊
+            const resultBox = document.getElementById('resultBox');
+            resultBox.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
