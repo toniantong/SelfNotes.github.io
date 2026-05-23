@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>平面單位距離問題的重大突破 — AI 科學研究里程碑</title>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --primary-light: #1e293b;
+            --accent: #2563eb;
+            --accent-bg: #eff6ff;
+            --text: #334155;
+            --text-dark: #0f172a;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --math-color: #1e3a8a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft JhengHei", "Apple LiGothic Medium", sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            padding: 0 0 60px 0;
+        }
+
+        /* Header Banner */
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: #ffffff;
+            padding: 60px 20px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .header-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header .badge {
+            display: inline-block;
+            background-color: rgba(37, 99, 235, 0.3);
+            border: 1px solid rgba(255,255,255,0.4);
+            color: #ffffff;
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 15px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            color: #cbd5e1;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Main Layout */
+        .container {
+            max-width: 900px;
+            margin: 40px auto 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Quick Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+        }
+
+        .stat-card .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 5px;
+        }
+
+        .stat-card .label {
+            font-size: 0.9rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        /* Section Styling */
+        section {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 35px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.02);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            color: var(--text-dark);
+            margin-bottom: 20px;
+            padding-left: 12px;
+            border-left: 4px solid var(--accent);
+            line-height: 1.4;
+        }
+
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+
+        /* Math Styling */
+        .math {
+            font-family: 'Times New Roman', Times, serif;
+            font-style: italic;
+            font-weight: bold;
+            color: var(--math-color);
+            padding: 0 2px;
+        }
+        
+        div.math-display {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2rem;
+            background-color: var(--bg);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px dashed var(--border);
+        }
+
+        /* Quotes styling */
+        .quote-section {
+            background-color: #f8fafc;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+            border-left: 4px solid #cbd5e1;
+        }
+
+        .quote-text {
+            font-size: 1.05rem;
+            color: var(--text-dark);
+            font-style: normal;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .quote-author {
+            font-weight: 600;
+            color: #475569;
+            font-size: 0.95rem;
+        }
+        
+        .author-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .author-tag {
+            background: #e2e8f0;
+            color: var(--text-dark);
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* Visual Chart Simulation */
+        .chart-container {
+            background: #1e293b;
+            color: #f8fafc;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .chart-header {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 10px;
+        }
+
+        .chart-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #38bdf8;
+        }
+
+        .chart-subtitle {
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        .mock-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .chart-row {
+            display: flex;
+            align-items: center;
+        }
+
+        .chart-label {
+            width: 140px;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+        }
+
+        .chart-bar-wrapper {
+            flex-grow: 1;
+            background: #334155;
+            border-radius: 4px;
+            height: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .chart-bar {
+            background: linear-gradient(90deg, #3b82f6, #06b6d4);
+            height: 100%;
+            border-radius: 4px;
+            transition: width 1s ease-in-out;
+        }
+
+        .chart-value {
+            width: 50px;
+            text-align: right;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #38bdf8;
+            margin-left: 10px;
+        }
+
+        /* External Link Buttons */
+        .links-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .document-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text-dark);
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .document-link:hover {
+            border-color: var(--accent);
+            background: var(--accent-bg);
+            color: var(--accent);
+        }
+
+        .link-icon {
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 1.7rem;
+            }
+            section {
+                padding: 20px;
+            }
+            .chart-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+            .chart-label {
+                width: 100%;
+            }
+            .chart-bar-wrapper {
+                width: 100%;
+            }
+            .chart-value {
+                width: auto;
+                margin-left: 0;
+                margin-top: 2px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-container">
+            <span class="badge">AI × 數學重大突破</span>
+            <h1>平面單位距離問題的重大突破</h1>
+            <p>OpenAI 全新通用推理模型自主打破保羅·艾狄胥懸宕近 80 年的幾何學猜想</p>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <!-- 關鍵指標面板 -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="value">1946 年</div>
+                <div class="label">問題首次被提出</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">n<sup>1+δ</sup></div>
+                <div class="label">全新下限配置 (δ > 0)</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">0.014</div>
+                <div class="label">Will Sawin 改良之 δ 值</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">代數數論</div>
+                <div class="label">跨領域核心證明工具</div>
+            </div>
+        </div>
+
+        <!-- 概述區塊 -->
+        <section>
+            <h2>簡介與核心發現</h2>
+            <p>近 80 年來，數學界一直研究著一條表面上非常簡單的組合幾何問題：<strong>如果你在平面上面放置 <span class="math">n</span> 個點，當中有多少對點的距離可以剛好是 1？</strong></p>
+            <p>這個著名的問題被稱為「平面單位距離問題」（planar unit distance problem），最早由傳奇數學家保羅·艾狄胥（Paul Erdős）於 1946 年提出。幾十年來，無數頂尖幾何學家投身其中卻未能取得本質突破。今日，OpenAI 的一個全新通用推理模型成功打破了這個長久以來的僵局，實現了多項式級別（polynomial）的改進，並首次由 AI 自主解開了處於數學核心分支的著名未解難題。</p>
+            <p>菲爾茲獎得主 Tim Gowers 形容這個結果是<strong>「AI 數學領域的一個里程碑」</strong>。此證明並非來自一個專門為數學訓練或搜索證明策略設計的系統，而是出自一個全新通用推理模型深度推理的成果。</p>
+        </section>
+
+        <!-- 單位距離問題解析 -->
+        <section>
+            <h2>單位距離問題背景</h2>
+            <p>設 <span class="math">u(n)</span> 為平面上 <span class="math">n</span> 點之間可以形成最多單位距離對的數量。要構造出達到線性增長率的例子非常容易（例如排成直線可得 <span class="math">n-1</span> 對，正方形網格可得約 <span class="math">2n</span> 對）。</p>
+            <p>在本次突玻之前，已知最理想的構造方法來自「縮放過的正方形網格」，其結果為：</p>
+            <div class="math-display">
+                u(n) ≥ n<sup>1 + C / log log(n)</sup> &nbsp; (<span class="math">C</span> 為常數)
+            </div>
+            <p>隨著 <span class="math">n</span> 趨向無限大，指數中的附加項會趨向 0。因此幾十年來學界普遍猜想艾狄胥的上限是 <span class="math">n<sup>1+o(1)</sup></span>（其中 <span class="math">o(1)</span> 代表隨 <span class="math">n</span> 趨向無窮而消失的項），認為沒有結構能大幅超越正方形網格。</p>
+            <p><strong>新結果推翻了這一猜想：</strong>證明構造了至少有 <span class="math">n<sup>1+δ</sup></span> 個單位距離對的配置，其中 <span class="math">δ > 0</span> 是固定的常數。普林斯頓大學教授 Will Sawin 隨後將其改良並明確指出可以取 <span class="math">δ = 0.014</span>。</p>
+            
+            <!-- 歷史上下限對比 -->
+            <p>回顧歷史，最理想的下限自 1946 年以來基本停滯；而最理想的上限 <span class="math">O(n<sup>4/3</sup>)</span> 則一直停留在 1984 年 Spencer、Szemerédi 和 Trotter 的研究。本次發現直接在兩者之間開闢了全新的多項式級別改進空間。</p>
+        </section>
+
+        <!-- 模擬圖表可視化 -->
+        <div class="chart-container">
+            <div class="chart-header">
+                <div class="chart-title">模型解決難題成功率 vs 測試階段計算量 (Test-time Compute)</div>
+                <div class="chart-subtitle">驗證初步證明後，研究模型在不同計算資源規模下的解題表現</div>
+            </div>
+            <div class="mock-chart">
+                <div class="chart-row">
+                    <div class="chart-label">基礎計算量 (Low)</div>
+                    <div class="chart-bar-wrapper"><div class="chart-bar" style="width: 5%;"></div></div>
+                    <div class="chart-value">5%</div>
+                </div>
+                <div class="chart-row">
+                    <div class="chart-label">中等計算量 (Medium)</div>
+                    <div class="chart-bar-wrapper"><div class="chart-bar" style="width: 28%;"></div></div>
+                    <div class="chart-value">28%</div>
+                </div>
+                <div class="chart-row">
+                    <div class="chart-label">高計算量 (High)</div>
+                    <div class="chart-bar-wrapper"><div class="chart-bar" style="width: 65%;"></div></div>
+                    <div class="chart-value">65%</div>
+                </div>
+                <div class="chart-row">
+                    <div class="chart-label">大規模推理 (Elite)</div>
+                    <div class="chart-bar-wrapper"><div class="chart-bar" style="width: 92%;"></div></div>
+                    <div class="chart-value">92%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 來自代數數論的新技術 -->
+        <section>
+            <h2>跨領域的全新技術：代數數論</h2>
+            <p>令人意想不到的是，解決這個純幾何學問題的關鍵元素竟然來自於數學的另一個截然不同的分支 —— <strong>代數數論（algebraic number theory）</strong>。</p>
+            <p>艾狄胥最初的下限可以透過高斯整數（Gaussian integers，即形式為 <span class="math">a+bi</span> 的數字）來理解。高斯整數是普通整數的擴展，具有質因數唯一分解等特性。新證明的核心策略是<strong>將高斯整數替換成代數數論中更為複雜的推廣</strong>，利用更豐富的對稱性，在空間中創造出多得多的單位長度差。</p>
+            <p>具體論證中，模型精妙地運用了<strong>無限類體塔（infinite class field towers）</strong>以及 <strong>Golod-Shafarevich 理論</strong>等高深工具，去證明所需的數體確實存在。這些在數論學家眼中熟悉的工具，跨界應用到歐幾里得平面的幾何問題上，帶來了驚人的突破。</p>
+        </section>
+
+        <!-- 數學家評價 -->
+        <section>
+            <h2>頂尖數學家的評價</h2>
+            
+            <div class="quote-section">
+                <div class="quote-text">「正確答案竟然唔係 <span class="math">n<sup>1+o(1)</sup></span>，呢點好令人驚訝；而且個構造方法同分析相當優雅巧妙咁運用咗代數數論入面幾高深嘅工具。」</div>
+                <div class="quote-author">— Noga Alon / Tim Gowers / Arul Shankar / Jacob Tsimerman</div>
+            </div>
+
+            <div class="quote-section">
+                <div class="quote-text">「當評估一個由 AI 生成嘅證明嘅重要性同影響力時，我會問自己一個問題：佢有冇令我哋對呢個問題有新嘅認識？我哋依家對離散幾何嘅理解係咪深咗？我認為答案係有保留嘅『係』：呢個結果表明，數論構造喺呢類問題上嘅發揮空間遠比我哋想像中大... 毫無疑問，嚟緊幾個月會有好多代數數論學家密切關注離散幾何領域嘅其他未解問題。」</div>
+                <div class="quote-author">— Thomas Bloom (知名數學家)</div>
+            </div>
+        </section>
+
+        <!-- 點解呢件事咁重要 / 對 AI 界與科學界的意義 -->
+        <section>
+            <h2>長遠意義與科研未來</h2>
+            <p>這項成果的啟示遠超於單一幾何學難題的解決。它揭示了 AI 作為<strong>「科學研究夥伴」</strong>的全新可能：</p>
+            <ul>
+                <li style="margin-left: 20px; margin-bottom: 8px;"><strong>跨領域概念連結：</strong>模型展現了能夠跨越遙遠知識領域（幾何學與高深數論）並將其融合的深度推理能力。</li>
+                <li style="margin-left: 20px; margin-bottom: 8px;"><strong>拓展科研邊界：</strong>AI 能夠維繫極其複雜的思維鏈條，發掘人類專家可能忽略的潛在路徑。</li>
+                <li style="margin-left: 20px; margin-bottom: 8px;"><strong>廣泛的科學應用：</strong>這種長篇邏輯推理與跨領域整合能力，未來同樣可應用於生物學、物理學、材料科學、工程學及醫學等領域。</li>
+            </ul>
+            <p style="margin-top: 15px;">這代表著我們邁向自動化科學研究（AI for Science）的重要里程碑。AI 即將在研究的創意部分扮演非常認真的角色，而人類的專業知識將變得更加有價值 —— 選擇重要問題、合理解釋結果、並決定下一步探究方向，始終是人類的責任。</p>
+        </section>
+
+        <!-- 相關文件鏈接 -->
+        <section>
+            <h2>完整論文與資源</h2>
+            <p>你可以透過以下連結查看由 OpenAI 模型生成的完整證明、思維鏈以及頂尖數學家撰寫的配套論文：</p>
+            <div class="links-wrapper">
+                <a href="https://cdn.openai.com/pdf/74c24085-19b0-4534-9c90-465b8e29ad73/unit-distance-proof.pdf" class="document-link" target="_blank">
+                    <span>1. 完整數學證明論文 (PDF)</span>
+                    <span class="link-icon">↗</span>
+                </a>
+                <a href="https://cdn.openai.com/pdf/74c24085-19b0-4534-9c90-465b8e29ad73/unit-distance-remarks.pdf" class="document-link" target="_blank">
+                    <span>2. 外部頂尖數學家配套評述論文 (PDF)</span>
+                    <span class="link-icon">↗</span>
+                </a>
+                <a href="https://cdn.openai.com/pdf/1625eff6-5ac1-40d8-b1db-5d5cf925de8b/unit-distance-cot.pdf" class="document-link" target="_blank">
+                    <span>3. 模型簡化版思維鏈 (Chain of Thought)</span>
+                    <span class="link-icon">↗</span>
+                </a>
+            </div>
+        </section>
+
+    </div>
+
+</body>
+</html>
