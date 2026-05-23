@@ -87,3 +87,5 @@
 [Sudoku](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/Sudoku.html)
 
 [planar_unit_distance_breakthrough](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/planar_unit_distance_breakthrough.html)
+
+[factors](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/Factors.html)
