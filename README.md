@@ -91,3 +91,5 @@
 [factors](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/Factors.html)
 
 [puzzle-solver](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/puzzle-solver.html)
+
+[tokenization](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/tokenization.html)
