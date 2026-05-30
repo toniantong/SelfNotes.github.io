@@ -93,3 +93,5 @@
 [puzzle-solver](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/puzzle-solver.html)
 
 [tokenization](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/tokenization.html)
+
+[text2token](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/text2token.html)
