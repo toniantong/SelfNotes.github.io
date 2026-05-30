@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文字轉 Token 工具比較</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 30px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      flex: 1 1 300px;
+      max-width: 350px;
+      padding: 20px;
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    .card h2 {
+      margin-top: 0;
+      color: #007acc;
+    }
+    .card ul {
+      padding-left: 20px;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 0.9em;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h1>三種文字轉 Token 工具比較</h1>
+  <div class="container">
+    <div class="card">
+      <h2>工具 A</h2>
+      <ul>
+        <li>分割方式：逐字拆分</li>
+        <li>優點：簡單直觀</li>
+        <li>缺點：數字處理不精確</li>
+        <li>常見用途：基礎 NLP 任務</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>工具 B</h2>
+      <ul>
+        <li>分割方式：子詞 (subword)</li>
+        <li>優點：能處理罕見字詞</li>
+        <li>缺點：數字可能被拆成片段</li>
+        <li>常見用途：大型語言模型</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>工具 C</h2>
+      <ul>
+        <li>分割方式：基於詞彙表</li>
+        <li>優點：對常見字詞效率高</li>
+        <li>缺點：遇到新字詞需拆分</li>
+        <li>常見用途：商業 AI 系統</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer">
+    © 2026 Tokenization Comparison Demo
+  </div>
+</body>
+</html>
