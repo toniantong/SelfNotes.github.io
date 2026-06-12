@@ -95,3 +95,5 @@
 [tokenization](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/tokenization.html)
 
 [text2token](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/text2token.html)
+
+[metaTag](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/metaTag.html)
