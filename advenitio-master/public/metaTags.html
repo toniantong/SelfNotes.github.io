@@ -1,12 +1,469 @@
-const htmlString = document.getElementById('codeArea').value;
-const parser = new DOMParser();
-const doc = parser.parseFromString(htmlString, 'text/html');
-const metaTags = doc.querySelectorAll('meta');
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meta 標籤提取器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-metaTags.forEach(tag => {
-    const name = tag.getAttribute('name') || tag.getAttribute('property');
-    const content = tag.getAttribute('content');
-    if (name && content) {
-        console.log(`${name}: ${content}`); // 這邊可以改為渲染到網頁畫面上
-    }
-});
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 0.95em;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section h2 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        textarea {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-extract {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-extract:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-clear {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .btn-clear:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-copy {
+            background: #764ba2;
+            color: white;
+        }
+
+        .btn-copy:hover {
+            background: #653a81;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4);
+        }
+
+        .results-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 200px;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+
+        .results-table thead {
+            background: #f5f5f5;
+        }
+
+        .results-table th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .results-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eee;
+            word-break: break-word;
+        }
+
+        .results-table tbody tr:hover {
+            background: #f9f9f9;
+        }
+
+        .results-table tbody tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        .stats {
+            background: #f0f4ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            color: #333;
+        }
+
+        .stats-item {
+            display: inline-block;
+            margin-right: 20px;
+            font-weight: 500;
+        }
+
+        .empty-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 0.95em;
+            height: 100%;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 12px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .success.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏷️ Meta 標籤提取器</h1>
+            <p>輕鬆解析和提取 HTML 中的 meta 標籤信息</p>
+        </div>
+
+        <div class="content">
+            <!-- 左側：輸入區域 -->
+            <div class="section">
+                <h2>📝 輸入 HTML</h2>
+                <label for="codeArea">貼上你的 HTML 代碼：</label>
+                <textarea id="codeArea" placeholder="在這裡貼上你的 HTML 代碼...&#10;&#10;例如：&#10;&lt;html&gt;&#10;  &lt;head&gt;&#10;    &lt;meta name=&quot;description&quot; content=&quot;頁面描述&quot;&gt;&#10;    &lt;meta property=&quot;og:title&quot; content=&quot;標題&quot;&gt;&#10;  &lt;/head&gt;&#10;&lt;/html&gt;"></textarea>
+
+                <div class="button-group">
+                    <button class="btn-extract" onclick="extractMetaTags()">🔍 提取 Meta 標籤</button>
+                    <button class="btn-clear" onclick="clearAll()">🗑️ 清空</button>
+                </div>
+
+                <div class="error" id="errorMsg"></div>
+                <div class="success" id="successMsg"></div>
+            </div>
+
+            <!-- 右側：結果區域 -->
+            <div class="section">
+                <h2>📊 結果</h2>
+                <div class="results-container">
+                    <table class="results-table" id="resultsTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 35%;">名稱</th>
+                                <th style="width: 65%;">內容</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsBody">
+                            <tr>
+                                <td colspan="2" class="empty-state">尚未提取任何 meta 標籤</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="stats" id="stats" style="display: none;">
+                    <div class="stats-item">📍 Meta 標籤數：<span id="tagCount">0</span></div>
+                    <div class="stats-item">✓ 有效標籤：<span id="validCount">0</span></div>
+                </div>
+
+                <button class="btn-copy" onclick="copyResults()" style="margin-top: 15px;">📋 複製結果</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * 提取 HTML 中的 meta 標籤
+         */
+        function extractMetaTags() {
+            const errorMsg = document.getElementById('errorMsg');
+            const successMsg = document.getElementById('successMsg');
+            const codeArea = document.getElementById('codeArea');
+            const resultsBody = document.getElementById('resultsBody');
+            const htmlString = codeArea.value.trim();
+
+            // 清除之前的消息
+            errorMsg.classList.remove('show');
+            successMsg.classList.remove('show');
+
+            // 驗證輸入
+            if (!htmlString) {
+                showError('請貼上 HTML 代碼');
+                return;
+            }
+
+            try {
+                // 解析 HTML
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlString, 'text/html');
+
+                // 檢查是否有解析錯誤
+                if (doc.body.textContent.includes('ParserError')) {
+                    throw new Error('HTML 解析出錯，請檢查代碼是否正確');
+                }
+
+                // 獲取所有 meta 標籤
+                const metaTags = doc.querySelectorAll('meta');
+
+                if (metaTags.length === 0) {
+                    showError('未找到任何 meta 標籤');
+                    clearResults();
+                    return;
+                }
+
+                // 提取並存儲 meta 標籤信息
+                const results = [];
+                metaTags.forEach(tag => {
+                    const name = tag.getAttribute('name') || tag.getAttribute('property') || tag.getAttribute('http-equiv');
+                    const content = tag.getAttribute('content');
+                    
+                    if (name && content) {
+                        results.push({ name, content });
+                    }
+                });
+
+                // 顯示結果
+                if (results.length === 0) {
+                    showError('未找到有效的 meta 標籤（必須同時包含名稱和內容）');
+                    clearResults();
+                    return;
+                }
+
+                displayResults(results, metaTags.length);
+                showSuccess(`成功提取 ${results.length} 個有效的 meta 標籤`);
+
+            } catch (error) {
+                showError(`提取失敗：${error.message}`);
+                clearResults();
+            }
+        }
+
+        /**
+         * 顯示提取結果
+         */
+        function displayResults(results, totalCount) {
+            const resultsBody = document.getElementById('resultsBody');
+            const stats = document.getElementById('stats');
+            const tagCountSpan = document.getElementById('tagCount');
+            const validCountSpan = document.getElementById('validCount');
+
+            // 清空之前的結果
+            resultsBody.innerHTML = '';
+
+            // 插入新結果
+            results.forEach((item, index) => {
+                const row = resultsBody.insertRow();
+                row.insertCell(0).textContent = item.name;
+                row.insertCell(1).textContent = item.content;
+            });
+
+            // 更新統計信息
+            tagCountSpan.textContent = totalCount;
+            validCountSpan.textContent = results.length;
+            stats.style.display = 'block';
+        }
+
+        /**
+         * 清空結果
+         */
+        function clearResults() {
+            const resultsBody = document.getElementById('resultsBody');
+            const stats = document.getElementById('stats');
+            resultsBody.innerHTML = '<tr><td colspan="2" class="empty-state">尚未提取任何 meta 標籤</td></tr>';
+            stats.style.display = 'none';
+        }
+
+        /**
+         * 清空所有內容
+         */
+        function clearAll() {
+            document.getElementById('codeArea').value = '';
+            clearResults();
+            document.getElementById('errorMsg').classList.remove('show');
+            document.getElementById('successMsg').classList.remove('show');
+        }
+
+        /**
+         * 複製結果為 JSON 格式
+         */
+        function copyResults() {
+            const resultsBody = document.getElementById('resultsBody');
+            const rows = resultsBody.querySelectorAll('tr');
+
+            if (rows.length === 0 || (rows.length === 1 && rows[0].querySelector('.empty-state'))) {
+                showError('沒有可複製的結果');
+                return;
+            }
+
+            // 構建 JSON 對象
+            const results = [];
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length === 2) {
+                    results.push({
+                        name: cells[0].textContent,
+                        content: cells[1].textContent
+                    });
+                }
+            });
+
+            const jsonText = JSON.stringify(results, null, 2);
+
+            // 複製到剪貼板
+            navigator.clipboard.writeText(jsonText).then(() => {
+                showSuccess('✓ 結果已複製到剪貼板（JSON 格式）');
+                setTimeout(() => {
+                    document.getElementById('successMsg').classList.remove('show');
+                }, 3000);
+            }).catch(() => {
+                showError('複製失敗，請手動複製');
+            });
+        }
+
+        /**
+         * 顯示錯誤消息
+         */
+        function showError(message) {
+            const errorMsg = document.getElementById('errorMsg');
+            errorMsg.textContent = '❌ ' + message;
+            errorMsg.classList.add('show');
+        }
+
+        /**
+         * 顯示成功消息
+         */
+        function showSuccess(message) {
+            const successMsg = document.getElementById('successMsg');
+            successMsg.textContent = '✅ ' + message;
+            successMsg.classList.add('show');
+        }
+
+        // 按 Ctrl+Enter 快速提取
+        document.getElementById('codeArea').addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                extractMetaTags();
+            }
+        });
+    </script>
+</body>
+</html>
