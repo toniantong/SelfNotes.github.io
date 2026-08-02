@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>開發者文字處理與巨集擴充工具 Pro Max</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        mono: ['"Fira Code"', 'Consolas', 'Monaco', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .vis-space { color: #6b7280; font-weight: bold; } 
+        .vis-tab { color: #6b7280; font-weight: bold; }
+        .vis-newline { color: #ef4444; font-weight: bold; } 
+        .vis-hidden { background-color: rgba(239, 68, 68, 0.3); color: #fca5a5; padding: 0 2px; border-radius: 2px; border: 1px solid #ef4444; font-size: 0.8em;}
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+        
+        textarea::selection { background-color: #3b82f6; color: white; }
+        .rule-applied { color: #06b6d4; font-weight: bold; }
+        .log-highlight { color: #eab308; white-space: pre-wrap; word-break: break-all; }
+        .log-halted { color: #ef4444; font-weight: bold; }
+        .log-success { color: #10b981; font-weight: bold; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100 min-h-screen flex flex-col font-sans transition-colors duration-200">
+
+    <!-- 頁頭與設定導覽 -->
+    <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex justify-between items-center shadow-sm z-10">
+        <h1 class="text-xl font-bold flex items-center gap-2">
+            <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+            文字巨集處理工具 <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Text & Macro Processor Pro Max</span>
+        </h1>
+        <div class="flex gap-3">
+            <button id="btnLayout" class="px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded transition font-medium">切換佈局</button>
+            <button id="btnTheme" class="px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded transition font-medium">切換深/淺色</button>
+        </div>
+    </header>
+
+    <!-- 控制區域：搜尋取代 & 巨集指令 -->
+    <section class="p-4 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 space-y-4">
+        
+        <!-- 單一搜尋取代區塊 (保留原文字處理工具功能) -->
+        <div class="bg-white dark:bg-gray-900 p-3 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm space-y-3">
+            <div class="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                即時搜尋與單一取代 (Single Search & Replace)
+            </div>
+            <div class="flex flex-wrap gap-4 items-start">
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block text-xs font-semibold mb-1 text-gray-500 dark:text-gray-400">搜尋 (Search)</label>
+                    <textarea id="searchInput" rows="2" class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500 font-mono shadow-sm resize-y" spellcheck="false" placeholder="輸入要尋找的文字 (支援換行)..."></textarea>
+                </div>
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block text-xs font-semibold mb-1 text-gray-500 dark:text-gray-400">取代為 (Replace)</label>
+                    <textarea id="replaceInput" rows="2" class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500 font-mono shadow-sm resize-y" spellcheck="false" placeholder="取代內容 (支援換行)..."></textarea>
+                </div>
+                
+                <div class="flex flex-col gap-2 pt-5">
+                    <div class="flex gap-4 items-center">
+                        <label class="flex items-center gap-1.5 text-sm cursor-pointer hover:text-blue-500 transition">
+                            <input type="checkbox" id="chkMatchCase" class="rounded border-gray-400 text-blue-500 focus:ring-blue-500 bg-gray-800">
+                            區分大小寫
+                        </label>
+                        <label class="flex items-center gap-1.5 text-sm cursor-pointer hover:text-blue-500 transition">
+                            <input type="checkbox" id="chkRegEx" class="rounded border-gray-400 text-blue-500 focus:ring-blue-500 bg-gray-800">
+                            正規表達式 (RegEx)
+                        </label>
+                    </div>
+                    <div class="flex gap-2 mt-1">
+                        <button id="btnFindNext" class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 px-3 py-1.5 rounded text-sm font-medium transition flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg> 找下一個
+                        </button>
+                        <button id="btnReplaceSingle" class="bg-blue-100 hover:bg-blue-200 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 dark:hover:bg-blue-900/60 px-3 py-1.5 rounded text-sm font-medium transition">
+                            🔄 單一取代
+                        </button>
+                        <button id="btnReplaceAll" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm font-semibold transition shadow-sm">
+                            🔁 全部取代
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 進階字元處理快捷按鈕 -->
+            <div class="flex flex-wrap gap-2 pt-2 border-t border-gray-200 dark:border-gray-700 items-center">
+                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 py-1 mr-2">進階快捷轉換：</span>
+                <button id="btnEscapeToReal" class="px-3 py-1 text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 border border-purple-200 dark:border-purple-800 hover:bg-purple-200 dark:hover:bg-purple-900/60 rounded transition font-medium">字面跳脫 ➜ 實際字元</button>
+                <button id="btnRealToEscape" class="px-3 py-1 text-xs bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-200 dark:hover:bg-indigo-900/60 rounded transition font-medium">實際字元 ➜ 字面跳脫</button>
+                <button id="btnStripHidden" class="px-3 py-1 text-xs bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 border border-red-200 dark:border-red-800 hover:bg-red-200 dark:hover:bg-red-900/60 rounded transition font-medium">🧹 清除隱形字元</button>
+            </div>
+        </div>
+
+        <!-- 巨集/批次多行指令擴充區塊 (參考 A=B 模擬器功能) -->
+        <div class="bg-white dark:bg-gray-900 p-3 rounded-lg border border-purple-300 dark:border-purple-800 shadow-sm space-y-3">
+            <div class="flex justify-between items-center flex-wrap gap-2">
+                <div class="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    巨集多行指令擴充 (Macro Instruction Engine)
+                </div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">
+                    * 被修改資料為真實文字；轉義符號 <code class="bg-gray-200 dark:bg-gray-800 px-1 rounded">
+</code>, <code class="bg-gray-200 dark:bg-gray-800 px-1 rounded">	</code>, <code class="bg-gray-200 dark:bg-gray-800 px-1 rounded">\=</code> 僅於巨集欄內使用
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-4 items-start">
+                <!-- 巨集指令輸入框 -->
+                <div class="flex-1 w-full">
+                    <label class="block text-xs font-semibold mb-1 text-gray-500 dark:text-gray-400 flex justify-between">
+                        <span>巨集指令欄 (每列格式: 目標=取代內容 或 目標=(return)取代內容)</span>
+                        <span class="text-gray-400">支援 # 註解與 
+ 	 \= 轉義</span>
+                    </label>
+                    <textarea id="macroInput" rows="4" class="w-full bg-gray-50 dark:bg-gray-800 border border-purple-200 dark:border-purple-900 rounded px-3 py-2 text-sm focus:outline-none focus:border-purple-500 font-mono shadow-sm resize-y" spellcheck="false" placeholder="# 範例巨集指令 (每列一條)&#10;hello=	Hi&#10;
+=, &#10;apple=banana&#10;# 支援 (return) 終止指令&#10;# end=(return)DONE"></textarea>
+                </div>
+
+                <!-- 巨集控制選項與按鈕 -->
+                <div class="w-full md:w-auto flex flex-col gap-2 min-w-[240px]">
+                    <div class="flex flex-wrap gap-3 items-center text-xs">
+                        <label class="flex items-center gap-1 cursor-pointer hover:text-purple-500">
+                            <input type="checkbox" id="chkMacroCase" class="rounded border-gray-400 text-purple-500 focus:ring-purple-500 bg-gray-800">
+                            區分大小寫
+                        </label>
+                        <label class="flex items-center gap-1 cursor-pointer hover:text-purple-500">
+                            <input type="checkbox" id="chkMacroRegEx" class="rounded border-gray-400 text-purple-500 focus:ring-purple-500 bg-gray-800">
+                            RegEx 模式
+                        </label>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 block">巨集執行模式：</label>
+                        <div class="flex gap-2">
+                            <label class="flex-1 text-xs flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1.5 rounded cursor-pointer border border-gray-300 dark:border-gray-700">
+                                <input type="radio" name="macroMode" value="ab" checked class="text-purple-600 focus:ring-purple-500">
+                                <span>A=B 邏輯模式 (遞迴)</span>
+                            </label>
+                            <label class="flex-1 text-xs flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1.5 rounded cursor-pointer border border-gray-300 dark:border-gray-700">
+                                <input type="radio" name="macroMode" value="batch" class="text-purple-600 focus:ring-purple-500">
+                                <span>批次順序套用 (全取代)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 按鈕群 -->
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <button id="btnRunMacro" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded text-sm font-semibold transition shadow-sm col-span-2 flex items-center justify-center gap-1">
+                            ▶️ 執行巨集 (Run Macro)
+                        </button>
+                        <button id="btnStepMacro" class="bg-purple-100 hover:bg-purple-200 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 dark:hover:bg-purple-900/60 px-2.5 py-1.5 rounded text-xs font-medium transition flex items-center justify-center gap-1">
+                            ⏯️ 單步執行 (Step)
+                        </button>
+                        <button id="btnResetMacro" class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 px-2.5 py-1.5 rounded text-xs font-medium transition flex items-center justify-center gap-1">
+                            🔄 重置 (Reset)
+                        </button>
+                        <button id="btnLoadMacroSample" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 dark:hover:bg-emerald-900/60 px-2.5 py-1.5 rounded text-xs font-medium transition">
+                            📋 載入範例
+                        </button>
+                        <button id="btnClearMacro" class="bg-red-100 hover:bg-red-200 text-red-700 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-900/60 px-2.5 py-1.5 rounded text-xs font-medium transition">
+                            🧹 清空巨集
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 主工作區：輸入與輸出面板 -->
+    <main id="workspace" class="flex-1 flex flex-col md:flex-row p-4 gap-4 overflow-hidden">
+        
+        <!-- 左側：輸入區 (被修改資料) -->
+        <div class="flex-1 flex flex-col min-h-[300px] border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-900 shadow-sm relative">
+            <div class="bg-gray-100 dark:bg-gray-800 px-3 py-2 flex justify-between items-center border-b border-gray-300 dark:border-gray-700">
+                <span class="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                    Input (被修改資料 - 直載換行與Tab)
+                </span>
+                <div class="flex gap-2">
+                    <button id="btnCopyIn" class="text-xs font-medium hover:text-blue-500 transition">複製</button>
+                    <button id="btnPaste" class="text-xs font-medium hover:text-blue-500 transition">貼上</button>
+                    <button id="btnClearIn" class="text-xs font-medium hover:text-red-500 transition">清空</button>
+                </div>
+            </div>
+            <textarea id="inputArea" class="flex-1 w-full p-3 bg-transparent resize-none focus:outline-none font-mono text-sm leading-relaxed whitespace-pre" spellcheck="false" placeholder="在此貼上或輸入被修改資料（直接換行或使用 Tab，無需轉為 
+ 或 	）..."></textarea>
+        </div>
+
+        <!-- 右側：輸出結果與視覺化面板 -->
+        <div class="flex-1 flex flex-col min-h-[300px] border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-900 shadow-sm relative">
+            <div class="bg-gray-100 dark:bg-gray-800 px-3 py-2 flex justify-between items-center border-b border-gray-300 dark:border-gray-700">
+                <div class="flex items-center gap-3">
+                    <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Output (處理結果)</span>
+                    <label class="flex items-center gap-1 text-xs cursor-pointer text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition">
+                        <input type="checkbox" id="chkVisualize" class="rounded text-amber-500 focus:ring-amber-500 bg-gray-800">
+                        👁️ 顯示不可見字元
+                    </label>
+                </div>
+                <div class="flex gap-2">
+                    <button id="btnApplyOutToIn" class="text-xs font-medium text-purple-600 dark:text-purple-400 hover:underline transition">套用至輸入 (Output ➜ Input)</button>
+                    <button id="btnCopyOut" class="text-xs font-medium hover:text-blue-500 transition">複製結果</button>
+                    <button id="btnClearOut" class="text-xs font-medium hover:text-red-500 transition">清空</button>
+                </div>
+            </div>
+            
+            <textarea id="outputArea" class="flex-1 w-full p-3 bg-transparent resize-none focus:outline-none font-mono text-sm leading-relaxed whitespace-pre text-gray-800 dark:text-gray-200" spellcheck="false" readonly placeholder="處理結果將顯示於此..."></textarea>
+            <div id="visualizerArea" class="hidden flex-1 w-full p-3 bg-gray-50 dark:bg-[#0d1117] overflow-auto font-mono text-sm leading-relaxed whitespace-pre break-all"></div>
+        </div>
+    </main>
+
+    <!-- 巨集步驟日誌區域 (參考 A=B 模擬器) -->
+    <section class="px-4 pb-2">
+        <details class="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm overflow-hidden" open>
+            <summary class="bg-gray-100 dark:bg-gray-800 px-4 py-2 text-xs font-semibold cursor-pointer select-none flex justify-between items-center text-gray-700 dark:text-gray-300">
+                <span class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                    巨集執行步驟日誌 (Macro Execution Step Logs)
+                </span>
+                <button id="btnClearLogs" class="text-xs text-red-500 hover:underline font-normal">🧹 清除日誌</button>
+            </summary>
+            <div id="logContainer" class="p-3 max-h-48 overflow-y-auto font-mono text-xs bg-gray-50 dark:bg-[#090d13] space-y-2 border-t border-gray-200 dark:border-gray-800">
+                <div class="text-gray-400 italic text-center py-2">巨集步驟執行紀錄將顯示於此...</div>
+            </div>
+        </details>
+    </section>
+
+    <!-- 頁尾狀態列 -->
+    <footer class="bg-gray-200 dark:bg-gray-800 p-2 px-4 text-xs flex justify-between items-center text-gray-600 dark:text-gray-400 border-t border-gray-300 dark:border-gray-700">
+        <div id="statusMessage" class="font-mono">準備就緒</div>
+        <div class="flex gap-4 font-mono">
+            <span id="charCount">長度: 0</span>
+            <span id="matchCount" class="text-blue-600 dark:text-blue-400 font-bold">匹配項: 0</span>
+            <span id="macroStepCount" class="text-purple-600 dark:text-purple-400 font-bold">巨集步數: 0</span>
+        </div>
+    </footer>
+
+    <!-- JavaScript 邏輯系統 -->
+    <script>
+        const els = {
+            input: document.getElementById('inputArea'),
+            output: document.getElementById('outputArea'),
+            visualizer: document.getElementById('visualizerArea'),
+            search: document.getElementById('searchInput'),
+            replace: document.getElementById('replaceInput'),
+            chkCase: document.getElementById('chkMatchCase'),
+            chkRegEx: document.getElementById('chkRegEx'),
+            chkVis: document.getElementById('chkVisualize'),
+            macroInput: document.getElementById('macroInput'),
+            chkMacroCase: document.getElementById('chkMacroCase'),
+            chkMacroRegEx: document.getElementById('chkMacroRegEx'),
+            logContainer: document.getElementById('logContainer'),
+            status: document.getElementById('statusMessage'),
+            charCount: document.getElementById('charCount'),
+            matchCount: document.getElementById('matchCount'),
+            macroStepCount: document.getElementById('macroStepCount'),
+            workspace: document.getElementById('workspace')
+        };
+
+        let searchMatches = [];
+        let currentMatchIdx = -1;
+
+        // 巨集執行狀態
+        let macroState = {
+            currentText: "",
+            rules: [],
+            isHalted: false,
+            stepCount: 0,
+            batchRuleIndex: 0,
+            MAX_STEPS: 1000
+        };
+
+        // --- HTML 轉義公用函式 ---
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function formatForLog(str) {
+            if (!str) return '<em>(空字串)</em>';
+            return escapeHtml(str)
+                .replace(/
+/g, '<span class="text-red-400 font-bold">\n</span>')
+                .replace(/	/g, '<span class="text-yellow-400 font-bold">\t</span>');
+        }
+
+        function appendLog(html) {
+            if (els.logContainer.children.length === 1 && els.logContainer.children[0].classList.contains('italic')) {
+                els.logContainer.innerHTML = '';
+            }
+            const entry = document.createElement('div');
+            entry.className = 'border-b border-gray-200 dark:border-gray-800 pb-1.5 mb-1.5 last:border-none last:mb-0';
+            entry.innerHTML = html;
+            els.logContainer.appendChild(entry);
+            els.logContainer.scrollTop = els.logContainer.scrollHeight;
+        }
+
+        // --- 核心：更新搜尋狀態 (單一搜尋) ---
+        function updateSearchStatus() {
+            const text = els.input.value;
+            const query = els.search.value;
+            els.charCount.textContent = `長度: ${text.length}`;
+            searchMatches = [];
+            currentMatchIdx = -1;
+
+            if (!query) {
+                els.matchCount.textContent = `匹配項: 0`;
+                els.status.textContent = '就緒';
+                return;
+            }
+
+            try {
+                if (els.chkRegEx.checked) {
+                    const flags = els.chkCase.checked ? 'g' : 'gi';
+                    const iterFlags = flags.includes('g') ? flags : flags + 'g';
+                    const regex = new RegExp(query, iterFlags);
+                    let match;
+                    while ((match = regex.exec(text)) !== null) {
+                        if (match.index === regex.lastIndex) regex.lastIndex++;
+                        searchMatches.push({ start: match.index, end: match.index + match[0].length });
+                    }
+                } else {
+                    const searchStr = els.chkCase.checked ? query : query.toLowerCase();
+                    const targetStr = els.chkCase.checked ? text : text.toLowerCase();
+                    let pos = 0;
+                    while ((pos = targetStr.indexOf(searchStr, pos)) !== -1) {
+                        searchMatches.push({ start: pos, end: pos + searchStr.length });
+                        pos += searchStr.length;
+                    }
+                }
+
+                els.matchCount.textContent = `匹配項: ${searchMatches.length}`;
+                if (searchMatches.length > 0) {
+                    els.status.textContent = `找到 ${searchMatches.length} 個匹配項`;
+                } else {
+                    els.status.textContent = `無符合結果`;
+                }
+            } catch (e) {
+                els.matchCount.textContent = `匹配項: 錯誤`;
+                els.status.textContent = `語法錯誤: ${e.message}`;
+            }
+        }
+
+        // --- 精準高亮與定位 ---
+        function focusCurrentMatch() {
+            if (searchMatches.length === 0) return;
+            if (currentMatchIdx < 0 || currentMatchIdx >= searchMatches.length) currentMatchIdx = 0;
+            
+            const match = searchMatches[currentMatchIdx];
+            els.input.focus();
+            els.input.setSelectionRange(match.start, match.end);
+            
+            const ratio = match.start / (els.input.value.length || 1);
+            els.input.scrollTop = (ratio * els.input.scrollHeight) - (els.input.clientHeight / 2);
+            
+            els.status.textContent = `定位: 第 ${currentMatchIdx + 1} / ${searchMatches.length} 個匹配項`;
+        }
+
+        // --- 找下一個 ---
+        document.getElementById('btnFindNext').addEventListener('click', () => {
+            if (searchMatches.length === 0) return;
+            const cursor = els.input.selectionStart;
+            const exactMatchIdx = searchMatches.findIndex(m => m.start === cursor);
+            if (exactMatchIdx !== -1) {
+                currentMatchIdx = (exactMatchIdx + 1) % searchMatches.length;
+            } else {
+                const nextIdx = searchMatches.findIndex(m => m.start > cursor);
+                currentMatchIdx = (nextIdx !== -1) ? nextIdx : 0;
+            }
+            focusCurrentMatch();
+        });
+
+        // --- 單一取代 ---
+        document.getElementById('btnReplaceSingle').addEventListener('click', () => {
+            if (searchMatches.length === 0) return;
+            if (currentMatchIdx < 0) currentMatchIdx = 0;
+            
+            const match = searchMatches[currentMatchIdx];
+            const text = els.input.value;
+            const query = els.search.value;
+            const replaceWith = els.replace.value;
+            
+            let actualReplaceStr = replaceWith;
+            if (els.chkRegEx.checked) {
+                const flags = els.chkCase.checked ? '' : 'i';
+                const regex = new RegExp(query, flags);
+                const matchedText = text.substring(match.start, match.end);
+                actualReplaceStr = matchedText.replace(regex, replaceWith);
+            }
+            
+            els.input.value = text.substring(0, match.start) + actualReplaceStr + text.substring(match.end);
+            
+            const newCursorPos = match.start + actualReplaceStr.length;
+            els.input.selectionStart = newCursorPos;
+            els.input.selectionEnd = newCursorPos;
+
+            syncToOutput();
+            updateSearchStatus();
+            
+            if (searchMatches.length > 0) {
+                let nextIdx = searchMatches.findIndex(m => m.start >= newCursorPos);
+                currentMatchIdx = (nextIdx !== -1) ? nextIdx : 0;
+                focusCurrentMatch();
+            } else {
+                els.status.textContent = '已無更多匹配項';
+            }
+        });
+
+        // --- 全部取代 ---
+        document.getElementById('btnReplaceAll').addEventListener('click', () => {
+            const text = els.input.value;
+            const query = els.search.value;
+            const replaceWith = els.replace.value;
+            if (!query) return;
+
+            try {
+                let resultText = '';
+                if (els.chkRegEx.checked) {
+                    const flags = els.chkCase.checked ? 'g' : 'gi';
+                    const regex = new RegExp(query, flags);
+                    resultText = text.replace(regex, replaceWith);
+                } else {
+                    if (els.chkCase.checked) {
+                        resultText = text.split(query).join(replaceWith);
+                    } else {
+                        const escapedQuery = query.replace(/[.*+?^${}()|[\]\]/g, '\$&');
+                        const regex = new RegExp(escapedQuery, 'gi');
+                        resultText = text.replace(regex, replaceWith);
+                    }
+                }
+                els.input.value = resultText;
+                syncToOutput();
+                updateSearchStatus();
+                els.status.textContent = '全部取代完成！';
+            } catch (e) {
+                alert('取代失敗：' + e.message);
+            }
+        });
+
+        function syncToOutput() {
+            els.output.value = els.input.value;
+            if (els.chkVis.checked) updateVisualizer(els.output.value);
+        }
+
+        // --- 進階快捷處理 ---
+        document.getElementById('btnEscapeToReal').addEventListener('click', () => {
+            els.input.value = els.input.value.replace(/\n/g, '
+').replace(/\t/g, '	').replace(/\r/g, '
+').replace(/\\/g, '\');
+            syncToOutput(); updateSearchStatus();
+            els.status.textContent = '轉換完成：字面跳脫 ➜ 實際字元';
+        });
+
+        document.getElementById('btnRealToEscape').addEventListener('click', () => {
+            els.input.value = els.input.value.replace(/\/g, '\\').replace(/
+/g, '\n').replace(/	/g, '\t').replace(/
+/g, '\r');
+            syncToOutput(); updateSearchStatus();
+            els.status.textContent = '轉換完成：實際字元 ➜ 字面跳脫';
+        });
+
+        document.getElementById('btnStripHidden').addEventListener('click', () => {
+            const originalLength = els.input.value.length;
+            els.input.value = els.input.value.replace(/[​‌‍﻿ ]/g, '');
+            syncToOutput(); updateSearchStatus();
+            els.status.textContent = `清理完成！共移除 ${originalLength - els.input.value.length} 個隱形字元。`;
+        });
+
+        // --- 不可見字元視覺化 ---
+        function updateVisualizer(textTarget) {
+            if (!els.chkVis.checked) return;
+            let html = escapeHtml(textTarget);
+            html = html.replace(/ /g, '<span class="vis-space">·</span>')
+                       .replace(/	/g, '<span class="vis-tab">→	</span>')
+                       .replace(/
+/g, '<span class="vis-newline">↵</span>
+')
+                       .replace(/[​]/g, '<span class="vis-hidden">ZWSP</span>')
+                       .replace(/[﻿]/g, '<span class="vis-hidden">BOM</span>')
+                       .replace(/[ ]/g, '<span class="vis-hidden">NBSP</span>');
+            els.visualizer.innerHTML = html;
+        }
+
+        els.chkVis.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                els.output.classList.add('hidden');
+                els.visualizer.classList.remove('hidden');
+                els.output.value = els.output.value || els.input.value;
+                updateVisualizer(els.output.value);
+            } else {
+                els.output.classList.remove('hidden');
+                els.visualizer.classList.add('hidden');
+            }
+        });
+
+        // ==========================================
+        // 巨集多行指令引擎 (Macro Instruction Engine)
+        // ==========================================
+
+        // 解析巨集欄 (巨集欄內專屬轉義 
+, 	, \=, \)
+        function parseMacroRules() {
+            const rawText = els.macroInput.value;
+            const lines = rawText.split(/
+?
+/);
+            const rules = [];
+
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i].trim();
+                if (!line || line.startsWith('#') || line.startsWith('//')) continue;
+
+                // 尋找未經反斜線轉義的 '=' 分隔符號
+                let splitIdx = -1;
+                for (let j = 0; j < line.length; j++) {
+                    if (line[j] === '=' && (j === 0 || line[j - 1] !== '\')) {
+                        splitIdx = j;
+                        break;
+                    }
+                }
+
+                if (splitIdx === -1) continue;
+
+                let leftRaw = line.substring(0, splitIdx);
+                let rightRaw = line.substring(splitIdx + 1);
+
+                let isReturn = false;
+                if (rightRaw.startsWith('(return)')) {
+                    isReturn = true;
+                    rightRaw = rightRaw.substring(8); // 移除 '(return)'
+                }
+
+                // 將巨集欄內的字面 
+, 	, \=, \ 解析為實際字元
+                const unescapeMacroStr = (str) => {
+                    return str
+                        .replace(/\n/g, '
+')
+                        .replace(/\t/g, '	')
+                        .replace(/\=/g, '=')
+                        .replace(/\\/g, '\');
+                };
+
+                const left = unescapeMacroStr(leftRaw);
+                const right = unescapeMacroStr(rightRaw);
+
+                rules.push({
+                    left,
+                    right,
+                    original: line,
+                    isReturn,
+                    lineNo: i + 1
+                });
+            }
+            return rules;
+        }
+
+        function resetMacro() {
+            macroState.currentText = els.input.value;
+            macroState.rules = parseMacroRules();
+            macroState.isHalted = false;
+            macroState.stepCount = 0;
+            macroState.batchRuleIndex = 0;
+
+            els.macroStepCount.textContent = '巨集步數: 0';
+            els.logContainer.innerHTML = '';
+            appendLog(`<span class="log-success">巨集狀態已重置。規則數: ${macroState.rules.length} 條。</span>`);
+            els.status.textContent = '巨集重置完成';
+        }
+
+        // 執行單步巨集 (A=B 模式 或 批次順序模式)
+        function stepMacro() {
+            if (macroState.rules.length === 0) {
+                macroState.rules = parseMacroRules();
+            }
+
+            if (macroState.rules.length === 0) {
+                appendLog(`<span class="log-halted">錯誤：未檢測到有效巨集指令（請在巨集欄輸入「尋找=取代」格式）。</span>`);
+                return false;
+            }
+
+            if (macroState.isHalted) {
+                appendLog(`<span class="log-halted">巨集已終止，請點擊「重置」後重新執行。</span>`);
+                return false;
+            }
+
+            const isCase = els.chkMacroCase.checked;
+            const isRegEx = els.chkMacroRegEx.checked;
+            const mode = document.querySelector('input[name="macroMode"]:checked').value;
+
+            if (mode === 'ab') {
+                // A=B 邏輯模式：每次從頭掃描第 1 條匹配規則並套用一次
+                for (let i = 0; i < macroState.rules.length; i++) {
+                    const rule = macroState.rules[i];
+                    if (!rule.left) continue;
+
+                    let matchIndex = -1;
+                    let matchLength = 0;
+                    let replacementStr = rule.right;
+
+                    if (isRegEx) {
+                        try {
+                            const flags = isCase ? '' : 'i';
+                            const regex = new RegExp(rule.left, flags);
+                            const match = regex.exec(macroState.currentText);
+                            if (match) {
+                                matchIndex = match.index;
+                                matchLength = match[0].length;
+                                replacementStr = match[0].replace(regex, rule.right);
+                            }
+                        } catch (e) {
+                            appendLog(`<span class="log-halted">列 ${rule.lineNo} RegEx 錯誤: ${escapeHtml(e.message)}</span>`);
+                            macroState.isHalted = true;
+                            return false;
+                        }
+                    } else {
+                        const searchStr = isCase ? rule.left : rule.left.toLowerCase();
+                        const targetStr = isCase ? macroState.currentText : macroState.currentText.toLowerCase();
+                        matchIndex = targetStr.indexOf(searchStr);
+                        matchLength = rule.left.length;
+                    }
+
+                    if (matchIndex !== -1) {
+                        macroState.currentText = macroState.currentText.substring(0, matchIndex) + 
+                                                 replacementStr + 
+                                                 macroState.currentText.substring(matchIndex + matchLength);
+                        
+                        macroState.stepCount++;
+                        els.macroStepCount.textContent = `巨集步數: ${macroState.stepCount}`;
+
+                        let logMsg = `[Step ${macroState.stepCount}] <span class="rule-applied">觸發規則 (列 ${rule.lineNo}): ${escapeHtml(rule.original)}</span><br>結果: <span class="log-highlight">${formatForLog(macroState.currentText)}</span>`;
+
+                        if (rule.isReturn) {
+                            macroState.isHalted = true;
+                            logMsg += `<br><span class="log-halted">觸發 (return) 指令，巨集終止。</span>`;
+                        }
+
+                        appendLog(logMsg);
+                        syncMacroToOutput();
+                        return true;
+                    }
+                }
+
+                // 若所有規則均未匹配
+                macroState.isHalted = true;
+                appendLog(`<span class="log-success">巨集執行完畢，無符合規則可套用。</span>`);
+                return false;
+
+            } else {
+                // 批次順序套用模式：依序對第 batchRuleIndex 條規則進行全字串取代
+                if (macroState.batchRuleIndex >= macroState.rules.length) {
+                    macroState.isHalted = true;
+                    appendLog(`<span class="log-success">批次巨集全部規則執行完畢！</span>`);
+                    return false;
+                }
+
+                const rule = macroState.rules[macroState.batchRuleIndex];
+                let prevText = macroState.currentText;
+
+                try {
+                    if (isRegEx) {
+                        const flags = isCase ? 'g' : 'gi';
+                        const regex = new RegExp(rule.left, flags);
+                        macroState.currentText = macroState.currentText.replace(regex, rule.right);
+                    } else {
+                        if (isCase) {
+                            macroState.currentText = macroState.currentText.split(rule.left).join(rule.right);
+                        } else {
+                            const escapedQuery = rule.left.replace(/[.*+?^${}()|[\]\]/g, '\$&');
+                            const regex = new RegExp(escapedQuery, 'gi');
+                            macroState.currentText = macroState.currentText.replace(regex, rule.right);
+                        }
+                    }
+                } catch (e) {
+                    appendLog(`<span class="log-halted">列 ${rule.lineNo} 批次取代錯誤: ${escapeHtml(e.message)}</span>`);
+                    macroState.isHalted = true;
+                    return false;
+                }
+
+                macroState.stepCount++;
+                macroState.batchRuleIndex++;
+                els.macroStepCount.textContent = `巨集步數: ${macroState.stepCount}`;
+
+                const changed = (prevText !== macroState.currentText);
+                let logMsg = `[Step ${macroState.stepCount}] <span class="rule-applied">批次套用 (列 ${rule.lineNo}): ${escapeHtml(rule.original)}</span> (${changed ? '已變更' : '無符合'})<br>結果: <span class="log-highlight">${formatForLog(macroState.currentText)}</span>`;
+
+                if (rule.isReturn) {
+                    macroState.isHalted = true;
+                    logMsg += `<br><span class="log-halted">觸發 (return) 指令，批次終止。</span>`;
+                }
+
+                appendLog(logMsg);
+                syncMacroToOutput();
+                return true;
+            }
+        }
+
+        function runAllMacro() {
+            if (macroState.rules.length === 0 || macroState.stepCount === 0) {
+                resetMacro();
+            }
+
+            if (macroState.isHalted) {
+                appendLog(`<span class="log-halted">已處於終止狀態，請點擊「重置」後重新執行。</span>`);
+                return;
+            }
+
+            let runs = 0;
+            while (!macroState.isHalted && macroState.stepCount < macroState.MAX_STEPS) {
+                const hasExecuted = stepMacro();
+                if (!hasExecuted) break;
+                runs++;
+            }
+
+            if (macroState.stepCount >= macroState.MAX_STEPS) {
+                macroState.isHalted = true;
+                appendLog(`<span class="log-halted">警告：達到最大執行步數限制 (${macroState.MAX_STEPS})，防止無限迴圈，已強制停止。</span>`);
+            }
+        }
+
+        function syncMacroToOutput() {
+            els.output.value = macroState.currentText;
+            if (els.chkVis.checked) updateVisualizer(els.output.value);
+            els.status.textContent = `巨集更新完成 (步數: ${macroState.stepCount})`;
+        }
+
+        // --- 綁定巨集按鈕 ---
+        document.getElementById('btnRunMacro').addEventListener('click', runAllMacro);
+        document.getElementById('btnStepMacro').addEventListener('click', stepMacro);
+        document.getElementById('btnResetMacro').addEventListener('click', resetMacro);
+        
+        document.getElementById('btnClearMacro').addEventListener('click', () => {
+            els.macroInput.value = '';
+            resetMacro();
+        });
+
+        document.getElementById('btnLoadMacroSample').addEventListener('click', () => {
+            els.macroInput.value = `# 範例 1: 文字汱換與轉義符號範例 (巨集欄特有 \n 與 \t)
+hello=\tHi
+apple=banana
+\n=, 
+
+# 範例 2: 條件終止 (return) 範例
+# stop=(return)END`;
+
+            els.input.value = `hello world
+apple pie
+banana smoothie
+stop processing`;
+
+            updateSearchStatus();
+            resetMacro();
+            els.status.textContent = '已載入巨集範例與測試文字';
+        });
+
+        document.getElementById('btnApplyOutToIn').addEventListener('click', () => {
+            if (els.output.value) {
+                els.input.value = els.output.value;
+                updateSearchStatus();
+                resetMacro();
+                els.status.textContent = '已將處理結果 (Output) 套用至輸入區 (Input)';
+            }
+        });
+
+        document.getElementById('btnClearLogs').addEventListener('click', () => {
+            els.logContainer.innerHTML = '<div class="text-gray-400 italic text-center py-2">日誌已清空...</div>';
+        });
+
+        // --- 佈局與主題切換 ---
+        let isRowLayout = true;
+        document.getElementById('btnLayout').addEventListener('click', () => {
+            isRowLayout = !isRowLayout;
+            els.workspace.className = isRowLayout 
+                ? "flex-1 flex flex-col md:flex-row p-4 gap-4 overflow-hidden" 
+                : "flex-1 flex flex-col p-4 gap-4 overflow-hidden";
+        });
+
+        document.getElementById('btnTheme').addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+        });
+
+        // --- 剪貼簿按鈕 ---
+        document.getElementById('btnCopyIn').addEventListener('click', () => {
+            navigator.clipboard.writeText(els.input.value).then(() => els.status.textContent = '輸入區內容已複製！');
+        });
+
+        document.getElementById('btnCopyOut').addEventListener('click', () => {
+            const textToCopy = els.output.value || els.input.value;
+            navigator.clipboard.writeText(textToCopy).then(() => els.status.textContent = '輸出結果已複製！');
+        });
+
+        document.getElementById('btnPaste').addEventListener('click', async () => {
+            try {
+                els.input.value = await navigator.clipboard.readText();
+                updateSearchStatus();
+                resetMacro();
+            } catch (err) {
+                alert('請手動貼上 (Ctrl+V)');
+            }
+        });
+
+        document.getElementById('btnClearIn').addEventListener('click', () => {
+            els.input.value = '';
+            updateSearchStatus();
+            resetMacro();
+        });
+
+        document.getElementById('btnClearOut').addEventListener('click', () => {
+            els.output.value = '';
+            els.visualizer.innerHTML = '';
+        });
+
+        // --- 監聽即時變動 ---
+        els.input.addEventListener('input', () => {
+            updateSearchStatus();
+            macroState.currentText = els.input.value;
+        });
+
+        els.search.addEventListener('input', updateSearchStatus);
+        els.replace.addEventListener('input', updateSearchStatus);
+        els.chkCase.addEventListener('change', updateSearchStatus);
+        els.chkRegEx.addEventListener('change', updateSearchStatus);
+
+        // 初始初始化
+        updateSearchStatus();
+    </script>
+</body>
+</html>
