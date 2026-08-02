@@ -97,3 +97,5 @@
 [text2token](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/text2token.html)
 
 [metaTags](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/metaTags.html)
+
+[兩個 text_macro_processing_tool.html 檔案格式屬性對比](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/z9A3YrmEfq5A24D5-08-02.html)
