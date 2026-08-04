@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-bs-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Markdown to HTML Converter (Fixed & Optimized)</title>
+  <!-- Bootstrap 5 CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <!-- Marked.js (Fixed Version) -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
+  <!-- DOMPurify for XSS Protection -->
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+  <style>
+    .textarea-container {
+      height: 300px;
+    }
+
+    textarea {
+      height: 100%;
+      resize: none;
+      font-family: monospace;
+    }
+
+    #preview-container {
+      border: 1px solid var(--bs-border-color);
+      border-radius: 0.375rem;
+      padding: 1rem;
+      margin-top: 0.5rem;
+      height: 300px;
+      overflow-y: auto;
+      background-color: var(--bs-body-bg);
+    }
+
+    #select-all-btn,
+    #copy-preview-btn {
+      margin-right: 10px;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: bold;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container-fluid my-4 max-w-1200">
+    <h1 class="text-center mb-4">Markdown ➔ HTML 轉換工具 (修正優化版)</h1>
+    <div class="row">
+      <!-- Left Column: Markdown Input -->
+      <div class="col-md-6 mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <label for="markdown-input" class="form-label fw-bold mb-0">Markdown 輸入</label>
+          <div>
+            <button class="btn btn-sm btn-secondary me-1" onclick="pasteMarkdown()">貼上</button>
+            <button class="btn btn-sm btn-outline-danger" onclick="clearText('markdown-input')">清空</button>
+          </div>
+        </div>
+        <div class="textarea-container">
+          <textarea id="markdown-input" class="form-control" placeholder="在此輸入 Markdown 文字..."></textarea>
+        </div>
+      </div>
+
+      <!-- Right Column: HTML Output -->
+      <div class="col-md-6 mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <label for="html-output" class="form-label fw-bold mb-0">HTML 輸出</label>
+          <div>
+            <button class="btn btn-sm btn-secondary me-1" onclick="copyHtml()">複製 HTML</button>
+            <button class="btn btn-sm btn-outline-danger" onclick="clearText('html-output')">清空</button>
+          </div>
+        </div>
+        <div class="textarea-container">
+          <textarea id="html-output" class="form-control" placeholder="HTML 輸出結果..." readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Convert Button -->
+    <div class="text-center mt-2 mb-4">
+      <button id="convert-btn" class="btn btn-primary px-4 fw-bold">手動轉換</button>
+    </div>
+
+    <!-- Live Preview -->
+    <div class="mt-4">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h4 class="mb-0">即時預覽 (Live Preview)</h4>
+        <button class="btn btn-sm btn-secondary" onclick="updatePreview()">重新整理預覽</button>
+      </div>
+      <div id="preview-container" role="region" aria-label="Markdown 即時預覽"></div>
+    </div>
+
+    <!-- Bottom Actions -->
+    <div class="mt-3">
+      <button id="select-all-btn" class="btn btn-secondary" onclick="selectAllText('preview-container')">全選預覽</button>
+      <button id="copy-preview-btn" class="btn btn-secondary" onclick="copyPreviewText()">複製預覽純文字</button>
+    </div>
+  </div>
+
+  <script>
+    const markdownInput = document.getElementById('markdown-input');
+    const htmlOutput = document.getElementById('html-output');
+    const previewContainer = document.getElementById('preview-container');
+    const convertBtn = document.getElementById('convert-btn');
+
+    let debounceTimer = null;
+
+    function convertMarkdown() {
+      try {
+        const markdown = markdownInput.value;
+        if (typeof marked !== 'undefined' && marked.parse) {
+          const html = marked.parse(markdown);
+          htmlOutput.value = html;
+        } else {
+          htmlOutput.value = '錯誤：marked 轉換庫未成功載入。';
+        }
+        updatePreview();
+      } catch (err) {
+        console.error('Markdown 轉換錯誤:', err);
+        htmlOutput.value = '轉換過程發生錯誤，請檢查輸入內容。';
+      }
+    }
+
+    function updatePreview() {
+      if (typeof DOMPurify !== 'undefined') {
+        previewContainer.innerHTML = DOMPurify.sanitize(htmlOutput.value);
+      } else {
+        previewContainer.innerHTML = htmlOutput.value;
+      }
+    }
+
+    function clearText(elementId) {
+      if (elementId === 'markdown-input') {
+        markdownInput.value = '';
+        htmlOutput.value = '';
+        previewContainer.innerHTML = '';
+      } else if (elementId === 'html-output') {
+        htmlOutput.value = '';
+        previewContainer.innerHTML = '';
+      }
+    }
+
+    async function pasteMarkdown() {
+      if (!navigator.clipboard || !navigator.clipboard.readText) {
+        alert('您的瀏覽器或安全性設定（非 HTTPS）不支援自動貼上，請使用 Ctrl+V / Cmd+V 貼上。');
+        return;
+      }
+      try {
+        const text = await navigator.clipboard.readText();
+        markdownInput.value = text;
+        convertMarkdown();
+      } catch (err) {
+        console.error('無法讀取剪貼簿:', err);
+        alert('無法讀取剪貼簿內容，請確認瀏覽器已授予剪貼簿存取權限。');
+      }
+    }
+
+    async function copyHtml() {
+      if (!navigator.clipboard || !navigator.clipboard.writeText) {
+        alert('您的瀏覽器不支援自動複製，請手動全選 HTML 框複製。');
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(htmlOutput.value);
+        alert('HTML 已成功複製到剪貼簿！');
+      } catch (err) {
+        console.error('複製失敗:', err);
+        alert('複製失敗，請手動複製。');
+      }
+    }
+
+    function selectAllText(elementId) {
+      const element = document.getElementById(elementId);
+      if (element) {
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    }
+
+    async function copyPreviewText() {
+      const text = previewContainer.innerText;
+      if (!navigator.clipboard || !navigator.clipboard.writeText) {
+        alert('您的瀏覽器不支援自動複製，請手動全選預覽內容複製。');
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(text);
+        alert('預覽純文字已成功複製到剪貼簿！');
+      } catch (err) {
+        console.error('複製失敗:', err);
+        alert('複製失敗，請手動複製。');
+      }
+    }
+
+    // Event Listeners with Debounce for Performance
+    convertBtn.addEventListener('click', convertMarkdown);
+    markdownInput.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(convertMarkdown, 250);
+    });
+  </script>
+</body>
+
+</html>
