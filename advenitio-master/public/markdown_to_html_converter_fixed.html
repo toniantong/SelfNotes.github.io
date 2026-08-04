@@ -54,6 +54,7 @@
           <label for="markdown-input" class="form-label fw-bold mb-0">Markdown 輸入</label>
           <div>
             <button class="btn btn-sm btn-secondary me-1" onclick="pasteMarkdown()">貼上</button>
+            <button class="btn btn-sm btn-secondary me-1" onclick="selectAllTextarea('markdown-input')">全選</button>
             <button class="btn btn-sm btn-outline-danger" onclick="clearText('markdown-input')">清空</button>
           </div>
         </div>
@@ -68,6 +69,7 @@
           <label for="html-output" class="form-label fw-bold mb-0">HTML 輸出</label>
           <div>
             <button class="btn btn-sm btn-secondary me-1" onclick="copyHtml()">複製 HTML</button>
+            <button class="btn btn-sm btn-secondary me-1" onclick="selectAllTextarea('markdown-output')">全選</button>
             <button class="btn btn-sm btn-outline-danger" onclick="clearText('html-output')">清空</button>
           </div>
         </div>
@@ -140,8 +142,17 @@
         previewContainer.innerHTML = '';
       }
     }
+        // === 新增：針對 <textarea> 的全選功能 ===
+        function selectAllTextarea(elementId) {
+            const textarea = document.getElementById(elementId);
+            if (textarea) {
+                textarea.select();
+                // 可選：給予短暫視覺回饋 (聚焦)
+                textarea.focus();
+            }
+        }
 
-    async function pasteMarkdown() {
+          async function pasteMarkdown() {
       if (!navigator.clipboard || !navigator.clipboard.readText) {
         alert('您的瀏覽器或安全性設定（非 HTTPS）不支援自動貼上，請使用 Ctrl+V / Cmd+V 貼上。');
         return;
