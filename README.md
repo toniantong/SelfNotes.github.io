@@ -106,4 +106,4 @@
 
 [html 轉至 markdown 工具](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/html_to_markdown_converter_offline.html)
 
-[qrcode_generator.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/[qrcode_generator.html)
+[qrcode_generator.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/qrcode_generator.html)
