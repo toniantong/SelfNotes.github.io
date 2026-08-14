@@ -2,1911 +2,1419 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>若循環 (WHILE) 程式語言 - 靜態除錯模擬器</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>多功能文字生成與輸出處理工具</title>
   <style>
-/* Modern Responsive Dark/Light Theme for WHILE Language Debugger */
-
-:root {
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --bg-tertiary: #334155;
-  --bg-editor: #090d16;
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --border-color: #334155;
-  --accent-primary: #6366f1;
-  --accent-hover: #4f46e5;
-  --accent-light: rgba(99, 102, 241, 0.15);
-  --success-color: #10b981;
-  --warning-color: #f59e0b;
-  --danger-color: #ef4444;
-  --active-line-bg: rgba(245, 158, 11, 0.25);
-  --active-line-border: #f59e0b;
-  --breakpoint-color: #ef4444;
-  --font-sans: 'PingFang TC', 'Microsoft JhengHei', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'Fira Code', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.4);
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-}
-
-[data-theme="light"] {
-  --bg-primary: #f1f5f9;
-  --bg-secondary: #ffffff;
-  --bg-tertiary: #e2e8f0;
-  --bg-editor: #f8fafc;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  --border-color: #cbd5e1;
-  --accent-primary: #4f46e5;
-  --accent-hover: #4338ca;
-  --accent-light: rgba(79, 70, 229, 0.1);
-  --active-line-bg: rgba(245, 158, 11, 0.2);
-  --active-line-border: #d97706;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
-  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  font-family: var(--font-sans);
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  line-height: 1.5;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  transition: background-color 0.3s, color 0.3s;
-}
-
-/* Header */
-.app-header {
-  background-color: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
-  padding: 12px 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: var(--shadow-sm);
-  z-index: 10;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.brand-icon {
-  font-size: 24px;
-  background: linear-gradient(135deg, #6366f1, #a855f7);
-  color: white;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-}
-
-.brand-title h1 {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.brand-title p {
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-/* Buttons & Inputs */
-.btn {
-  font-family: var(--font-sans);
-  font-size: 13px;
-  font-weight: 600;
-  padding: 8px 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-color);
-  background-color: var(--bg-tertiary);
-  color: var(--text-primary);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.2s ease;
-}
-
-.btn:hover:not(:disabled) {
-  background-color: var(--accent-primary);
-  color: white;
-  border-color: var(--accent-primary);
-}
-
-.btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.btn-primary {
-  background-color: var(--accent-primary);
-  color: white;
-  border-color: var(--accent-primary);
-}
-
-.btn-primary:hover:not(:disabled) {
-  background-color: var(--accent-hover);
-}
-
-.btn-danger {
-  background-color: rgba(239, 68, 68, 0.15);
-  color: var(--danger-color);
-  border-color: rgba(239, 68, 68, 0.3);
-}
-
-.btn-danger:hover:not(:disabled) {
-  background-color: var(--danger-color);
-  color: white;
-}
-
-.btn-icon-only {
-  padding: 8px;
-  border-radius: var(--radius-sm);
-}
-
-/* Debugger Toolbar */
-.control-bar {
-  background-color: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
-  padding: 10px 24px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.control-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.select-input {
-  font-family: var(--font-sans);
-  font-size: 13px;
-  padding: 7px 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-color);
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  outline: none;
-}
-
-.speed-control {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--text-secondary);
-  background-color: var(--bg-primary);
-  padding: 4px 10px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-color);
-}
-
-.speed-control input[type="range"] {
-  width: 90px;
-  accent-color: var(--accent-primary);
-}
-
-.status-pill {
-  font-size: 12px;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 20px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.status-ready { background-color: rgba(100, 116, 139, 0.2); color: var(--text-secondary); }
-.status-running { background-color: rgba(16, 185, 129, 0.2); color: var(--success-color); }
-.status-paused { background-color: rgba(245, 158, 11, 0.2); color: var(--warning-color); }
-.status-halted { background-color: rgba(99, 102, 241, 0.2); color: var(--accent-primary); }
-.status-error { background-color: rgba(239, 68, 68, 0.2); color: var(--danger-color); }
-
-.step-badge {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-secondary);
-  background-color: var(--bg-primary);
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-color);
-}
-
-/* Main Layout Grid */
-.main-container {
-  display: grid;
-  grid-template-columns: 1fr 420px;
-  flex: 1;
-  gap: 1px;
-  background-color: var(--border-color);
-  overflow: hidden;
-}
-
-@media (max-width: 960px) {
-  .main-container {
-    grid-template-columns: 1fr;
-    overflow-y: auto;
-  }
-}
-
-.editor-section {
-  background-color: var(--bg-secondary);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.panel-header {
-  padding: 10px 16px;
-  background-color: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
-  font-size: 13px;
-  font-weight: 600;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: var(--text-secondary);
-}
-
-.panel-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--text-primary);
-}
-
-/* Code Editor Component */
-.editor-wrapper {
-  flex: 1;
-  display: flex;
-  position: relative;
-  background-color: var(--bg-editor);
-  overflow: auto;
-  font-family: var(--font-mono);
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.editor-gutter {
-  width: 50px;
-  background-color: rgba(0, 0, 0, 0.2);
-  border-right: 1px solid var(--border-color);
-  user-select: none;
-  padding: 12px 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: var(--text-muted);
-}
-
-.line-number {
-  width: 100%;
-  height: 22.4px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 8px;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.line-number:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  color: var(--text-primary);
-}
-
-.breakpoint-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: transparent;
-  transition: all 0.2s;
-}
-
-.line-number.has-breakpoint .breakpoint-dot {
-  background-color: var(--breakpoint-color);
-  box-shadow: 0 0 8px var(--breakpoint-color);
-}
-
-.editor-area-container {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-}
-
-.editor-textarea {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  padding: 12px;
-  border: none;
-  outline: none;
-  resize: none;
-  background: transparent;
-  color: transparent;
-  caret-color: var(--text-primary);
-  font-family: var(--font-mono);
-  font-size: 14px;
-  line-height: 1.6;
-  white-space: pre;
-  overflow: auto;
-  z-index: 2;
-}
-
-.editor-display {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  padding: 12px;
-  font-family: var(--font-mono);
-  font-size: 14px;
-  line-height: 1.6;
-  white-space: pre;
-  pointer-events: none;
-  z-index: 1;
-  overflow: hidden;
-}
-
-.code-line {
-  height: 22.4px;
-  display: flex;
-  align-items: center;
-  padding: 0 4px;
-  border-radius: 3px;
-}
-
-.code-line.active-line {
-  background-color: var(--active-line-bg);
-  border-left: 3px solid var(--active-line-border);
-  box-shadow: inset 0 0 10px rgba(245, 158, 11, 0.1);
-  font-weight: 600;
-}
-
-/* Syntax Highlighting */
-.kw-while { color: #f43f5e; font-weight: bold; }
-.kw-if { color: #3b82f6; font-weight: bold; }
-.kw-do { color: #a855f7; font-weight: bold; }
-.kw-print { color: #10b981; font-weight: bold; }
-.kw-assign { color: #ec4899; font-weight: bold; }
-.syn-number { color: #f59e0b; }
-.syn-string { color: #10b981; }
-.syn-comment { color: #64748b; font-style: italic; }
-.syn-var { color: #38bdf8; }
-
-/* Side Panels */
-.side-section {
-  background-color: var(--bg-primary);
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  overflow: auto;
-}
-
-.side-panel {
-  background-color: var(--bg-secondary);
-  display: flex;
-  flex-direction: column;
-  min-height: 200px;
-}
-
-.side-panel-body {
-  padding: 12px;
-  flex: 1;
-  overflow-y: auto;
-}
-
-/* Watch Table */
-.watch-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-.watch-table th {
-  text-align: left;
-  padding: 8px 10px;
-  background-color: var(--bg-primary);
-  color: var(--text-secondary);
-  font-weight: 600;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.watch-table td {
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--border-color);
-  font-family: var(--font-mono);
-}
-
-.watch-table tr.var-updated {
-  animation: highlightFlash 1s ease-out;
-}
-
-@keyframes highlightFlash {
-  0% { background-color: rgba(16, 185, 129, 0.3); }
-  100% { background-color: transparent; }
-}
-
-.value-badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background-color: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  color: #38bdf8;
-  font-weight: 600;
-}
-
-.delta-badge {
-  font-size: 11px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background-color: rgba(16, 185, 129, 0.15);
-  color: var(--success-color);
-}
-
-/* Call Stack List */
-.stack-list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-}
-
-.stack-item {
-  padding: 8px 12px;
-  background-color: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-left: 3px solid var(--accent-primary);
-  border-radius: var(--radius-sm);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.stack-item.active {
-  border-left-color: var(--warning-color);
-  background-color: var(--accent-light);
-}
-
-/* Output Console */
-.console-box {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  background-color: var(--bg-editor);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  padding: 10px;
-  height: 150px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.console-line {
-  color: var(--text-primary);
-  white-space: pre-wrap;
-  word-break: break-all;
-}
-
-.console-error {
-  color: var(--danger-color);
-  background-color: rgba(239, 68, 68, 0.1);
-  padding: 4px 8px;
-  border-radius: 4px;
-  border-left: 3px solid var(--danger-color);
-}
-
-.console-info {
-  color: var(--text-muted);
-  font-style: italic;
-}
-
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s ease;
-}
-
-.modal-overlay.active {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.modal-card {
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  width: 90%;
-  max-width: 650px;
-  max-height: 85vh;
-  display: flex;
-  flex-direction: column;
-  box-shadow: var(--shadow-md);
-  overflow: hidden;
-}
-
-.modal-header {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-body {
-  padding: 20px;
-  overflow-y: auto;
-  font-size: 14px;
-  color: var(--text-secondary);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.syntax-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 8px;
-}
-
-.syntax-table th, .syntax-table td {
-  padding: 8px 12px;
-  border: 1px solid var(--border-color);
-  text-align: left;
-}
-
-.syntax-table th {
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-}
-
-code {
-  font-family: var(--font-mono);
-  background-color: var(--bg-primary);
-  padding: 2px 6px;
-  border-radius: 4px;
-  color: var(--accent-primary);
-}
-
-/* Quick Cheat Badges */
-.cheat-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 8px 16px;
-  background-color: var(--bg-primary);
-  border-top: 1px solid var(--border-color);
-  font-size: 12px;
-}
-
-.badge {
-  background-color: var(--bg-tertiary);
-  color: var(--text-secondary);
-  padding: 2px 8px;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.badge:hover {
-  background-color: var(--accent-primary);
-  color: white;
-}
+    :root {
+      --bg-body: #0b0f19;
+      --bg-card: #151d2e;
+      --bg-input: #080c14;
+      --bg-panel: #1a2337;
+      --border: #26334d;
+      --border-focus: #0ea5e9;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-label: #cbd5e1;
+      --primary: #0ea5e9;
+      --primary-hover: #0284c7;
+      --success: #10b981;
+      --success-hover: #059669;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --warning: #f59e0b;
+      --warning-hover: #d97706;
+      --purple: #8b5cf6;
+      --purple-hover: #7c3aed;
+      --slate: #334155;
+      --slate-hover: #475569;
+      --font-mono: "Fira Code", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans TC", Arial, sans-serif;
+      --radius: 8px;
+      --radius-lg: 12px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+    }
+
+    header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 0.85rem 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .brand h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: -0.01em;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 9999px;
+      background: rgba(14, 165, 233, 0.15);
+      color: var(--primary);
+      border: 1px solid rgba(14, 165, 233, 0.3);
+      font-weight: 600;
+    }
+
+    .header-status {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    main {
+      flex: 1;
+      padding: 1rem;
+      max-width: 1600px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 992px) {
+      main {
+        grid-template-columns: 1fr 1fr;
+      }
+      .col-span-2 {
+        grid-column: span 2;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1rem;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.65rem;
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--text-main);
+    }
+
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      align-items: center;
+    }
+
+    button, .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      padding: 0.45rem 0.75rem;
+      font-size: 0.825rem;
+      font-weight: 500;
+      border-radius: var(--radius);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+
+    .btn-secondary { background: var(--slate); color: var(--text-main); border-color: var(--border); }
+    .btn-secondary:hover { background: var(--slate-hover); }
+
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-success:hover { background: var(--success-hover); }
+
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-danger:hover { background: var(--danger-hover); }
+
+    .btn-warning { background: var(--warning); color: #fff; }
+    .btn-warning:hover { background: var(--warning-hover); }
+
+    .btn-purple { background: var(--purple); color: #fff; }
+    .btn-purple:hover { background: var(--purple-hover); }
+
+    .btn-sm {
+      padding: 0.35rem 0.55rem;
+      font-size: 0.775rem;
+    }
+
+    textarea, input[type="text"], input[type="number"], select {
+      background: var(--bg-input);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.55rem 0.7rem;
+      font-size: 0.875rem;
+      font-family: inherit;
+      transition: border-color 0.15s ease;
+      width: 100%;
+    }
+
+    textarea:focus, input:focus, select:focus {
+      outline: none;
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 1px var(--border-focus);
+    }
+
+    textarea {
+      font-family: var(--font-mono);
+      min-height: 200px;
+      resize: vertical;
+      line-height: 1.45;
+      tab-size: 2;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.775rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      padding-top: 0.2rem;
+    }
+
+    .tabs-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      background: var(--bg-body);
+      padding: 0.35rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      flex: 1;
+      min-width: 120px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.85rem;
+      border-radius: var(--radius);
+      background: transparent;
+      color: var(--text-muted);
+      border: none;
+      font-weight: 500;
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .tab-pane {
+      display: none;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .tab-pane.active {
+      display: flex;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 0.65rem;
+      align-items: flex-end;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .form-group label {
+      font-size: 0.775rem;
+      font-weight: 500;
+      color: var(--text-label);
+    }
+
+    .form-check {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      cursor: pointer;
+      font-size: 0.825rem;
+      color: var(--text-main);
+      user-select: none;
+      padding: 0.25rem 0;
+    }
+
+    .form-check input[type="checkbox"] {
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+      accent-color: var(--primary);
+    }
+
+    .panel-box {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .panel-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .preview-box {
+      display: none;
+      background: #ffffff;
+      color: #0f172a;
+      border-radius: var(--radius);
+      padding: 1rem;
+      min-height: 140px;
+      max-height: 360px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      font-family: var(--font-sans);
+    }
+
+    .preview-box.active {
+      display: block;
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      z-index: 9999;
+      background: #0f172a;
+      color: #f8fafc;
+      border: 1px solid var(--primary);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.6);
+      padding: 0.65rem 1.1rem;
+      border-radius: var(--radius);
+      font-size: 0.825rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.2s ease-out;
+      pointer-events: none;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      border-top: 1px solid var(--border);
+      background: var(--bg-card);
+    }
   </style>
 </head>
 <body>
 
-  <!-- Top Navigation Header -->
-  <header class="app-header">
+  <header>
     <div class="brand">
-      <div class="brand-icon">🔄</div>
-      <div class="brand-title">
-        <h1>若循環 (WHILE) 程式語言除錯模擬器</h1>
-        <p>靜態響應式單頁應用 • 逐行單步除錯 • 變數狀態追蹤</p>
-      </div>
+      <h1>⚡ 多功能文字生成與輸出處理工具</h1>
+      <span class="badge">單一靜態 HTML · 本地離線</span>
     </div>
-    <div class="header-actions">
-      <button class="btn" id="btnHelp">📖 語法說明</button>
-      <button class="btn" id="btnThemeToggle">🌙 切換主題</button>
-      <button class="btn btn-primary" id="btnResetAll">↺ 重置環境</button>
+    <div class="header-status">
+      <span>模式：手動按鈕執行 (非自動)</span>
     </div>
   </header>
 
-  <!-- Debugger Control Bar -->
-  <div class="control-bar">
-    <div class="control-group">
-      <label for="presetSelect" style="font-size: 13px; font-weight: 600;">範例程式：</label>
-      <select id="presetSelect" class="select-input">
-        <option value="factorial">1. 階乘計算 (Factorial 5!)</option>
-        <option value="fibonacci">2. 費氏數列 (Fibonacci Sequence)</option>
-        <option value="gcd">3. 輾轉相除法 (GCD - Greatest Common Divisor)</option>
-        <option value="prime">4. 質數判斷 (Prime Test)</option>
-        <option value="sum_if">5. 1到N累加與條件分類 (Sum & Conditional)</option>
-      </select>
+  <main>
+    <!-- 左側：輸入區塊 (Input Section) -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📥 輸入內容區 (Input)</div>
+        <div class="btn-group">
+          <button class="btn-secondary btn-sm" onclick="pasteInput()" title="貼上剪貼簿內容">📋 貼上</button>
+          <button class="btn-secondary btn-sm" onclick="selectAllInput()" title="全選輸入內容">📑 全選</button>
+          <button class="btn-secondary btn-sm" onclick="loadSampleInput()" title="載入範例資料">💡 範例</button>
+          <button class="btn-danger btn-sm" onclick="clearInput()" title="清空輸入框">🗑️ 清空</button>
+        </div>
+      </div>
 
-      <div class="speed-control">
-        <span>速度:</span>
-        <input type="range" id="speedSlider" min="50" max="1500" value="500" step="50">
-        <span id="speedVal">500ms</span>
+      <div>
+        <textarea id="inputText" placeholder="請在此輸入或貼上文字，或使用下方功能生成資料..."></textarea>
+        <div class="stat-row" id="inputStats">
+          <span>字元: 0</span>
+          <span>行數: 0</span>
+          <span>詞數: 0</span>
+        </div>
       </div>
     </div>
 
-    <div class="control-group">
-      <button class="btn btn-primary" id="btnRun">▶ 自動執行</button>
-      <button class="btn" id="btnPause" disabled>⏸ 暫停</button>
-      <button class="btn" id="btnStepInto">⤵ 單步進入 (Step)</button>
-      <button class="btn" id="btnStepOver">↷ 單步跳過 (Over)</button>
-      <button class="btn btn-danger" id="btnReset">↺ 重置</button>
+    <!-- 右側：輸出區塊 (Output Section, 可自由編輯 & 可編譯) -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📤 輸出與可編輯區 (Output / Editable)</div>
+        <div class="btn-group">
+          <button class="btn-success btn-sm" onclick="copyOutput()" title="複製輸出內容">📋 複製</button>
+          <button class="btn-secondary btn-sm" onclick="selectAllOutput()" title="全選輸出內容">📑 全選</button>
+          <button class="btn-primary btn-sm" onclick="sendOutputToInput()" title="將輸出覆蓋至輸入區">📥 覆蓋至輸入</button>
+          <button class="btn-secondary btn-sm" onclick="appendOutputToInput()" title="將輸出追加至輸入區">➕ 追加至輸入</button>
+          <button class="btn-secondary btn-sm" onclick="downloadOutput()" title="下載為文字檔">💾 下載</button>
+          <button class="btn-purple btn-sm" onclick="togglePreview()" id="previewBtn" title="渲染預覽 HTML">👁️ 預覽渲染</button>
+          <button class="btn-danger btn-sm" onclick="clearOutput()" title="清空輸出框">🗑️ 清空</button>
+        </div>
+      </div>
 
-      <span class="status-pill status-ready" id="statusPill">就緒 (READY)</span>
-      <span class="step-badge" id="stepCounter">Step: 0</span>
+      <div>
+        <textarea id="outputText" placeholder="處理結果將在此顯示。輸出位支援直接編輯修改與重新編譯..."></textarea>
+        <div class="stat-row" id="outputStats">
+          <span>字元: 0</span>
+          <span>行數: 0</span>
+          <span>詞數: 0</span>
+        </div>
+      </div>
+
+      <!-- HTML / 渲染預覽視窗 -->
+      <div class="preview-box" id="previewArea"></div>
     </div>
-  </div>
 
-  <!-- Main Grid Workspace -->
-  <main class="main-container">
-
-    <!-- Code Editor Section -->
-    <section class="editor-section">
-      <div class="panel-header">
-        <div class="panel-title">
-          <span>💻 程式碼編輯器 (可直接編輯 & 點擊行號設定斷點)</span>
-        </div>
-        <span style="font-size: 12px; color: var(--text-muted);">支援 中文/英文 關鍵字</span>
+    <!-- 下方滿版：功能操作模組選項卡 (Operation Modules) -->
+    <div class="card col-span-2">
+      <div class="tabs-nav">
+        <button class="tab-btn active" onclick="switchTab(event, 'tab-radix')">🔢 進位與序列生成</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tab-insert')">➕ 插入、前後綴與編號</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tab-replace')">🔍 取代、過濾與清洗</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tab-compiler')">⚙️ JS 腳本與輸出編譯</button>
       </div>
 
-      <div class="editor-wrapper">
-        <div class="editor-gutter" id="editorGutter">
-          <!-- Line numbers & breakpoint indicators dynamically injected -->
+      <!-- Tab 1: 進位與序列生成 -->
+      <div class="tab-pane active" id="tab-radix">
+        <div class="panel-box">
+          <div class="panel-title">🚀 數字、英文字母與自定義進位序列生成器</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>進位制度 / 字元集類型</label>
+              <select id="radixType" onchange="onRadixTypeChange()">
+                <option value="10">十進位 (Decimal: 0-9)</option>
+                <option value="2">二進位 (Binary: 0, 1)</option>
+                <option value="8">八進位 (Octal: 0-7)</option>
+                <option value="16-lower">十六進位小寫 (Hex: 0-9, a-f)</option>
+                <option value="16-upper">十六進位大寫 (Hex: 0-9, A-F)</option>
+                <option value="26-alpha-lower">26英文字母小寫 (a..z, aa..zz Excel欄位式)</option>
+                <option value="26-alpha-upper">26英文字母大寫 (A..Z, AA..ZZ Excel欄位式)</option>
+                <option value="36">36進位 (Base36: 0-9, a-z)</option>
+                <option value="62">62進位 (Base62: 0-9, a-z, A-Z)</option>
+                <option value="custom">自定義字元集 (Custom Charset)</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="customCharsetGroup" style="display: none;">
+              <label>自定義進位字元集 (例如: 01 或 甲乙丙丁...)</label>
+              <input type="text" id="customCharsetInput" placeholder="例如: 0123456789ABCDEF 或 甲乙丙丁戊己庚辛壬癸" value="01">
+            </div>
+
+            <div class="form-group">
+              <label>起始十進位值 (Start)</label>
+              <input type="number" id="seqStart" value="1">
+            </div>
+
+            <div class="form-group">
+              <label>結束十進位值 (End)</label>
+              <input type="number" id="seqEnd" value="20">
+            </div>
+
+            <div class="form-group">
+              <label>步進值 (Step)</label>
+              <input type="number" id="seqStep" value="1" min="1">
+            </div>
+
+            <div class="form-group">
+              <label>固定寬度 / 補齊位數 (0=不補齊)</label>
+              <input type="number" id="seqPadWidth" value="0" min="0">
+            </div>
+
+            <div class="form-group">
+              <label>填充字元 (Pad Char)</label>
+              <input type="text" id="seqPadChar" value="0" maxlength="4">
+            </div>
+
+            <div class="form-group">
+              <label>項目分隔符</label>
+              <select id="seqDelimiter">
+                <option value="\n">換行 (\n)</option>
+                <option value=", ">逗號加空格 (, )</option>
+                <option value=",">純逗號 (,)</option>
+                <option value=" ">空格 ( )</option>
+                <option value="\t">Tab 定位點 (\t)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>每項前綴文字 (Prefix)</label>
+              <input type="text" id="seqPrefix" placeholder="例如: item_ 或 0x">
+            </div>
+            <div class="form-group">
+              <label>每項後綴文字 (Suffix)</label>
+              <input type="text" id="seqSuffix" placeholder="例如: .png 或 ;">
+            </div>
+            <div class="form-group">
+              <label>輸出目標位置</label>
+              <select id="seqTarget">
+                <option value="output-replace">覆蓋至輸出區</option>
+                <option value="output-append">追加至輸出區</option>
+                <option value="input-replace">覆蓋至輸入區</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="btn-group">
+            <button class="btn-primary" onclick="generateSequence()">🚀 執行生成序列</button>
+          </div>
         </div>
 
-        <div class="editor-area-container">
-          <textarea id="codeTextarea" class="editor-textarea" spellcheck="false"></textarea>
-          <div id="codeDisplay" class="editor-display"></div>
-        </div>
-      </div>
+        <div class="panel-box">
+          <div class="panel-title">🔄 輸入文字/數值進制轉換與編碼 (Base Conversion & Encodings)</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>來源格式 / 進制 (From)</label>
+              <select id="convertFromBase">
+                <option value="10">10進位 (Decimal)</option>
+                <option value="16">16進位 (Hex)</option>
+                <option value="2">2進位 (Binary)</option>
+                <option value="8">8進位 (Octal)</option>
+                <option value="36">36進位 (Base36)</option>
+                <option value="62">62進位 (Base62)</option>
+                <option value="text">純文字 (Text UTF-8)</option>
+                <option value="base64">Base64 字串</option>
+              </select>
+            </div>
 
-      <div class="cheat-badges">
-        <span style="font-weight: 600; color: var(--text-muted); font-size: 11px;">快速語法：</span>
-        <span class="badge" onclick="insertSnippet('當 (i <= n) 做 {\n  i := i + 1;\n}')">當 (while) ... 做</span>
-        <span class="badge" onclick="insertSnippet('若 (x % 2 == 0) 則 {\n  print x;\n} 否則 {\n  print 0;\n}')">若 (if) ... 則 ... 否則</span>
-        <span class="badge" onclick="insertSnippet('x := x + 1;')">變數賦值 :=</span>
-        <span class="badge" onclick="insertSnippet('print x;')">印出 print</span>
-      </div>
-    </section>
-
-    <!-- Side Debugging Panels -->
-    <aside class="side-section">
-
-      <!-- Variable Scope Inspector -->
-      <div class="side-panel">
-        <div class="panel-header">
-          <div class="panel-title">📊 變數監視器 (Variable Scope)</div>
-          <span style="font-size: 11px;" id="varCountBadge">0 個變數</span>
-        </div>
-        <div class="side-panel-body">
-          <table class="watch-table">
-            <thead>
-              <tr>
-                <th>變數名稱</th>
-                <th>目前數值</th>
-                <th>變更狀態</th>
-              </tr>
-            </thead>
-            <tbody id="watchTableBody">
-              <tr>
-                <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 20px;">尚未開始執行程式</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Call / Control Stack Tree -->
-      <div class="side-panel">
-        <div class="panel-header">
-          <div class="panel-title">📚 控制堆疊視圖 (Call / Control Stack)</div>
-        </div>
-        <div class="side-panel-body">
-          <ul class="stack-list" id="stackList">
-            <li class="stack-item"><span>Program Main</span></li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Output Console -->
-      <div class="side-panel" style="flex: 1;">
-        <div class="panel-header">
-          <div class="panel-title">🖥️ 輸出主控台 (Console)</div>
-          <button class="btn" style="padding: 2px 8px; font-size: 11px;" id="btnClearConsole">清空</button>
-        </div>
-        <div class="side-panel-body">
-          <div class="console-box" id="consoleBox">
-            <div class="console-line console-info">系統就緒。請點擊「自動執行」或「單步進入」開始除錯模擬。</div>
+            <div class="form-group">
+              <label>目標格式 / 進制 (To)</label>
+              <select id="convertToBase">
+                <option value="16">16進位 (Hex)</option>
+                <option value="10">10進位 (Decimal)</option>
+                <option value="2">2進位 (Binary)</option>
+                <option value="8">8進位 (Octal)</option>
+                <option value="36">36進位 (Base36)</option>
+                <option value="62">62進位 (Base62)</option>
+                <option value="text">純文字 (Text UTF-8)</option>
+                <option value="base64">Base64 字串</option>
+              </select>
+            </div>
+          </div>
+          <div class="btn-group">
+            <button class="btn-secondary" onclick="convertInputBase()">🔄 執行進制/編碼轉換</button>
           </div>
         </div>
       </div>
 
-    </aside>
+      <!-- Tab 2: 插入、前後綴與編號 -->
+      <div class="tab-pane" id="tab-insert">
+        <div class="panel-box">
+          <div class="panel-title">📌 行首、行尾與指定位置插入 (Affix Insertion)</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>每行行首插入文字 (Prefix)</label>
+              <input type="text" id="insertPrefix" placeholder="例如: - [ ] 或 <li>">
+            </div>
+            <div class="form-group">
+              <label>每行行尾插入文字 (Suffix)</label>
+              <input type="text" id="insertSuffix" placeholder="例如: </li> 或 ,">
+            </div>
+          </div>
+          <div class="btn-group">
+            <button class="btn-primary" onclick="applyAffixes()">➕ 執行行首行尾插入</button>
+          </div>
+        </div>
 
-  </main>
+        <div class="panel-box">
+          <div class="panel-title">🔢 自定義動態編號插入 (Dynamic Line Numbering)</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>編號格式 (使用 {n} 代表數字, {n:03d} 代表補零至3位數)</label>
+              <input type="text" id="numFormat" value="{n}. ">
+            </div>
+            <div class="form-group">
+              <label>起始數字 (Start)</label>
+              <input type="number" id="numStart" value="1">
+            </div>
+            <div class="form-group">
+              <label>遞增步進 (Step)</label>
+              <input type="number" id="numStep" value="1">
+            </div>
+            <div class="form-group">
+              <label>插入位置</label>
+              <select id="numPosition">
+                <option value="start">行首插入</option>
+                <option value="end">行尾插入</option>
+              </select>
+            </div>
+          </div>
+          <div class="btn-group">
+            <button class="btn-primary" onclick="applyLineNumbering()">🔢 執行自動編號</button>
+          </div>
+        </div>
 
-  <!-- Help Modal -->
-  <div class="modal-overlay" id="helpModal">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3 style="font-size: 16px;">📖 若循環 (WHILE) 語言語法手冊</h3>
-        <button class="btn btn-icon-only" id="btnCloseModal">✕</button>
-      </div>
-      <div class="modal-body">
-        <p><strong>若循環 (WHILE) 語言</strong> 是一個經典的演算法與理論計算機科學程式語言模型。本模擬器完全支援<b>中文關鍵字</b>與<b>傳統英文關鍵字</b>雙語混用！</p>
-
-        <table class="syntax-table">
-          <thead>
-            <tr>
-              <th>語法功能</th>
-              <th>中文語法寫法</th>
-              <th>英文標準寫法</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>While 循環</strong></td>
-              <td><code>當 (條件) 做 { ... }</code></td>
-              <td><code>while (cond) do { ... } end</code></td>
-            </tr>
-            <tr>
-              <td><strong>If 條件判斷</strong></td>
-              <td><code>若 (條件) 則 { ... } 否則 { ... }</code></td>
-              <td><code>if (cond) then { ... } else { ... }</code></td>
-            </tr>
-            <tr>
-              <td><strong>變數賦值</strong></td>
-              <td><code>x := 10;</code> 或 <code>設 x = 10;</code></td>
-              <td><code>x := 10;</code> 或 <code>x = 10;</code></td>
-            </tr>
-            <tr>
-              <td><strong>數值與運算</strong></td>
-              <td><code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>%</code></td>
-              <td><code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>%</code></td>
-            </tr>
-            <tr>
-              <td><strong>邏輯比較</strong></td>
-              <td><code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>與</code>, <code>或</code></td>
-              <td><code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>&amp;&amp;</code>, <code>||</code></td>
-            </tr>
-            <tr>
-              <td><strong>輸出列印</strong></td>
-              <td><code>印出 x;</code> 或 <code>顯示 x;</code></td>
-              <td><code>print x;</code></td>
-            </tr>
-            <tr>
-              <td><strong>註解 (Comment)</strong></td>
-              <td><code>// 這是註解</code> 或 <code># 註解</code></td>
-              <td><code>// comment</code></td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div>
-          <h4>💡 除錯模式 (Debugger Mode) 使用提示：</h4>
-          <ul style="padding-left: 20px; margin-top: 6px; display: flex; flex-direction: column; gap: 4px;">
-            <li><strong>設定斷點 (Breakpoint)</strong>：點擊編輯器左側行號，會出現紅色圓點，程式自動執行至該行會暫停。</li>
-            <li><strong>單步進入 (Step Into)</strong>：每次點擊執行微小的一步（包含求值與變數賦值），並突顯目前執行的程式行。</li>
-            <li><strong>變數監視器</strong>：即時觀察變數值的改變，數值發生變化時會閃爍綠色提示。</li>
-            <li><strong>無窮循環保護</strong>：系統內建 100,000 步上限保護，防止瀏覽器當機。</li>
-          </ul>
+        <div class="panel-box">
+          <div class="panel-title">🔗 多行連接與拆分 (Join & Split Lines)</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>連接符號 (Join Delimiter)</label>
+              <input type="text" id="joinDelimiter" value=", " placeholder="例如: , 或 | 或 空格">
+            </div>
+            <div class="form-group">
+              <label>包裹每一項 (Wrap Quotes)</label>
+              <select id="wrapOption">
+                <option value="none">不包裹</option>
+                <option value="single">單引號 ('項目')</option>
+                <option value="double">雙引號 ("項目")</option>
+                <option value="backtick">反引號 (`項目`)</option>
+                <option value="bracket">中括號 ([項目])</option>
+              </select>
+            </div>
+          </div>
+          <div class="btn-group">
+            <button class="btn-secondary" onclick="joinLines()">🔗 執行多行合併連接</button>
+            <button class="btn-secondary" onclick="splitByDelimiter()">✂️ 依符號拆分為多行</button>
+          </div>
         </div>
       </div>
+
+      <!-- Tab 3: 取代、過濾與清洗 -->
+      <div class="tab-pane" id="tab-replace">
+        <div class="panel-box">
+          <div class="panel-title">🔍 文字與正規表達式取代 (Find & Replace)</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>尋找目標 (Find Pattern)</label>
+              <input type="text" id="findText" placeholder="搜尋字串或正規表達式 (例如: \d+ 或 abc)">
+            </div>
+            <div class="form-group">
+              <label>取代為 (Replace With)</label>
+              <input type="text" id="replaceText" placeholder="取代字串 (支援 $1, $2 捕獲組)">
+            </div>
+          </div>
+
+          <div class="btn-group" style="margin-top: 0.25rem;">
+            <label class="form-check"><input type="checkbox" id="regexMode"> 正規表達式 (RegEx)</label>
+            <label class="form-check"><input type="checkbox" id="caseInsensitive"> 忽略大小寫 (i)</label>
+            <label class="form-check"><input type="checkbox" id="dotAll"> 跨行匹配 (s)</label>
+          </div>
+
+          <div class="btn-group">
+            <button class="btn-primary" onclick="executeReplace()">⚡ 執行取代</button>
+          </div>
+        </div>
+
+        <div class="panel-box">
+          <div class="panel-title">📑 批量多規則對應取代 (Batch Multi-Rule Replace)</div>
+          <div class="form-group">
+            <label>規則列表 (每行一組，格式: <code>舊文字=>新文字</code> 或 <code>舊文字,新文字</code>)</label>
+            <textarea id="batchReplaceRules" style="min-height: 80px;" placeholder="apple=>蘋果&#10;banana=>香蕉&#10;orange=>柳橙"></textarea>
+          </div>
+          <div class="btn-group">
+            <button class="btn-primary" onclick="executeBatchReplace()">⚡ 執行批量多規則取代</button>
+          </div>
+        </div>
+
+        <div class="panel-box">
+          <div class="panel-title">🧹 行清洗、過濾與排序 (Filter, Clean & Sort)</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>過濾關鍵字 / 正則表達式</label>
+              <input type="text" id="filterKeyword" placeholder="輸入關鍵字進行行過濾">
+            </div>
+          </div>
+          <div class="btn-group">
+            <button class="btn-secondary btn-sm" onclick="filterLines(true)">✅ 僅保留包含該關鍵字的行</button>
+            <button class="btn-secondary btn-sm" onclick="filterLines(false)">❌ 剔除包含該關鍵字的行</button>
+            <button class="btn-secondary btn-sm" onclick="removeDuplicateLines()">✨ 移除重複行 (Unique)</button>
+            <button class="btn-secondary btn-sm" onclick="removeEmptyLines()">🗑️ 移除空白行</button>
+            <button class="btn-secondary btn-sm" onclick="trimLines()">✂️ 去除行首行尾空白</button>
+          </div>
+
+          <div class="btn-group" style="margin-top: 0.5rem;">
+            <button class="btn-secondary btn-sm" onclick="sortLines('asc')">🔤 字母排序 (A → Z)</button>
+            <button class="btn-secondary btn-sm" onclick="sortLines('desc')">🔤 逆序排序 (Z → A)</button>
+            <button class="btn-secondary btn-sm" onclick="sortLines('num')">🔢 數值大小排序</button>
+            <button class="btn-secondary btn-sm" onclick="sortLines('reverse')">🔃 顛倒順序</button>
+            <button class="btn-secondary btn-sm" onclick="sortLines('shuffle')">🎲 隨機打亂 (Shuffle)</button>
+          </div>
+
+          <div class="btn-group" style="margin-top: 0.5rem;">
+            <button class="btn-secondary btn-sm" onclick="transformCase('upper')">🔠 全部大寫</button>
+            <button class="btn-secondary btn-sm" onclick="transformCase('lower')">🔡 全部小寫</button>
+            <button class="btn-secondary btn-sm" onclick="transformCase('title')">🔤 首字大寫 (Title Case)</button>
+            <button class="btn-secondary btn-sm" onclick="transformCase('camel')">🐫 駝峰命名 (camelCase)</button>
+            <button class="btn-secondary btn-sm" onclick="transformCase('snake')">🐍 蛇形命名 (snake_case)</button>
+            <button class="btn-secondary btn-sm" onclick="transformCase('kebab')">🍢 烤肉串 (kebab-case)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 4: JS 腳本與輸出編譯 (Output Compile / Execute) -->
+      <div class="tab-pane" id="tab-compiler">
+        <div class="panel-box">
+          <div class="panel-title">⚙️ 自定義 JavaScript 轉換與輸出編譯器 (JS Compiler & Templates)</div>
+          <p style="font-size: 0.8rem; color: var(--text-muted);">
+            在此自定義 JavaScript 處理邏輯。環境變數已注入 <code>text</code> (完整輸入文字) 與 <code>lines</code> (逐行陣列)。請直接 <code>return</code> 處理後的字串或陣列。
+          </p>
+
+          <div class="form-group">
+            <label>快速載入實用範本：</label>
+            <div class="btn-group">
+              <button class="btn-secondary btn-sm" onclick="loadScriptTemplate('line-map')">逐行編號轉換 (Map)</button>
+              <button class="btn-secondary btn-sm" onclick="loadScriptTemplate('template-string')">HTML 模板字串 (${line})</button>
+              <button class="btn-secondary btn-sm" onclick="loadScriptTemplate('json-extract')">JSON 解析與格式化</button>
+              <button class="btn-secondary btn-sm" onclick="loadScriptTemplate('html-table')">CSV/逗號轉 HTML 表格</button>
+              <button class="btn-secondary btn-sm" onclick="loadScriptTemplate('markdown-preview')">Markdown 標題清單轉 HTML</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>JavaScript 腳本代碼：</label>
+            <textarea id="customJsScript" style="min-height: 140px; font-family: var(--font-mono); font-size: 0.85rem;">// text: 原始文字, lines: 每一行的字串陣列
+return lines.map((line, idx) => {
+  return `${idx + 1}. [處理] ${line.trim()}`;
+}).join('\n');</textarea>
+          </div>
+
+          <div class="btn-group">
+            <button class="btn-primary" onclick="executeCustomScript()">⚙️ 執行腳本編譯至輸出區</button>
+            <button class="btn-purple" onclick="compileAndPreviewHtml()">👁️ 編譯並直接在預覽窗渲染 HTML</button>
+          </div>
+        </div>
+      </div>
+
     </div>
-  </div>
+  </main>
+
+  <div id="toast">提示訊息</div>
+
+  <footer>
+    文字生成與輸出處理工具 · 支援數字/英文/自定義進位 · 純前端本機執行無資料外洩
+  </footer>
 
   <script>
-/* WHILE Programming Language Debugger & Simulator Front-end Application */
-
-// 1. Preset Programs Dictionary
-const PRESETS = {
-  factorial: `// 範例 1：階乘計算 (Factorial 5!)
-n := 5;
-fact := 1;
-i := 1;
-
-當 (i <= n) 做 {
-  fact := fact * i;
-  i := i + 1;
-}
-
-印出 fact;`,
-
-  fibonacci: `// 範例 2：費氏數列前 N 項 (Fibonacci Sequence)
-n := 8;
-a := 0;
-b := 1;
-count := 0;
-
-印出 a;
-印出 b;
-
-當 (count < n - 2) 做 {
-  temp := a + b;
-  a := b;
-  b := temp;
-  印出 b;
-  count := count + 1;
-}`,
-
-  gcd: `// 範例 3：輾轉相除法求最大公因數 (Euclidean Algorithm GCD)
-a := 48;
-b := 18;
-
-印出 a;
-印出 b;
-
-當 (b != 0) 做 {
-  r := a % b;
-  a := b;
-  b := r;
-}
-
-// 最終最大公因數為 a
-印出 a;`,
-
-  prime: `// 範例 4：質數判斷 (Prime Test)
-num := 29;
-is_prime := 1;
-d := 2;
-
-當 (d * d <= num && is_prime == 1) 做 {
-  若 (num % d == 0) 則 {
-    is_prime := 0;
-  } 否則 {
-    d := d + 1;
-  }
-}
-
-若 (is_prime == 1) 則 {
-  印出 1; // 1 代表是質數
-} 否則 {
-  印出 0; // 0 代表不是質數
-}`,
-
-  sum_if: `// 範例 5：1至10累加與奇偶數分類
-sum := 0;
-even_count := 0;
-odd_count := 0;
-i := 1;
-
-當 (i <= 10) 做 {
-  sum := sum + i;
-  
-  若 (i % 2 == 0) 則 {
-    even_count := even_count + 1;
-  } 否則 {
-    odd_count := odd_count + 1;
-  }
-  
-  i := i + 1;
-}
-
-印出 sum;
-印出 even_count;
-印出 odd_count;`
-};
-
-// 2. Lexer
-class Lexer {
-  constructor(input) {
-    this.input = input;
-    this.pos = 0;
-    this.line = 1;
-    this.col = 1;
-  }
-
-  peek() {
-    return this.pos < this.input.length ? this.input[this.pos] : null;
-  }
-
-  next() {
-    const ch = this.peek();
-    if (ch === '\n') {
-      this.line++;
-      this.col = 1;
-    } else {
-      this.col++;
-    }
-    this.pos++;
-    return ch;
-  }
-
-  tokenize() {
-    const tokens = [];
-    while (this.pos < this.input.length) {
-      const ch = this.peek();
-
-      if (/\s/.test(ch)) {
-        this.next();
-        continue;
-      }
-
-      if ((ch === '/' && this.input[this.pos + 1] === '/') || ch === '#') {
-        while (this.peek() && this.peek() !== '\n') {
-          this.next();
-        }
-        continue;
-      }
-
-      const line = this.line;
-      const col = this.col;
-
-      if (/\d/.test(ch)) {
-        let numStr = '';
-        while (this.peek() && /[\d\.]/.test(this.peek())) {
-          numStr += this.next();
-        }
-        tokens.push({ type: 'NUMBER', value: parseFloat(numStr), line, col });
-        continue;
-      }
-
-      if (ch === ':' && this.input[this.pos + 1] === '=') {
-        this.next(); this.next();
-        tokens.push({ type: 'ASSIGN', value: ':=', line, col });
-        continue;
-      }
-
-      const twoChar = this.input.substr(this.pos, 2);
-      if (['==', '!=', '<=', '>=', '&&', '||'].includes(twoChar)) {
-        this.next(); this.next();
-        tokens.push({ type: 'OPERATOR', value: twoChar, line, col });
-        continue;
-      }
-
-      if (['+', '-', '*', '/', '%', '(', ')', '{', '}', ';', ',', '!', '<', '>', '='].includes(ch)) {
-        this.next();
-        const type = ch === '=' ? 'ASSIGN' : (['(', ')', '{', '}', ';', ','].includes(ch) ? 'PUNCT' : 'OPERATOR');
-        tokens.push({ type, value: ch, line, col });
-        continue;
-      }
-
-      if (/[a-zA-Z_$_\u4e00-\u9fa5]/.test(ch)) {
-        let idStr = '';
-        while (this.peek() && /[a-zA-Z0-9_$_\u4e00-\u9fa5]/.test(this.peek())) {
-          idStr += this.next();
-        }
-
-        const normalized = idStr.toLowerCase();
-        let kwType = null;
-
-        if (['while', '當', '若循環', '循環'].includes(normalized)) kwType = 'WHILE';
-        else if (['do', '做', '則做'].includes(normalized)) kwType = 'DO';
-        else if (['if', '若', '如果'].includes(normalized)) kwType = 'IF';
-        else if (['then', '則'].includes(normalized)) kwType = 'THEN';
-        else if (['else', '否則'].includes(normalized)) kwType = 'ELSE';
-        else if (['end', '結束'].includes(normalized)) kwType = 'END';
-        else if (['skip', '空', '無作為'].includes(normalized)) kwType = 'SKIP';
-        else if (['print', '印出', '輸出', '顯示'].includes(normalized)) kwType = 'PRINT';
-        else if (['true', '真', '正確'].includes(normalized)) {
-          tokens.push({ type: 'BOOLEAN', value: true, line, col });
-          continue;
-        } else if (['false', '假', '錯誤'].includes(normalized)) {
-          tokens.push({ type: 'BOOLEAN', value: false, line, col });
-          continue;
-        } else if (['and', '與'].includes(normalized)) {
-          tokens.push({ type: 'OPERATOR', value: '&&', line, col });
-          continue;
-        } else if (['or', '或'].includes(normalized)) {
-          tokens.push({ type: 'OPERATOR', value: '||', line, col });
-          continue;
-        } else if (['not', '非'].includes(normalized)) {
-          tokens.push({ type: 'OPERATOR', value: '!', line, col });
-          continue;
-        } else if (['設'].includes(normalized)) {
-          continue;
-        }
-
-        if (kwType) {
-          tokens.push({ type: kwType, value: idStr, line, col });
-        } else {
-          tokens.push({ type: 'IDENTIFIER', value: idStr, line, col });
-        }
-        continue;
-      }
-
-      throw new Error(`[第 ${line} 行, 第 ${col} 字元] 未知符號: '${ch}'`);
+    // --- 輔助函式：Toast 提示 ---
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        t.classList.remove('show');
+      }, 2500);
     }
 
-    tokens.push({ type: 'EOF', value: 'EOF', line: this.line, col: this.col });
-    return tokens;
-  }
-}
-
-// 3. Parser
-class Parser {
-  constructor(tokens) {
-    this.tokens = tokens;
-    this.pos = 0;
-  }
-
-  peek() {
-    return this.tokens[this.pos];
-  }
-
-  next() {
-    return this.tokens[this.pos++];
-  }
-
-  match(type, val = null) {
-    const tok = this.peek();
-    if (!tok) return false;
-    if (tok.type === type && (val === null || tok.value === val)) {
-      this.next();
-      return true;
-    }
-    return false;
-  }
-
-  expect(type, val = null) {
-    const tok = this.peek();
-    if (this.match(type, val)) return tok;
-    throw new Error(`[第 ${tok.line} 行, 第 ${tok.col} 字元] 語法錯誤：預期 ${val ? `'${val}'` : type}，但得到 '${tok.value}'`);
-  }
-
-  parse() {
-    const statements = [];
-    while (this.peek().type !== 'EOF' && !this.isBlockEnd()) {
-      const stmt = this.parseStatement();
-      if (stmt) statements.push(stmt);
-      this.match('PUNCT', ';');
-    }
-    return { type: 'Program', body: statements, line: 1 };
-  }
-
-  isBlockEnd() {
-    const tok = this.peek();
-    return tok.type === 'END' || (tok.type === 'PUNCT' && tok.value === '}') || tok.type === 'ELSE';
-  }
-
-  parseStatement() {
-    const tok = this.peek();
-
-    if (tok.type === 'PUNCT' && tok.value === ';') {
-      this.next();
-      return { type: 'SkipStatement', line: tok.line };
+    // --- 統計即時更新 ---
+    function updateStats(elementId, statsId) {
+      const val = document.getElementById(elementId).value;
+      const chars = val.length;
+      const lines = val === '' ? 0 : val.split('\n').length;
+      const words = (val.trim().match(/\S+/g) || []).length;
+      const container = document.getElementById(statsId);
+      container.innerHTML = `<span>字元: ${chars}</span><span>行數: ${lines}</span><span>詞數: ${words}</span>`;
     }
 
-    if (tok.type === 'SKIP') {
-      this.next();
-      return { type: 'SkipStatement', line: tok.line };
-    }
+    document.getElementById('inputText').addEventListener('input', () => updateStats('inputText', 'inputStats'));
+    document.getElementById('outputText').addEventListener('input', () => updateStats('outputText', 'outputStats'));
 
-    if (tok.type === 'PRINT') {
-      this.next();
-      const expr = this.parseExpression();
-      return { type: 'PrintStatement', expr, line: tok.line };
-    }
-
-    if (tok.type === 'IF') {
-      this.next();
-      const condition = this.parseExpression();
-      this.match('THEN');
-      let thenBranch = this.parseBlockOrStatement();
-      let elseBranch = null;
-
-      if (this.match('ELSE')) {
-        elseBranch = this.parseBlockOrStatement();
-      }
-
-      if (this.peek().type === 'END') {
-        this.next();
-      }
-
-      return { type: 'IfStatement', condition, thenBranch, elseBranch, line: tok.line };
-    }
-
-    if (tok.type === 'WHILE') {
-      this.next();
-      const condition = this.parseExpression();
-      this.match('DO');
-      const body = this.parseBlockOrStatement();
-
-      if (this.peek().type === 'END') {
-        this.next();
-      }
-
-      return { type: 'WhileStatement', condition, body, line: tok.line };
-    }
-
-    if (tok.type === 'PUNCT' && tok.value === '{') {
-      this.next();
-      const body = [];
-      while (this.peek().type !== 'EOF' && !(this.peek().type === 'PUNCT' && this.peek().value === '}')) {
-        body.push(this.parseStatement());
-        this.match('PUNCT', ';');
-      }
-      this.expect('PUNCT', '}');
-      return { type: 'BlockStatement', body, line: tok.line };
-    }
-
-    if (tok.type === 'IDENTIFIER') {
-      const varName = tok.value;
-      this.next();
-      this.expect('ASSIGN');
-      const expr = this.parseExpression();
-      return { type: 'Assignment', varName, expr, line: tok.line };
-    }
-
-    throw new Error(`[第 ${tok.line} 行, 第 ${tok.col} 字元] 無法解析敘述: '${tok.value}'`);
-  }
-
-  parseBlockOrStatement() {
-    if (this.peek().type === 'PUNCT' && this.peek().value === '{') {
-      return this.parseStatement();
-    }
-    const stmts = [];
-    while (this.peek().type !== 'EOF' && !this.isBlockEnd()) {
-      stmts.push(this.parseStatement());
-      this.match('PUNCT', ';');
-    }
-    return { type: 'BlockStatement', body: stmts, line: stmts[0]?.line || this.peek().line };
-  }
-
-  parseExpression() {
-    return this.parseLogicalOr();
-  }
-
-  parseLogicalOr() {
-    let left = this.parseLogicalAnd();
-    while (this.peek().type === 'OPERATOR' && this.peek().value === '||') {
-      const op = this.next().value;
-      const right = this.parseLogicalAnd();
-      left = { type: 'BinaryExpr', operator: op, left, right, line: left.line };
-    }
-    return left;
-  }
-
-  parseLogicalAnd() {
-    let left = this.parseEquality();
-    while (this.peek().type === 'OPERATOR' && this.peek().value === '&&') {
-      const op = this.next().value;
-      const right = this.parseEquality();
-      left = { type: 'BinaryExpr', operator: op, left, right, line: left.line };
-    }
-    return left;
-  }
-
-  parseEquality() {
-    let left = this.parseRelational();
-    while (this.peek().type === 'OPERATOR' && ['==', '!=', '='].includes(this.peek().value)) {
-      let op = this.next().value;
-      if (op === '=') op = '==';
-      const right = this.parseRelational();
-      left = { type: 'BinaryExpr', operator: op, left, right, line: left.line };
-    }
-    return left;
-  }
-
-  parseRelational() {
-    let left = this.parseAdditive();
-    while (this.peek().type === 'OPERATOR' && ['<', '<=', '>', '>=', '==', '!='].includes(this.peek().value)) {
-      const op = this.next().value;
-      const right = this.parseAdditive();
-      left = { type: 'BinaryExpr', operator: op, left, right, line: left.line };
-    }
-    return left;
-  }
-
-  parseAdditive() {
-    let left = this.parseMultiplicative();
-    while (this.peek().type === 'OPERATOR' && ['+', '-'].includes(this.peek().value)) {
-      const op = this.next().value;
-      const right = this.parseMultiplicative();
-      left = { type: 'BinaryExpr', operator: op, left, right, line: left.line };
-    }
-    return left;
-  }
-
-  parseMultiplicative() {
-    let left = this.parseUnary();
-    while (this.peek().type === 'OPERATOR' && ['*', '/', '%'].includes(this.peek().value)) {
-      const op = this.next().value;
-      const right = this.parseUnary();
-      left = { type: 'BinaryExpr', operator: op, left, right, line: left.line };
-    }
-    return left;
-  }
-
-  parseUnary() {
-    if (this.peek().type === 'OPERATOR' && ['!', '-'].includes(this.peek().value)) {
-      const tok = this.next();
-      const expr = this.parseUnary();
-      return { type: 'UnaryExpr', operator: tok.value, expr, line: tok.line };
-    }
-    return this.parsePrimary();
-  }
-
-  parsePrimary() {
-    const tok = this.peek();
-
-    if (tok.type === 'NUMBER') {
-      this.next();
-      return { type: 'Literal', value: tok.value, line: tok.line };
-    }
-
-    if (tok.type === 'BOOLEAN') {
-      this.next();
-      return { type: 'Literal', value: tok.value, line: tok.line };
-    }
-
-    if (tok.type === 'IDENTIFIER') {
-      this.next();
-      return { type: 'Variable', name: tok.value, line: tok.line };
-    }
-
-    if (tok.type === 'PUNCT' && tok.value === '(') {
-      this.next();
-      const expr = this.parseExpression();
-      this.expect('PUNCT', ')');
-      return expr;
-    }
-
-    throw new Error(`[第 ${tok.line} 行, 第 ${tok.col} 字元] 無法識別的算式: '${tok.value}'`);
-  }
-}
-
-// 4. Debugger Core Engine
-class DebuggerEngine {
-  constructor(ast) {
-    this.ast = ast;
-    this.env = {};
-    this.prevEnv = {};
-    this.lastChangedVar = null;
-    this.output = [];
-    this.stack = [];
-    this.stepCount = 0;
-    this.maxSteps = 100000;
-    this.status = 'READY';
-    this.lastLine = 1;
-    this.breakpoints = new Set();
-    this.init();
-  }
-
-  init() {
-    this.env = {};
-    this.prevEnv = {};
-    this.lastChangedVar = null;
-    this.output = [];
-    this.stepCount = 0;
-    this.status = 'READY';
-    this.lastLine = 1;
-
-    this.stack = [{
-      type: 'BlockStatement',
-      body: this.ast.body,
-      index: 0,
-      line: 1,
-      description: 'Program Main'
-    }];
-  }
-
-  setBreakpoints(lineArray) {
-    this.breakpoints = new Set(lineArray);
-  }
-
-  evalExpr(node) {
-    if (node.type === 'Literal') return node.value;
-    if (node.type === 'Variable') {
-      if (this.env[node.name] === undefined) {
-        throw new Error(`[第 ${node.line} 行] 變數 '${node.name}' 未定義 (未初始化)`);
-      }
-      return this.env[node.name];
-    }
-    if (node.type === 'UnaryExpr') {
-      const val = this.evalExpr(node.expr);
-      if (node.operator === '-') return -val;
-      if (node.operator === '!') return !val;
-    }
-    if (node.type === 'BinaryExpr') {
-      const l = this.evalExpr(node.left);
-      const r = this.evalExpr(node.right);
-      switch (node.operator) {
-        case '+': return l + r;
-        case '-': return l - r;
-        case '*': return l * r;
-        case '/':
-          if (r === 0) throw new Error(`[第 ${node.line} 行] 執行階段錯誤：除以零 (Division by Zero)`);
-          return Math.floor(l / r);
-        case '%': return l % r;
-        case '==': return l === r;
-        case '!=': return l !== r;
-        case '<': return l < r;
-        case '<=': return l <= r;
-        case '>': return l > r;
-        case '>=': return l >= r;
-        case '&&': return Boolean(l && r);
-        case '||': return Boolean(l || r);
+    // --- 輸入區按鈕動作 ---
+    async function pasteInput() {
+      try {
+        const text = await navigator.clipboard.readText();
+        document.getElementById('inputText').value = text;
+        updateStats('inputText', 'inputStats');
+        showToast('已從剪貼簿貼上！');
+      } catch (err) {
+        showToast('無法自動讀取剪貼簿，請使用 Ctrl+V 貼上');
       }
     }
-    throw new Error(`[第 ${node.line} 行] 未知的運算表達式`);
-  }
 
-  updateVar(name, val) {
-    this.prevEnv[name] = this.env[name];
-    this.env[name] = val;
-    this.lastChangedVar = name;
-  }
-
-  stepInto() {
-    if (this.status === 'HALTED' || this.status === 'ERROR') {
-      return this.getState();
+    function selectAllInput() {
+      const el = document.getElementById('inputText');
+      el.focus();
+      el.select();
+      showToast('已全選輸入區文字');
     }
 
-    if (this.stack.length === 0) {
-      this.status = 'HALTED';
-      return this.getState();
+    function clearInput() {
+      document.getElementById('inputText').value = '';
+      updateStats('inputText', 'inputStats');
+      showToast('已清空輸入區');
     }
 
-    this.stepCount++;
-    if (this.stepCount > this.maxSteps) {
-      this.status = 'ERROR';
-      throw new Error(`執行步驟超過最大限制 (${this.maxSteps})，已中斷可能包含無窮循環的程式`);
+    function loadSampleInput() {
+      const sample = `apple\nbanana\norange\nwatermelon\ngrape\npineapple\nstrawberry\nblueberry`;
+      document.getElementById('inputText').value = sample;
+      updateStats('inputText', 'inputStats');
+      showToast('已載入範例資料');
     }
 
-    const frame = this.stack[this.stack.length - 1];
+    // --- 輸出區按鈕動作 ---
+    async function copyOutput() {
+      const text = document.getElementById('outputText').value;
+      if (!text) {
+        showToast('輸出區無內容可複製');
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('✅ 已成功複製輸出內容至剪貼簿！');
+      } catch (e) {
+        const el = document.getElementById('outputText');
+        el.select();
+        document.execCommand('copy');
+        showToast('✅ 已複製輸出文字！');
+      }
+    }
 
-    if (frame.type === 'BlockStatement') {
-      if (frame.index < frame.body.length) {
-        const stmt = frame.body[frame.index];
-        frame.index++;
-        this.pushStmtFrame(stmt);
+    function selectAllOutput() {
+      const el = document.getElementById('outputText');
+      el.focus();
+      el.select();
+      showToast('已全選輸出區文字');
+    }
+
+    function sendOutputToInput() {
+      const text = document.getElementById('outputText').value;
+      document.getElementById('inputText').value = text;
+      updateStats('inputText', 'inputStats');
+      showToast('已將輸出內容覆蓋至輸入區');
+    }
+
+    function appendOutputToInput() {
+      const outText = document.getElementById('outputText').value;
+      const inEl = document.getElementById('inputText');
+      if (inEl.value && !inEl.value.endsWith('\n')) {
+        inEl.value += '\n';
+      }
+      inEl.value += outText;
+      updateStats('inputText', 'inputStats');
+      showToast('已追加輸出內容至輸入區');
+    }
+
+    function clearOutput() {
+      document.getElementById('outputText').value = '';
+      document.getElementById('previewArea').innerHTML = '';
+      document.getElementById('previewArea').classList.remove('active');
+      document.getElementById('previewBtn').textContent = '👁️ 預覽渲染';
+      updateStats('outputText', 'outputStats');
+      showToast('已清空輸出區');
+    }
+
+    function downloadOutput() {
+      const text = document.getElementById('outputText').value;
+      if (!text) {
+        showToast('輸出區無內容可下載');
+        return;
+      }
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `output_${Date.now()}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('已開始下載輸出檔案');
+    }
+
+    function togglePreview() {
+      const area = document.getElementById('previewArea');
+      const btn = document.getElementById('previewBtn');
+      const text = document.getElementById('outputText').value;
+      if (area.classList.contains('active')) {
+        area.classList.remove('active');
+        btn.textContent = '👁️ 預覽渲染';
       } else {
-        this.stack.pop();
+        area.innerHTML = text;
+        area.classList.add('active');
+        btn.textContent = '🙈 隱藏預覽';
+        showToast('已渲染 HTML 內容至預覽區');
       }
-    } else if (frame.type === 'Assignment') {
-      const val = this.evalExpr(frame.node.expr);
-      this.updateVar(frame.node.varName, val);
-      this.lastLine = frame.node.line;
-      this.stack.pop();
-    } else if (frame.type === 'PrintStatement') {
-      const val = this.evalExpr(frame.node.expr);
-      this.output.push(`[第 ${frame.node.line} 行 輸出] ${val}`);
-      this.lastLine = frame.node.line;
-      this.stack.pop();
-    } else if (frame.type === 'SkipStatement') {
-      this.lastLine = frame.node.line;
-      this.stack.pop();
-    } else if (frame.type === 'IfStatement') {
-      if (!frame.evaluated) {
-        const cond = this.evalExpr(frame.node.condition);
-        frame.evaluated = true;
-        this.lastLine = frame.node.line;
-        if (cond) {
-          if (frame.node.thenBranch) this.pushStmtFrame(frame.node.thenBranch);
-        } else {
-          if (frame.node.elseBranch) this.pushStmtFrame(frame.node.elseBranch);
-        }
+    }
+
+    // --- 分頁切換 ---
+    function switchTab(evt, tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+      if (evt && evt.currentTarget) {
+        evt.currentTarget.classList.add('active');
+      }
+      const targetPane = document.getElementById(tabId);
+      if (targetPane) {
+        targetPane.classList.add('active');
+      }
+    }
+
+    function onRadixTypeChange() {
+      const type = document.getElementById('radixType').value;
+      const group = document.getElementById('customCharsetGroup');
+      if (type === 'custom') {
+        group.style.display = 'flex';
       } else {
-        this.stack.pop();
-      }
-    } else if (frame.type === 'WhileStatement') {
-      const cond = this.evalExpr(frame.node.condition);
-      this.lastLine = frame.node.line;
-      if (cond) {
-        this.pushStmtFrame(frame.node.body);
-      } else {
-        this.stack.pop();
+        group.style.display = 'none';
       }
     }
 
-    this.status = this.stack.length === 0 ? 'HALTED' : 'RUNNING';
-    return this.getState();
-  }
-
-  stepOver() {
-    if (this.status === 'HALTED' || this.status === 'ERROR') {
-      return this.getState();
-    }
-    if (this.stack.length === 0) {
-      this.status = 'HALTED';
-      return this.getState();
-    }
-
-    const targetDepth = this.stack.length;
-    let steps = 0;
-    const maxOverSteps = 50000;
-
-    while (this.stack.length >= targetDepth && this.status !== 'HALTED' && this.status !== 'ERROR') {
-      this.stepInto();
-      steps++;
-      if (steps > maxOverSteps) {
-        this.status = 'ERROR';
-        throw new Error(`單步跳過超過安全步數上限 (${maxOverSteps})，已中斷`);
-      }
-      const st = this.getState();
-      if (st.isBreakpoint && steps > 1) break;
-    }
-    return this.getState();
-  }
-
-  pushStmtFrame(stmt) {
-    if (!stmt) return;
-    if (stmt.type === 'BlockStatement') {
-      this.stack.push({
-        type: 'BlockStatement',
-        body: stmt.body,
-        index: 0,
-        line: stmt.line,
-        description: `區塊 Block (第 ${stmt.line} 行)`
-      });
-    } else if (stmt.type === 'WhileStatement') {
-      this.stack.push({
-        type: 'WhileStatement',
-        node: stmt,
-        line: stmt.line,
-        description: `當 (While Loop) (第 ${stmt.line} 行)`
-      });
-    } else if (stmt.type === 'IfStatement') {
-      this.stack.push({
-        type: 'IfStatement',
-        node: stmt,
-        evaluated: false,
-        line: stmt.line,
-        description: `若 (If-Else) (第 ${stmt.line} 行)`
-      });
-    } else {
-      this.stack.push({
-        type: stmt.type,
-        node: stmt,
-        line: stmt.line,
-        description: `${stmt.type} (第 ${stmt.line} 行)`
-      });
-    }
-  }
-
-  getState() {
-    const currentFrame = this.stack[this.stack.length - 1];
-    const currentLine = currentFrame ? currentFrame.line : this.lastLine;
-
-    return {
-      status: this.status,
-      currentLine,
-      stepCount: this.stepCount,
-      env: { ...this.env },
-      prevEnv: { ...this.prevEnv },
-      lastChangedVar: this.lastChangedVar,
-      output: [...this.output],
-      callStack: this.stack.map(f => f.description),
-      isBreakpoint: this.breakpoints.has(currentLine)
+    // --- 進位與字元集核心演算法 ---
+    const CHARSETS = {
+      '2': '01',
+      '8': '01234567',
+      '10': '0123456789',
+      '16-lower': '0123456789abcdef',
+      '16-upper': '0123456789ABCDEF',
+      '26-alpha-lower': 'abcdefghijklmnopqrstuvwxyz',
+      '26-alpha-upper': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+      '36': '0123456789abcdefghijklmnopqrstuvwxyz',
+      '62': '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
     };
-  }
-}
 
-// 5. UI Controller & Application Manager
-let engine = null;
-let autoRunTimer = null;
-let breakpoints = new Set();
-let lastOutputLen = 0;
+    // 將任意進制字串轉為 BigInt 十進位
+    function customBaseToDecimal(str, charset) {
+      const base = charset.length;
+      str = str.trim();
+      if (!str) return 0n;
 
-// DOM Elements
-const codeTextarea = document.getElementById('codeTextarea');
-const codeDisplay = document.getElementById('codeDisplay');
-const editorGutter = document.getElementById('editorGutter');
-const presetSelect = document.getElementById('presetSelect');
-const speedSlider = document.getElementById('speedSlider');
-const speedVal = document.getElementById('speedVal');
-
-const btnRun = document.getElementById('btnRun');
-const btnPause = document.getElementById('btnPause');
-const btnStepInto = document.getElementById('btnStepInto');
-const btnStepOver = document.getElementById('btnStepOver');
-const btnReset = document.getElementById('btnReset');
-const btnResetAll = document.getElementById('btnResetAll');
-const btnHelp = document.getElementById('btnHelp');
-const btnCloseModal = document.getElementById('btnCloseModal');
-const btnThemeToggle = document.getElementById('btnThemeToggle');
-const btnClearConsole = document.getElementById('btnClearConsole');
-
-const statusPill = document.getElementById('statusPill');
-const stepCounter = document.getElementById('stepCounter');
-const watchTableBody = document.getElementById('watchTableBody');
-const varCountBadge = document.getElementById('varCountBadge');
-const stackList = document.getElementById('stackList');
-const consoleBox = document.getElementById('consoleBox');
-const helpModal = document.getElementById('helpModal');
-
-// Initialize App
-window.addEventListener('DOMContentLoaded', () => {
-  codeTextarea.value = PRESETS.factorial;
-  syncEditor();
-  resetDebugger();
-
-  codeTextarea.addEventListener('input', () => {
-    syncEditor();
-    resetDebugger();
-  });
-
-  codeTextarea.addEventListener('scroll', () => {
-    codeDisplay.scrollTop = codeTextarea.scrollTop;
-    codeDisplay.scrollLeft = codeTextarea.scrollLeft;
-    editorGutter.scrollTop = codeTextarea.scrollTop;
-  });
-
-  presetSelect.addEventListener('change', (e) => {
-    const key = e.target.value;
-    if (PRESETS[key]) {
-      codeTextarea.value = PRESETS[key];
-      syncEditor();
-      resetDebugger();
-      logConsole(`已載入範例程式：${e.target.options[e.target.selectedIndex].text}`);
-    }
-  });
-
-  speedSlider.addEventListener('input', (e) => {
-    speedVal.textContent = `${e.target.value}ms`;
-    if (autoRunTimer) {
-      pauseAutoRun();
-      startAutoRun();
-    }
-  });
-
-  btnRun.addEventListener('click', startAutoRun);
-  btnPause.addEventListener('click', pauseAutoRun);
-  btnStepInto.addEventListener('click', doStepInto);
-  btnStepOver.addEventListener('click', doStepOver);
-  btnReset.addEventListener('click', resetDebugger);
-  btnResetAll.addEventListener('click', resetDebugger);
-  btnClearConsole.addEventListener('click', () => {
-    consoleBox.innerHTML = '';
-  });
-
-  btnHelp.addEventListener('click', () => helpModal.classList.add('active'));
-  btnCloseModal.addEventListener('click', () => helpModal.classList.remove('active'));
-  helpModal.addEventListener('click', (e) => {
-    if (e.target === helpModal) helpModal.classList.remove('active');
-  });
-
-  btnThemeToggle.addEventListener('click', () => {
-    const isLight = document.body.getAttribute('data-theme') === 'light';
-    document.body.setAttribute('data-theme', isLight ? 'dark' : 'light');
-    btnThemeToggle.textContent = isLight ? '🌙 切換主題' : '☀️ 淺色主題';
-  });
-});
-
-function highlightSyntaxLine(line) {
-  if (!line) return ' ';
-  const escaped = escapeHTML(line);
-
-  // Check comments
-  if (line.trim().startsWith('//') || line.trim().startsWith('#')) {
-    return `<span class="syn-comment">${escaped}</span>`;
-  }
-
-  return escaped
-    .replace(/\b(while|if|do|then|else|end|skip|print|true|false|當|若循環|循環|做|則做|若|如果|則|否則|結束|空|印出|輸出|顯示|真|假|正確|錯誤)\b/g, (match) => {
-      const lower = match.toLowerCase();
-      if (['while', '當', '若循環', '循環'].includes(lower)) return `<span class="kw-while">${match}</span>`;
-      if (['if', '若', '如果'].includes(lower)) return `<span class="kw-if">${match}</span>`;
-      if (['do', 'then', '做', '則做', '則'].includes(lower)) return `<span class="kw-do">${match}</span>`;
-      if (['print', '印出', '輸出', '顯示'].includes(lower)) return `<span class="kw-print">${match}</span>`;
-      return `<span class="kw-assign">${match}</span>`;
-    })
-    .replace(/(:\=|==|!=|&amp;&amp;|\|\||&lt;=|&gt;=|\+|-|\*|\/|%|=)/g, '<span class="kw-assign">$1</span>')
-    .replace(/\b(\d+(\.\d+)?)\b/g, '<span class="syn-number">$1</span>');
-}
-
-function syncEditor() {
-  const code = codeTextarea.value;
-  const lines = code.split('\n');
-
-  // Gutter Line Numbers & Breakpoints
-  let gutterHTML = '';
-  for (let i = 1; i <= lines.length; i++) {
-    const isBp = breakpoints.has(i);
-    gutterHTML += `
-      <div class="line-number ${isBp ? 'has-breakpoint' : ''}" onclick="toggleBreakpoint(${i})">
-        <span>${i}</span>
-        <div class="breakpoint-dot"></div>
-      </div>
-    `;
-  }
-  editorGutter.innerHTML = gutterHTML;
-
-  // Code Display Highlight Lines
-  let currentActiveLine = engine ? engine.getState().currentLine : -1;
-  let codeHTML = '';
-  lines.forEach((line, idx) => {
-    const lineNum = idx + 1;
-    const isActive = lineNum === currentActiveLine;
-    const highlightedContent = highlightSyntaxLine(line);
-    codeHTML += `
-      <div class="code-line ${isActive ? 'active-line' : ''}" id="codeLine-${lineNum}">
-        ${highlightedContent}
-      </div>
-    `;
-  });
-  codeDisplay.innerHTML = codeHTML;
-}
-
-function escapeHTML(str) {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-function toggleBreakpoint(lineNum) {
-  if (breakpoints.has(lineNum)) {
-    breakpoints.delete(lineNum);
-  } else {
-    breakpoints.add(lineNum);
-  }
-  if (engine) engine.setBreakpoints(Array.from(breakpoints));
-  syncEditor();
-}
-
-function insertSnippet(text) {
-  const start = codeTextarea.selectionStart;
-  const end = codeTextarea.selectionEnd;
-  const current = codeTextarea.value;
-  codeTextarea.value = current.substring(0, start) + text + current.substring(end);
-  codeTextarea.focus();
-  syncEditor();
-  resetDebugger();
-}
-
-function parseEngine() {
-  if (engine) return true;
-  try {
-    const lexer = new Lexer(codeTextarea.value);
-    const tokens = lexer.tokenize();
-    const parser = new Parser(tokens);
-    const ast = parser.parse();
-    engine = new DebuggerEngine(ast);
-    engine.setBreakpoints(Array.from(breakpoints));
-    return true;
-  } catch (err) {
-    updateStatus('ERROR');
-    logConsole(err.message, 'error');
-    return false;
-  }
-}
-
-function resetDebugger() {
-  pauseAutoRun();
-  engine = null;
-  lastOutputLen = 0;
-  stepCounter.textContent = 'Step: 0';
-  updateStatus('READY');
-  updateWatchTable({});
-  updateCallStack([]);
-  syncEditor();
-  consoleBox.innerHTML = '<div class="console-line console-info">環境已重置。請重新開始除錯。</div>';
-}
-
-function doStepInto() {
-  if (!parseEngine()) return;
-
-  try {
-    const state = engine.stepInto();
-    renderState(state);
-
-    if (state.status === 'HALTED') {
-      pauseAutoRun();
-      logConsole('程式執行完成 (Execution Complete)。', 'info');
-    }
-  } catch (err) {
-    pauseAutoRun();
-    updateStatus('ERROR');
-    logConsole(err.message, 'error');
-  }
-}
-
-function doStepOver() {
-  if (!parseEngine()) return;
-
-  try {
-    const state = engine.stepOver();
-    renderState(state);
-
-    if (state.status === 'HALTED') {
-      pauseAutoRun();
-      logConsole('程式執行完成 (Execution Complete)。', 'info');
-    }
-  } catch (err) {
-    pauseAutoRun();
-    updateStatus('ERROR');
-    logConsole(err.message, 'error');
-  }
-}
-
-function startAutoRun() {
-  if (!parseEngine()) return;
-
-  btnRun.disabled = true;
-  btnPause.disabled = false;
-  updateStatus('RUNNING');
-
-  const speed = parseInt(speedSlider.value, 10);
-  autoRunTimer = setInterval(() => {
-    try {
-      const state = engine.stepInto();
-      renderState(state);
-
-      if (state.isBreakpoint) {
-        pauseAutoRun();
-        logConsole(`命中第 ${state.currentLine} 行斷點，暫停執行。`, 'info');
-      } else if (state.status === 'HALTED') {
-        pauseAutoRun();
-        logConsole('程式執行完成 (Execution Complete)。', 'info');
+      // 為了支援 Hex 大小寫混合，先建立不區分大小寫的查找表（僅在需要時）
+      const isHexLike = charset === CHARSETS['16-lower'] || charset === CHARSETS['16-upper'];
+      let lookup = charset;
+      if (isHexLike) {
+        // 統一轉成小寫來處理
+        str = str.toLowerCase();
+        lookup = CHARSETS['16-lower'];
       }
-    } catch (err) {
-      pauseAutoRun();
-      updateStatus('ERROR');
-      logConsole(err.message, 'error');
+
+      let result = 0n;
+      const baseBig = BigInt(base);
+      for (const char of str) {
+        const digit = lookup.indexOf(char);
+        if (digit === -1) {
+          throw new Error(`字元 "${char}" 不在字元集中`);
+        }
+        result = result * baseBig + BigInt(digit);
+      }
+      return result;
     }
-  }, speed);
-}
 
-function pauseAutoRun() {
-  if (autoRunTimer) {
-    clearInterval(autoRunTimer);
-    autoRunTimer = null;
-  }
-  btnRun.disabled = false;
-  btnPause.disabled = true;
-  if (engine && engine.status === 'RUNNING') {
-    updateStatus('PAUSED');
-  }
-}
+    function decimalToCustomBase(num, charset, isAlphabetExcelStyle = false) {
+      if (isAlphabetExcelStyle) {
+        if (num <= 0) return ''; // 0 或負數不產生字母
+        let result = '';
+        let n = num;
+        const base = charset.length;
+        while (n > 0) {
+          n--;
+          result = charset[n % base] + result;
+          n = Math.floor(n / base);
+        }
+        return result;
+      }
 
-function renderState(state) {
-  stepCounter.textContent = `Step: ${state.stepCount}`;
-  updateStatus(state.status);
-  updateWatchTable(state.env, state.prevEnv, state.lastChangedVar);
-  updateCallStack(state.callStack);
-  syncEditor();
-
-  // Only log newly produced output
-  if (state.output.length > lastOutputLen) {
-    for (let i = lastOutputLen; i < state.output.length; i++) {
-      logConsole(state.output[i]);
+      // 一般進制
+      if (num === 0) return charset[0];
+      const base = charset.length;
+      let n = Math.abs(num);
+      let result = '';
+      while (n > 0) {
+        result = charset[n % base] + result;
+        n = Math.floor(n / base);
+      }
+      return (num < 0 ? '-' : '') + (result || charset[0]);
     }
-    lastOutputLen = state.output.length;
-  }
-}
 
-function updateStatus(status) {
-  statusPill.className = 'status-pill';
-  switch (status) {
-    case 'READY':
-      statusPill.classList.add('status-ready');
-      statusPill.textContent = '就緒 (READY)';
-      break;
-    case 'RUNNING':
-      statusPill.classList.add('status-running');
-      statusPill.textContent = '執行中 (RUNNING)';
-      break;
-    case 'PAUSED':
-      statusPill.classList.add('status-paused');
-      statusPill.textContent = '暫停中 (PAUSED)';
-      break;
-    case 'HALTED':
-      statusPill.classList.add('status-halted');
-      statusPill.textContent = '完成 (HALTED)';
-      break;
-    case 'ERROR':
-      statusPill.classList.add('status-error');
-      statusPill.textContent = '錯誤 (ERROR)';
-      break;
-  }
-}
+    // --- Tab 1: 序列生成 ---
+    function generateSequence() {
+      const radixType = document.getElementById('radixType').value;
+      let charset = '';
+      let isExcelStyle = false;
 
-function updateWatchTable(env, prevEnv = {}, lastVar = null) {
-  const keys = Object.keys(env);
-  varCountBadge.textContent = `${keys.length} 個變數`;
+      if (radixType === 'custom') {
+        charset = document.getElementById('customCharsetInput').value || '01';
+      } else if (radixType.startsWith('26-alpha')) {
+        charset = CHARSETS[radixType];
+        isExcelStyle = true;
+      } else {
+        charset = CHARSETS[radixType] || CHARSETS['10'];
+      }
 
-  if (keys.length === 0) {
-    watchTableBody.innerHTML = `
-      <tr>
-        <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 20px;">目前尚無設定變數</td>
-      </tr>
-    `;
-    return;
-  }
+      const start = parseInt(document.getElementById('seqStart').value, 10) || 0;
+      const end = parseInt(document.getElementById('seqEnd').value, 10) || 0;
+      const step = Math.max(1, parseInt(document.getElementById('seqStep').value, 10) || 1);
+      const padWidth = parseInt(document.getElementById('seqPadWidth').value, 10) || 0;
+      const padChar = document.getElementById('seqPadChar').value || '0';
+      const delimiterRaw = document.getElementById('seqDelimiter').value;
+      const delimiter = delimiterRaw === '\\n' ? '\n' : (delimiterRaw === '\\t' ? '\t' : delimiterRaw);
+      const prefix = document.getElementById('seqPrefix').value;
+      const suffix = document.getElementById('seqSuffix').value;
+      const target = document.getElementById('seqTarget').value;
 
-  let html = '';
-  keys.forEach(key => {
-    const val = env[key];
-    const prevVal = prevEnv[key];
-    const isUpdated = key === lastVar;
+      // Excel 風格字母序列驗證
+      if (isExcelStyle && (start < 1 || end < 1)) {
+        showToast('Excel 字母序列的起始與結束值必須大於等於 1');
+        return;
+      }
 
-    html += `
-      <tr class="${isUpdated ? 'var-updated' : ''}">
-        <td style="font-weight: 600; color: #38bdf8;">${escapeHTML(key)}</td>
-        <td><span class="value-badge">${val}</span></td>
-        <td>
-          ${isUpdated ? `<span class="delta-badge">變更 (${prevVal !== undefined ? prevVal : '新'} ➜ ${val})</span>` : '<span style="color:var(--text-muted)">無變化</span>'}
-        </td>
-      </tr>
-    `;
-  });
-  watchTableBody.innerHTML = html;
-}
+      const results = [];
+      const isReverse = start > end;
+      if (isReverse) {
+        for (let i = start; i >= end; i -= step) {
+          let str = decimalToCustomBase(i, charset, isExcelStyle);
+          if (str === '' && isExcelStyle) continue; // 跳過無效值
+          if (padWidth > 0 && str.length < padWidth) {
+            str = str.padStart(padWidth, padChar);
+          }
+          results.push(prefix + str + suffix);
+        }
+      } else {
+        for (let i = start; i <= end; i += step) {
+          let str = decimalToCustomBase(i, charset, isExcelStyle);
+          if (str === '' && isExcelStyle) continue;
+          if (padWidth > 0 && str.length < padWidth) {
+            str = str.padStart(padWidth, padChar);
+          }
+          results.push(prefix + str + suffix);
+        }
+      }
 
-function updateCallStack(stackFrames) {
-  if (stackFrames.length === 0) {
-    stackList.innerHTML = `<li class="stack-item"><span>Program Main (Ready)</span></li>`;
-    return;
-  }
+      const outputText = results.join(delimiter);
+      if (target === 'output-replace') {
+        document.getElementById('outputText').value = outputText;
+        updateStats('outputText', 'outputStats');
+      } else if (target === 'output-append') {
+        const out = document.getElementById('outputText');
+        out.value += (out.value ? delimiter : '') + outputText;
+        updateStats('outputText', 'outputStats');
+      } else {
+        document.getElementById('inputText').value = outputText;
+        updateStats('inputText', 'inputStats');
+      }
 
-  let html = '';
-  stackFrames.forEach((frameDesc, idx) => {
-    const isTop = idx === stackFrames.length - 1;
-    html += `
-      <li class="stack-item ${isTop ? 'active' : ''}">
-        <span>${escapeHTML(frameDesc)}</span>
-        ${isTop ? '<span style="color:var(--warning-color); font-size: 11px;">[目前執行中]</span>' : ''}
-      </li>
-    `;
-  });
-  stackList.innerHTML = html;
-}
+      showToast(`已成功生成 ${results.length} 筆序列項目！`);
+    }
 
-function logConsole(msg, type = 'normal') {
-  const line = document.createElement('div');
-  line.className = 'console-line';
-  if (type === 'error') line.classList.add('console-error');
-  if (type === 'info') line.classList.add('console-info');
-  line.textContent = msg;
+    // --- Tab 1: 進制轉換（已支援 2～62） ---
+    function convertInputBase() {
+      const text = document.getElementById('inputText').value;
+      if (!text) {
+        showToast('輸入區無內容可轉換');
+        return;
+      }
+      const from = document.getElementById('convertFromBase').value;
+      const to = document.getElementById('convertToBase').value;
 
-  consoleBox.appendChild(line);
-  consoleBox.scrollTop = consoleBox.scrollHeight;
-}
-</script>
+      try {
+        let result = '';
+
+        // 特殊編碼處理
+        if (from === 'text' && to === 'base64') {
+          result = btoa(unescape(encodeURIComponent(text)));
+        } else if (from === 'base64' && to === 'text') {
+          result = decodeURIComponent(escape(atob(text)));
+        } else if (from === 'text' && to === '16') {
+          result = Array.from(new TextEncoder().encode(text)).map(b => b.toString(16).padStart(2, '0')).join(' ');
+        } else if (from === '16' && to === 'text') {
+          const hexArr = text.trim().split(/\s+/);
+          const bytes = new Uint8Array(hexArr.map(h => parseInt(h, 16)));
+          result = new TextDecoder().decode(bytes);
+        } else if (from === 'text' && to === '2') {
+          result = Array.from(new TextEncoder().encode(text)).map(b => b.toString(2).padStart(8, '0')).join(' ');
+        } else {
+          // 數字進制互轉（支援 2～62）
+          const getCharset = (baseStr) => {
+            if (baseStr === '16') return CHARSETS['16-lower'];
+            if (baseStr === '62') return CHARSETS['62'];
+            if (baseStr === '36') return CHARSETS['36'];
+            return CHARSETS[baseStr] || null;
+          };
+
+          const fromCharset = getCharset(from);
+          const toCharset = getCharset(to);
+
+          if (!fromCharset || !toCharset) {
+            showToast('不支援的進制組合');
+            return;
+          }
+
+          const lines = text.split('\n');
+          result = lines.map(line => {
+            const trimmed = line.trim();
+            if (!trimmed) return '';
+            try {
+              const decimalValue = customBaseToDecimal(trimmed, fromCharset);
+              // 轉為 Number 呼叫現有函式（一般文字處理場景足夠）
+              // 若數值超過安全範圍，仍會盡量輸出（精度可能損失）
+              const num = Number(decimalValue);
+              if (!Number.isSafeInteger(num) && decimalValue > Number.MAX_SAFE_INTEGER) {
+                // 超過安全整數時，改用簡易 BigInt 轉字串（僅支援正數）
+                return bigIntToCustomBase(decimalValue, toCharset);
+              }
+              return decimalToCustomBase(num, toCharset);
+            } catch (e) {
+              return `[轉換錯誤: ${e.message}]`;
+            }
+          }).join('\n');
+        }
+
+        document.getElementById('outputText').value = result;
+        updateStats('outputText', 'outputStats');
+        showToast('進制/編碼轉換完成！');
+      } catch (err) {
+        showToast(`轉換失敗: ${err.message}`);
+      }
+    }
+
+    // 輔助：BigInt 轉任意進制（用於超大數）
+    function bigIntToCustomBase(num, charset) {
+      if (num === 0n) return charset[0];
+      const base = BigInt(charset.length);
+      let n = num < 0n ? -num : num;
+      let result = '';
+      while (n > 0n) {
+        const digit = Number(n % base);
+        result = charset[digit] + result;
+        n = n / base;
+      }
+      return (num < 0n ? '-' : '') + result;
+    }
+
+    // --- Tab 2: 插入、前後綴與編號 ---
+    function applyAffixes() {
+      const text = document.getElementById('inputText').value;
+      const prefix = document.getElementById('insertPrefix').value;
+      const suffix = document.getElementById('insertSuffix').value;
+      const lines = text.split('\n');
+      const res = lines.map(line => prefix + line + suffix).join('\n');
+      document.getElementById('outputText').value = res;
+      updateStats('outputText', 'outputStats');
+      showToast('已完成前後綴插入！');
+    }
+
+    function applyLineNumbering() {
+      const text = document.getElementById('inputText').value;
+      const fmt = document.getElementById('numFormat').value;
+      const start = parseInt(document.getElementById('numStart').value, 10) || 1;
+      const step = parseInt(document.getElementById('numStep').value, 10) || 1;
+      const pos = document.getElementById('numPosition').value;
+
+      const lines = text.split('\n');
+      let cur = start;
+      const res = lines.map(line => {
+        let numStr = fmt.replace(/\{n(:(\d+)d)?\}/g, (match, p1, p2) => {
+          if (p2) {
+            return String(cur).padStart(parseInt(p2, 10), '0');
+          }
+          return String(cur);
+        });
+        cur += step;
+        return pos === 'start' ? (numStr + line) : (line + numStr);
+      }).join('\n');
+
+      document.getElementById('outputText').value = res;
+      updateStats('outputText', 'outputStats');
+      showToast('已完成動態編號插入！');
+    }
+
+    function joinLines() {
+      const text = document.getElementById('inputText').value;
+      const delimiter = document.getElementById('joinDelimiter').value;
+      const wrap = document.getElementById('wrapOption').value;
+      const lines = text.split('\n').filter(l => l.length > 0);
+
+      const mapped = lines.map(l => {
+        if (wrap === 'single') return `'${l}'`;
+        if (wrap === 'double') return `"${l}"`;
+        if (wrap === 'backtick') return `\`${l}\``;
+        if (wrap === 'bracket') return `[${l}]`;
+        return l;
+      });
+
+      document.getElementById('outputText').value = mapped.join(delimiter);
+      updateStats('outputText', 'outputStats');
+      showToast(`已合併 ${mapped.length} 行！`);
+    }
+
+    function splitByDelimiter() {
+      const text = document.getElementById('inputText').value;
+      const delimiter = document.getElementById('joinDelimiter').value || ',';
+      const parts = text.split(delimiter).map(s => s.trim());
+      document.getElementById('outputText').value = parts.join('\n');
+      updateStats('outputText', 'outputStats');
+      showToast(`已拆分為 ${parts.length} 行！`);
+    }
+
+    // --- Tab 3: 取代、過濾與清洗 ---
+    function executeReplace() {
+      const text = document.getElementById('inputText').value;
+      const find = document.getElementById('findText').value;
+      const replace = document.getElementById('replaceText').value;
+      const isRegex = document.getElementById('regexMode').checked;
+      const isCaseInsensitive = document.getElementById('caseInsensitive').checked;
+      const isDotAll = document.getElementById('dotAll').checked;
+
+      if (!find) {
+        showToast('請輸入要尋找的文字或正規表達式');
+        return;
+      }
+
+      try {
+        let res = '';
+        if (isRegex) {
+          let flags = 'g';
+          if (isCaseInsensitive) flags += 'i';
+          if (isDotAll) flags += 's';
+          const re = new RegExp(find, flags);
+          res = text.replace(re, replace);
+        } else {
+          if (isCaseInsensitive) {
+            const escaped = find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const re = new RegExp(escaped, 'gi');
+            res = text.replace(re, replace);
+          } else {
+            res = text.split(find).join(replace);
+          }
+        }
+        document.getElementById('outputText').value = res;
+        updateStats('outputText', 'outputStats');
+        showToast('取代完成！');
+      } catch (err) {
+        showToast(`取代錯誤: ${err.message}`);
+      }
+    }
+
+    function executeBatchReplace() {
+      let text = document.getElementById('inputText').value;
+      const rulesRaw = document.getElementById('batchReplaceRules').value;
+      const lines = rulesRaw.split('\n').filter(l => l.trim().length > 0);
+
+      let count = 0;
+      for (const r of lines) {
+        let find = '';
+        let repl = '';
+        if (r.includes('=>')) {
+          const parts = r.split('=>');
+          find = parts[0];
+          repl = parts.slice(1).join('=>');
+        } else if (r.includes(',')) {
+          const parts = r.split(',');
+          find = parts[0];
+          repl = parts.slice(1).join(',');
+        }
+        if (find) {
+          text = text.split(find).join(repl);
+          count++;
+        }
+      }
+
+      document.getElementById('outputText').value = text;
+      updateStats('outputText', 'outputStats');
+      showToast(`已套用 ${count} 組對應取代規則！`);
+    }
+
+    function filterLines(keepMatching) {
+      const text = document.getElementById('inputText').value;
+      const kw = document.getElementById('filterKeyword').value;
+      if (!kw) {
+        showToast('請輸入篩選關鍵字');
+        return;
+      }
+      const lines = text.split('\n');
+      const filtered = lines.filter(l => {
+        const match = l.includes(kw);
+        return keepMatching ? match : !match;
+      });
+      document.getElementById('outputText').value = filtered.join('\n');
+      updateStats('outputText', 'outputStats');
+      showToast(`過濾完成，剩餘 ${filtered.length} 行！`);
+    }
+
+    function removeDuplicateLines() {
+      const text = document.getElementById('inputText').value;
+      const lines = text.split('\n');
+      const unique = Array.from(new Set(lines));
+      document.getElementById('outputText').value = unique.join('\n');
+      updateStats('outputText', 'outputStats');
+      showToast(`已移除重複行 (共 ${lines.length - unique.length} 行被剔除)！`);
+    }
+
+    function removeEmptyLines() {
+      const text = document.getElementById('inputText').value;
+      const lines = text.split('\n').filter(l => l.trim().length > 0);
+      document.getElementById('outputText').value = lines.join('\n');
+      updateStats('outputText', 'outputStats');
+      showToast('已移除空白行！');
+    }
+
+    function trimLines() {
+      const text = document.getElementById('inputText').value;
+      const lines = text.split('\n').map(l => l.trim());
+      document.getElementById('outputText').value = lines.join('\n');
+      updateStats('outputText', 'outputStats');
+      showToast('已去除行首行尾空白！');
+    }
+
+    function sortLines(type) {
+      const text = document.getElementById('inputText').value;
+      let lines = text.split('\n');
+      if (type === 'asc') {
+        lines.sort((a, b) => a.localeCompare(b));
+      } else if (type === 'desc') {
+        lines.sort((a, b) => b.localeCompare(a));
+      } else if (type === 'num') {
+        lines.sort((a, b) => (parseFloat(a) || 0) - (parseFloat(b) || 0));
+      } else if (type === 'reverse') {
+        lines.reverse();
+      } else if (type === 'shuffle') {
+        for (let i = lines.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [lines[i], lines[j]] = [lines[j], lines[i]];
+        }
+      }
+      document.getElementById('outputText').value = lines.join('\n');
+      updateStats('outputText', 'outputStats');
+      showToast('已完成排序！');
+    }
+
+    function transformCase(type) {
+      const text = document.getElementById('inputText').value;
+      let res = '';
+      if (type === 'upper') {
+        res = text.toUpperCase();
+      } else if (type === 'lower') {
+        res = text.toLowerCase();
+      } else if (type === 'title') {
+        res = text.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+      } else if (type === 'camel') {
+        res = text.split('\n').map(l => {
+          return l.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase());
+        }).join('\n');
+      } else if (type === 'snake') {
+        res = text.split('\n').map(l => {
+          return l.match(/[A-Z]{2,}(?=[A-Z][a-z]+[0-9]*|\b)|[A-Z]?[a-z]+[0-9]*|[A-Z]|[0-9]+/g)?.map(x => x.toLowerCase()).join('_') || l;
+        }).join('\n');
+      } else if (type === 'kebab') {
+        res = text.split('\n').map(l => {
+          return l.match(/[A-Z]{2,}(?=[A-Z][a-z]+[0-9]*|\b)|[A-Z]?[a-z]+[0-9]*|[A-Z]|[0-9]+/g)?.map(x => x.toLowerCase()).join('-') || l;
+        }).join('\n');
+      }
+      document.getElementById('outputText').value = res;
+      updateStats('outputText', 'outputStats');
+      showToast('大小寫轉換完成！');
+    }
+
+    // --- Tab 4: 自定義腳本與編譯 ---
+    function loadScriptTemplate(tpl) {
+      const scriptEl = document.getElementById('customJsScript');
+      if (tpl === 'line-map') {
+        scriptEl.value = `// 逐行轉換範例\nreturn lines.map((line, i) => {\n  return \`#\${i + 1}: \${line.toUpperCase()}\`;\n}).join('\\n');`;
+      } else if (tpl === 'template-string') {
+        scriptEl.value = `// 模板字串填充範例\nreturn lines.map(line => {\n  return \`<div class="item">\${line}</div>\`;\n}).join('\\n');`;
+      } else if (tpl === 'json-extract') {
+        scriptEl.value = `// JSON 解析範例\ntry {\n  const data = JSON.parse(text);\n  return JSON.stringify(data, null, 2);\n} catch (e) {\n  return 'JSON 解析錯誤: ' + e.message;\n}`;
+      } else if (tpl === 'html-table') {
+        scriptEl.value = `// 生成 HTML 表格\nconst rows = lines.map(line => {\n  const cols = line.split(/[\\t,]/);\n  return \`  <tr>\${cols.map(c => \`<td>\${c.trim()}</td>\`).join('')}</tr>\`;\n}).join('\\n');\nreturn \`<table border="1" cellpadding="6" cellspacing="0">\n\${rows}\n</table>\`;`;
+      } else if (tpl === 'markdown-preview') {
+        scriptEl.value = `// Markdown 標題與清單轉 HTML\nreturn text\n  .replace(/^### (.*$)/gim, '<h3>$1</h3>')\n  .replace(/^## (.*$)/gim, '<h2>$1</h2>')\n  .replace(/^# (.*$)/gim, '<h1>$1</h1>')\n  .replace(/^\\* (.*$)/gim, '<li>$1</li>')\n  .replace(/\\n/gim, '<br/>');`;
+      }
+      showToast('已載入範本腳本！');
+    }
+
+    function executeCustomScript() {
+      const text = document.getElementById('inputText').value;
+      const lines = text.split('\n');
+      const scriptCode = document.getElementById('customJsScript').value;
+
+      try {
+        const fn = new Function('text', 'lines', scriptCode);
+        const result = fn(text, lines);
+        const outStr = typeof result === 'object' ? JSON.stringify(result, null, 2) : String(result);
+        document.getElementById('outputText').value = outStr;
+        updateStats('outputText', 'outputStats');
+        showToast('腳本編譯執行完成！');
+      } catch (err) {
+        showToast(`腳本執行錯誤: ${err.message}`);
+      }
+    }
+
+    function compileAndPreviewHtml() {
+      executeCustomScript();
+      const out = document.getElementById('outputText').value;
+      const preview = document.getElementById('previewArea');
+      preview.innerHTML = out;
+      preview.classList.add('active');
+      document.getElementById('previewBtn').textContent = '🙈 隱藏預覽';
+      showToast('已完成編譯並渲染至預覽視窗！');
+    }
+
+    // 初始化統計
+    updateStats('inputText', 'inputStats');
+    updateStats('outputText', 'outputStats');
+  </script>
 </body>
 </html>
