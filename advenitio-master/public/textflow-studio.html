@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="zh-TW" :class="{ 'dark': isDark }">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TextFlow Studio - 離線文字處理工作台</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Vue 3 CDN -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50: '#eef2ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* 自訂捲軸樣式 */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    .dark ::-webkit-scrollbar-thumb { background: #475569; }
+    textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    /* 讓 HTML 預覽在深色模式更舒適 */
+    .dark .prose { color: #e2e8f0; }
+    .dark .prose a { color: #a5b4fc; }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 antialiased min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white transition-colors duration-200">
+
+<div id="app" class="flex flex-col flex-1 max-w-[1600px] w-full mx-auto p-3 md:p-6 gap-4">
+
+  <!-- ==================== Header ==================== -->
+  <header class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-5 py-3.5 shadow-sm flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-indigo-200 dark:shadow-indigo-900/40 shadow-md font-bold text-lg">
+        ⚡
+      </div>
+      <div>
+        <h1 class="text-lg font-bold text-slate-900 dark:text-white leading-tight">TextFlow Studio</h1>
+        <p class="text-xs text-slate-500 dark:text-slate-400">高效文字批次處理與自動化工作台</p>
+      </div>
+    </div>
+
+    <!-- 狀態指示區 -->
+    <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
+      <!-- 離線狀態標章 -->
+      <div :class="isOnline ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800' : 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800'"
+           class="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border">
+        <span class="w-2 h-2 rounded-full" :class="isOnline ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'"></span>
+        {{ isOnline ? '連線就緒' : '離線運作中' }}
+      </div>
+
+      <!-- 深色模式切換 -->
+      <button @click="toggleDark"
+              class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 transition text-slate-600 dark:text-slate-300"
+              :title="isDark ? '切換淺色模式' : '切換深色模式'">
+        <span v-if="isDark">☀️</span>
+        <span v-else>🌙</span>
+      </button>
+
+      <!-- 執行模式切換 -->
+      <div class="flex items-center bg-slate-100 dark:bg-slate-700 p-1 rounded-lg border border-slate-200 dark:border-slate-600 text-xs">
+        <button @click="autoExecute = true"
+                :class="autoExecute ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-400 shadow-sm font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'"
+                class="px-2.5 py-1 rounded-md transition-all">
+          ⚡ 即時響應
+        </button>
+        <button @click="autoExecute = false"
+                :class="!autoExecute ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-400 shadow-sm font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'"
+                class="px-2.5 py-1 rounded-md transition-all">
+          🛠️ 手動執行
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== Core Workspace (雙欄工作區) ==================== -->
+  <main class="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1">
+    
+    <!-- 📥 輸入區塊 (Input Section) -->
+    <section class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm flex flex-col overflow-hidden">
+      <!-- 工具列 -->
+      <div class="bg-slate-50/80 dark:bg-slate-900/50 px-4 py-2.5 border-b border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+          📥 輸入區塊 (Input)
+        </span>
+        <div class="flex items-center gap-1 flex-wrap">
+          <button @click="pasteFromClipboard" class="px-2 py-1 text-xs bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 rounded text-slate-700 dark:text-slate-300 transition">📋 貼上</button>
+          <button @click="selectAllInput" class="px-2 py-1 text-xs bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 rounded text-slate-700 dark:text-slate-300 transition">🔲 全選</button>
+          <button @click="loadExample" class="px-2 py-1 text-xs bg-indigo-50 dark:bg-indigo-900/40 border border-indigo-200 dark:border-indigo-700 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 rounded text-indigo-700 dark:text-indigo-300 transition">💡 範例</button>
+          <button @click="inputContent = ''" class="px-2 py-1 text-xs bg-rose-50 dark:bg-rose-900/30 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 dark:hover:bg-rose-900/50 rounded text-rose-600 dark:text-rose-400 transition">🗑️ 清空</button>
+        </div>
+      </div>
+
+      <!-- 文字輸入區 -->
+      <div class="relative flex-1 min-h-[280px]">
+        <textarea
+          v-model="inputContent"
+          placeholder="在此貼上或輸入原始文字..."
+          class="w-full h-full p-4 resize-none border-none outline-none text-sm text-slate-800 dark:text-slate-200 leading-relaxed bg-transparent absolute inset-0 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+        ></textarea>
+      </div>
+
+      <!-- 即時統計 -->
+      <div class="bg-slate-50 dark:bg-slate-900/60 px-4 py-2 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400 flex justify-between">
+        <span>字元數: <strong class="text-slate-700 dark:text-slate-300">{{ inputStats.chars }}</strong></span>
+        <span>行數: <strong class="text-slate-700 dark:text-slate-300">{{ inputStats.lines }}</strong></span>
+        <span>詞數: <strong class="text-slate-700 dark:text-slate-300">{{ inputStats.words }}</strong></span>
+      </div>
+    </section>
+
+    <!-- 📤 輸出與可編輯區 (Output Section) -->
+    <section class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm flex flex-col overflow-hidden">
+      <!-- 工具列 -->
+      <div class="bg-slate-50/80 dark:bg-slate-900/50 px-4 py-2.5 border-b border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+            📤 輸出區塊 (Output)
+          </span>
+          <!-- 預覽模式切換 -->
+          <button @click="isPreviewMode = !isPreviewMode"
+                  class="px-2 py-0.5 text-xs rounded border transition"
+                  :class="isPreviewMode 
+                    ? 'bg-indigo-600 text-white border-indigo-600' 
+                    : 'bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300'">
+            {{ isPreviewMode ? '🌐 HTML 預覽中' : '✏️ 純文字編輯' }}
+          </button>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-1">
+          <button @click="copyToClipboard" class="px-2 py-1 text-xs bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 rounded text-slate-700 dark:text-slate-300 transition">📄 複製</button>
+          <button @click="overwriteInput" title="將當前輸出覆蓋至輸入區" class="px-2 py-1 text-xs bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded text-slate-700 dark:text-slate-300 transition">⬅️ 覆蓋輸入</button>
+          <button @click="appendInput" title="將當前輸出追加至輸入區末尾" class="px-2 py-1 text-xs bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded text-slate-700 dark:text-slate-300 transition">➕ 追加輸入</button>
+          <button @click="downloadOutput" class="px-2 py-1 text-xs bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 rounded text-slate-700 dark:text-slate-300 transition">💾 下載</button>
+          <button @click="outputContent = ''" class="px-2 py-1 text-xs bg-rose-50 dark:bg-rose-900/30 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 dark:hover:bg-rose-900/50 rounded text-rose-600 dark:text-rose-400 transition">🗑️ 清空</button>
+        </div>
+      </div>
+
+      <!-- 輸出視圖區 -->
+      <div class="relative flex-1 min-h-[280px]">
+        <!-- 模式一：可編輯文字區 -->
+        <textarea
+          v-if="!isPreviewMode"
+          v-model="outputContent"
+          placeholder="處理結果將呈現於此（可直接修改編輯）..."
+          class="w-full h-full p-4 resize-none border-none outline-none text-sm text-slate-800 dark:text-slate-200 leading-relaxed bg-transparent absolute inset-0 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+        ></textarea>
+
+        <!-- 模式二：HTML 渲染預覽區 -->
+        <div
+          v-else
+          v-html="outputContent"
+          class="w-full h-full p-4 overflow-auto prose prose-sm max-w-none text-slate-800 dark:text-slate-200 bg-slate-50/50 dark:bg-slate-900/40 absolute inset-0"
+        ></div>
+      </div>
+
+      <!-- 即時統計 -->
+      <div class="bg-slate-50 dark:bg-slate-900/60 px-4 py-2 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400 flex justify-between">
+        <span>字元數: <strong class="text-slate-700 dark:text-slate-300">{{ outputStats.chars }}</strong></span>
+        <span>行數: <strong class="text-slate-700 dark:text-slate-300">{{ outputStats.lines }}</strong></span>
+        <span>詞數: <strong class="text-slate-700 dark:text-slate-300">{{ outputStats.words }}</strong></span>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== 🎛️ 功能模組選項卡 (Tab Panels) ==================== -->
+  <section class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm overflow-hidden">
+    
+    <!-- Tab 導航列 -->
+    <div class="flex border-b border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-900/40 overflow-x-auto">
+      <button
+        v-for="tab in tabs"
+        :key="tab.id"
+        @click="activeTab = tab.id"
+        :class="activeTab === tab.id 
+          ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400 bg-white dark:bg-slate-800 font-bold border-b-2' 
+          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-transparent hover:bg-slate-100/50 dark:hover:bg-slate-700/40'"
+        class="px-4 py-3 text-sm flex items-center gap-1.5 whitespace-nowrap transition-colors"
+      >
+        <span>{{ tab.icon }}</span>
+        <span>{{ tab.label }}</span>
+      </button>
+    </div>
+
+    <!-- Tab 內容設定面板 -->
+    <div class="p-5">
+
+      <!-- 模組 1: 進位與序列生成 -->
+      <div v-show="activeTab === 'sequence'" class="space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">起始值</label>
+            <input type="number" v-model.number="modSeq.start" class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-600 rounded text-sm bg-white dark:bg-slate-700 focus:border-indigo-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">結束值</label>
+            <input type="number" v-model.number="modSeq.end" class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-600 rounded text-sm bg-white dark:bg-slate-700 focus:border-indigo-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">步進 (Step)</label>
+            <input type="number" v-model.number="modSeq.step" class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-600 rounded text-sm bg-white dark:bg-slate-700 focus:border-indigo-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">進位制 (Radix)</label>
+            <select v-model.number="modSeq.radix" class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-600 rounded text-sm bg-white dark:bg-slate-700 focus:border-indigo-500 outline-none">
+              <option :value="10">十進位 (DEC)</option>
+              <option :value="16">十六進位 (HEX)</option>
+              <option :value="2">二進位 (BIN)</option>
+              <option :value="8">八進位 (OCT)</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-4 text-sm text-slate-700 dark:text-slate-300">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" v-model="modSeq.zeroPad" class="rounded text-indigo-600">
+            補零對齊
+          </label>
+          <input v-if="modSeq.zeroPad" type="number" v-model.number="modSeq.padWidth" min="1" max="16" placeholder="位數" class="w-20 px-2 py-1 border border-slate-300 dark:border-slate-600 rounded text-xs bg-white dark:bg-slate-700">
+          <span class="text-xs text-slate-400">（最多產生 5000 筆）</span>
+        </div>
+      </div>
+
+      <!-- 模組 2: 插入前後綴與編號 -->
+      <div v-show="activeTab === 'affix'" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">行前綴 (Prefix)</label>
+            <input type="text" v-model="modAffix.prefix" placeholder="例: - [ ] 或 <li>" class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-600 rounded text-sm bg-white dark:bg-slate-700 focus:border-indigo-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">行後綴 (Suffix)</label>
+            <input type="text" v-model="modAffix.suffix" placeholder="例: </li> 或 ;" class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-600 rounded text-sm bg-white dark:bg-slate-700 focus:border-indigo-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">編號樣式</label>
+            <select v-model="modAffix.numberingStyle" class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-600 rounded text-sm bg-white dark:bg-slate-700 focus:border-indigo-500 outline-none">
+              <option value="none">無編號</option>
+              <option value="1.">1. 2. 3.</option>
+              <option value="[1]">[1] [2] [3]</option>
+              <option value="01.">01. 02. 03.</option>
+              <option value="#1">#1 #2 #3</option>
+              <option value="(1)"> (1) (2) (3)</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-4 text-sm text-slate-700 dark:text-slate-300">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" v-model="modAffix.ignoreEmpty" class="rounded text-indigo-600"> 忽略空白行
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" v-model="modAffix.trimLine" class="rounded text-indigo-600"> 先去除前後空格 (Trim)
+          </label>
+        </div>
+      </div>
+
+      <!-- 模組 3: 取代過濾與清洗 -->
+      <div v-show="activeTab === 'filter'" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">搜尋字串 / 正則表達式</label>
+            <input type="text" v-model="modFilter.search" placeholder="例: \s+|foo|^\d+" class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-600 rounded text-sm font-mono bg-white dark:bg-slate-700 focus:border-indigo-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">取代為 (Replacement)</label>
+            <input type="text" v-model="modFilter.replaceWith" placeholder="留空代表刪除匹配項目" class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-600 rounded text-sm font-mono bg-white dark:bg-slate-700 focus:border-indigo-500 outline-none">
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-4 text-sm text-slate-700 dark:text-slate-300">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" v-model="modFilter.isRegex" class="rounded text-indigo-600"> 啟用正規表達式 (RegEx)
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" v-model="modFilter.removeDuplicate" class="rounded text-indigo-600"> 移除重複行
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" v-model="modFilter.removeEmpty" class="rounded text-indigo-600"> 刪除完全空白行
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" v-model="modFilter.sortAsc" class="rounded text-indigo-600"> 行排序 (A-Z)
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" v-model="modFilter.sortDesc" class="rounded text-indigo-600"> 行排序 (Z-A)
+          </label>
+        </div>
+      </div>
+
+      <!-- 模組 4: 格式轉換 (新增) -->
+      <div v-show="activeTab === 'case'" class="space-y-4">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+          <button v-for="opt in caseOptions" :key="opt.value"
+                  @click="modCase.mode = opt.value; if(autoExecute) runProcessing()"
+                  :class="modCase.mode === opt.value 
+                    ? 'bg-indigo-600 text-white border-indigo-600' 
+                    : 'bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600'"
+                  class="px-3 py-2 text-xs rounded-lg border font-medium transition text-left">
+            {{ opt.label }}
+          </button>
+        </div>
+        <p class="text-xs text-slate-400 dark:text-slate-500 mt-2">
+          選擇上方任一轉換模式後，系統會立即套用（或點擊「立即執行」）。支援英文命名風格轉換與中文全半形轉換。
+        </p>
+      </div>
+
+      <!-- 模組 5: 編碼工具 (新增) -->
+      <div v-show="activeTab === 'encode'" class="space-y-4">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+          <button v-for="opt in encodeOptions" :key="opt.value"
+                  @click="modEncode.mode = opt.value; if(autoExecute) runProcessing()"
+                  :class="modEncode.mode === opt.value 
+                    ? 'bg-indigo-600 text-white border-indigo-600' 
+                    : 'bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600'"
+                  class="px-3 py-2 text-xs rounded-lg border font-medium transition text-left">
+            {{ opt.label }}
+          </button>
+        </div>
+        <div class="flex flex-wrap gap-3 text-sm text-slate-700 dark:text-slate-300 mt-2">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" v-model="modEncode.lineByLine" class="rounded text-indigo-600">
+            逐行處理（適用於多行 Base64 / URL）
+          </label>
+        </div>
+        <p class="text-xs text-slate-400 dark:text-slate-500">
+          Base64 解碼失敗時會顯示錯誤訊息。URL / HTML 實體轉換使用瀏覽器原生 API。
+        </p>
+      </div>
+
+      <!-- 模組 6: 分割與合併 (新增) -->
+      <div v-show="activeTab === 'split'" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">操作模式</label>
+            <select v-model="modSplit.mode" class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-600 rounded text-sm bg-white dark:bg-slate-700 focus:border-indigo-500 outline-none">
+              <option value="join">合併行（以分隔符連接）</option>
+              <option value="split">分割字串成多行</option>
+              <option value="column">提取第 N 欄（CSV/TSV）</option>
+              <option value="chunk">每 N 行分組（插入空行）</option>
+              <option value="reverseLines">反轉行順序</option>
+              <option value="shuffle">隨機打亂行順序</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
+              {{ modSplit.mode === 'join' ? '合併分隔符' : modSplit.mode === 'split' ? '分割分隔符' : modSplit.mode === 'column' ? '欄位分隔符' : '每幾行分組' }}
+            </label>
+            <input type="text" v-model="modSplit.separator" 
+                   :placeholder="modSplit.mode === 'chunk' ? '例如: 5' : '例如: , 或 \\t 或 |'"
+                   class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-600 rounded text-sm font-mono bg-white dark:bg-slate-700 focus:border-indigo-500 outline-none">
+          </div>
+        </div>
+        <div v-if="modSplit.mode === 'column'" class="flex items-center gap-3">
+          <label class="text-xs font-semibold text-slate-600 dark:text-slate-400">提取第幾欄（從 1 開始）</label>
+          <input type="number" v-model.number="modSplit.columnIndex" min="1" class="w-24 px-3 py-1.5 border border-slate-300 dark:border-slate-600 rounded text-sm bg-white dark:bg-slate-700">
+        </div>
+        <p class="text-xs text-slate-400 dark:text-slate-500">
+          提示：分隔符可輸入 <code class="bg-slate-100 dark:bg-slate-700 px-1 rounded">\t</code> 代表 Tab、<code class="bg-slate-100 dark:bg-slate-700 px-1 rounded">\n</code> 代表換行。
+        </p>
+      </div>
+
+      <!-- 模組 7: JS 腳本自訂 -->
+      <div v-show="activeTab === 'script'" class="space-y-3">
+        <div class="flex flex-wrap justify-between items-center gap-2">
+          <label class="text-xs font-semibold text-slate-600 dark:text-slate-400">自訂 JavaScript 函式（可用變數：<code class="text-indigo-500">input</code>、<code class="text-indigo-500">lines</code>）</label>
+          <span class="text-xs text-amber-600 dark:text-amber-400 font-mono">⚠️ 純本機沙盒即時執行</span>
+        </div>
+        
+        <!-- 快速範例按鈕 -->
+        <div class="flex flex-wrap gap-1.5">
+          <button v-for="preset in scriptPresets" :key="preset.name"
+                  @click="modScript.code = preset.code; if(autoExecute) runProcessing()"
+                  class="px-2.5 py-1 text-xs bg-slate-100 dark:bg-slate-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/40 border border-slate-200 dark:border-slate-600 rounded text-slate-600 dark:text-slate-300 transition">
+            {{ preset.name }}
+          </button>
+        </div>
+
+        <textarea
+          v-model="modScript.code"
+          class="w-full h-32 p-3 border border-slate-300 dark:border-slate-600 rounded-lg text-xs font-mono bg-slate-900 text-emerald-400 focus:border-indigo-500 outline-none leading-relaxed"
+          placeholder="// 範例：轉大寫並過濾空行&#10;return lines.map(line => line.toUpperCase()).filter(Boolean).join('\n');"
+        ></textarea>
+      </div>
+
+      <!-- 底部控制按鈕列 -->
+      <div class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between flex-wrap gap-3">
+        <span class="text-xs text-slate-400 dark:text-slate-500">
+          {{ autoExecute ? '⚡ 自動執行模式已啟用，參數變動即刻生效' : '🛠️ 點擊「立即執行」按鈕以應用變更' }}
+        </span>
+        <button
+          @click="runProcessing"
+          class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-semibold rounded-lg shadow-md shadow-indigo-100 dark:shadow-indigo-900/30 text-sm transition-all flex items-center gap-2"
+        >
+          <span>🚀 立即執行處理</span>
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==================== 📄 頁尾 (Footer) ==================== -->
+  <footer class="mt-auto py-3 px-2 flex flex-wrap items-center justify-between text-xs text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-slate-700">
+    <div class="flex items-center gap-2">
+      <span>© 2026 TextFlow Studio</span>
+      <span>•</span>
+      <span>MIT License</span>
+    </div>
+    <div class="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 font-medium">
+      <span>🔒 純本機記憶體運算，絕無任何資料上傳伺服器</span>
+    </div>
+  </footer>
+
+</div>
+
+<!-- ==================== Vue 3 核心邏輯 ==================== -->
+<script>
+  const { createApp, ref, computed, watch, onMounted } = Vue;
+
+  createApp({
+    setup() {
+      // 狀態管理
+      const isOnline = ref(navigator.onLine);
+      const isDark = ref(localStorage.getItem('tfs-dark') === 'true' || 
+                        (!localStorage.getItem('tfs-dark') && window.matchMedia('(prefers-color-scheme: dark)').matches));
+      const autoExecute = ref(true);
+      const isPreviewMode = ref(false);
+      const inputContent = ref('');
+      const outputContent = ref('');
+      const activeTab = ref('affix');
+
+      // 監聽連線狀態
+      onMounted(() => {
+        window.addEventListener('online', () => isOnline.value = true);
+        window.addEventListener('offline', () => isOnline.value = false);
+        // 套用初始深色模式
+        if (isDark.value) document.documentElement.classList.add('dark');
+      });
+
+      const toggleDark = () => {
+        isDark.value = !isDark.value;
+        localStorage.setItem('tfs-dark', isDark.value);
+        document.documentElement.classList.toggle('dark', isDark.value);
+      };
+
+      // 模組定義
+      const tabs = [
+        { id: 'sequence', label: '序列生成', icon: '🔢' },
+        { id: 'affix', label: '前後綴編號', icon: '➕' },
+        { id: 'filter', label: '取代過濾', icon: '🔍' },
+        { id: 'case', label: '格式轉換', icon: '🔤' },
+        { id: 'encode', label: '編碼工具', icon: '🔐' },
+        { id: 'split', label: '分割合併', icon: '✂️' },
+        { id: 'script', label: 'JS 腳本', icon: '⚙️' }
+      ];
+
+      // 各模組私有設定
+      const modSeq = ref({ start: 1, end: 10, step: 1, radix: 10, zeroPad: false, padWidth: 3 });
+      const modAffix = ref({ prefix: '- ', suffix: '', numberingStyle: 'none', ignoreEmpty: true, trimLine: true });
+      const modFilter = ref({ search: '', replaceWith: '', isRegex: false, removeDuplicate: false, removeEmpty: true, sortAsc: false, sortDesc: false });
+      const modCase = ref({ mode: 'upper' });
+      const modEncode = ref({ mode: 'base64encode', lineByLine: false });
+      const modSplit = ref({ mode: 'join', separator: ', ', columnIndex: 1 });
+      const modScript = ref({ code: "return lines.map(line => line.trim().toUpperCase()).filter(Boolean).join('\\n');" });
+
+      // 格式轉換選項
+      const caseOptions = [
+        { value: 'upper', label: '全部大寫' },
+        { value: 'lower', label: '全部小寫' },
+        { value: 'title', label: 'Title Case' },
+        { value: 'sentence', label: '句子大小寫' },
+        { value: 'camel', label: 'camelCase' },
+        { value: 'pascal', label: 'PascalCase' },
+        { value: 'snake', label: 'snake_case' },
+        { value: 'kebab', label: 'kebab-case' },
+        { value: 'constant', label: 'CONSTANT_CASE' },
+        { value: 'reverse', label: '反轉字元' },
+        { value: 'reverseLines', label: '反轉行序' },
+        { value: 'full2half', label: '全形 → 半形' },
+        { value: 'half2full', label: '半形 → 全形' }
+      ];
+
+      // 編碼選項
+      const encodeOptions = [
+        { value: 'base64encode', label: 'Base64 編碼' },
+        { value: 'base64decode', label: 'Base64 解碼' },
+        { value: 'urlencode', label: 'URL 編碼' },
+        { value: 'urldecode', label: 'URL 解碼' },
+        { value: 'htmlencode', label: 'HTML 實體編碼' },
+        { value: 'htmldecode', label: 'HTML 實體解碼' },
+        { value: 'unicode', label: 'Unicode 轉義' },
+        { value: 'fromUnicode', label: 'Unicode 還原' }
+      ];
+
+      // 腳本快速範例
+      const scriptPresets = [
+        { name: '轉大寫', code: "return lines.map(l => l.toUpperCase()).join('\\n');" },
+        { name: '去空行', code: "return lines.filter(l => l.trim()).join('\\n');" },
+        { name: '加行號', code: "return lines.map((l,i) => `${i+1}. ${l}`).join('\\n');" },
+        { name: '去重', code: "return [...new Set(lines)].join('\\n');" },
+        { name: '反轉行', code: "return lines.reverse().join('\\n');" },
+        { name: '提取數字', code: "return lines.map(l => (l.match(/\\d+/g)||[]).join(' ')).filter(Boolean).join('\\n');" },
+        { name: 'Markdown 清單', code: "return lines.filter(l=>l.trim()).map(l => `- ${l.trim()}`).join('\\n');" },
+        { name: 'JSON 陣列', code: "return JSON.stringify(lines.filter(Boolean), null, 2);" }
+      ];
+
+      // 統計計算函式
+      const calculateStats = (text) => {
+        if (!text) return { chars: 0, lines: 0, words: 0 };
+        const chars = text.length;
+        const lines = text === '' ? 0 : text.split('\n').length;
+        const words = (text.trim().match(/\S+/g) || []).length;
+        return { chars, lines, words };
+      };
+
+      const inputStats = computed(() => calculateStats(inputContent.value));
+      const outputStats = computed(() => calculateStats(outputContent.value));
+
+      // ===== 工具函式 =====
+      const toTitleCase = (str) => str.replace(/\w\S*/g, t => t.charAt(0).toUpperCase() + t.substr(1).toLowerCase());
+      const toSentenceCase = (str) => str.toLowerCase().replace(/(^\s*\w|[.!?]\s*\w)/g, c => c.toUpperCase());
+
+      const toCamelCase = (str) => {
+        return str.trim().toLowerCase()
+          .replace(/[^a-zA-Z0-9]+(.)/g, (_, c) => c.toUpperCase())
+          .replace(/[^a-zA-Z0-9]/g, '');
+      };
+      const toPascalCase = (str) => {
+        const camel = toCamelCase(str);
+        return camel.charAt(0).toUpperCase() + camel.slice(1);
+      };
+      const toSnakeCase = (str) => str.trim().replace(/([a-z])([A-Z])/g, '$1_$2').replace(/[\s\-]+/g, '_').toLowerCase().replace(/[^a-z0-9_]/g, '');
+      const toKebabCase = (str) => str.trim().replace(/([a-z])([A-Z])/g, '$1-$2').replace(/[\s_]+/g, '-').toLowerCase().replace(/[^a-z0-9\-]/g, '');
+      const toConstantCase = (str) => toSnakeCase(str).toUpperCase();
+
+      // 全形半形轉換
+      const full2half = (str) => {
+        return str.replace(/[\uFF01-\uFF5E]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))
+                  .replace(/\u3000/g, ' ');
+      };
+      const half2full = (str) => {
+        return str.replace(/[\u0021-\u007E]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 0xFEE0))
+                  .replace(/ /g, '\u3000');
+      };
+
+      // HTML 實體
+      const htmlEncode = (str) => {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      };
+      const htmlDecode = (str) => {
+        const div = document.createElement('div');
+        div.innerHTML = str;
+        return div.textContent || div.innerText || '';
+      };
+
+      // Unicode 轉義
+      const toUnicodeEscape = (str) => {
+        return Array.from(str).map(c => {
+          const code = c.codePointAt(0);
+          if (code > 0xFFFF) {
+            return '\\u{' + code.toString(16) + '}';
+          }
+          return '\\u' + code.toString(16).padStart(4, '0');
+        }).join('');
+      };
+      const fromUnicodeEscape = (str) => {
+        return str.replace(/\\u\{([0-9a-fA-F]+)\}/g, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+                  .replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+      };
+
+      // 核心執行邏輯
+      const runProcessing = () => {
+        const input = inputContent.value;
+        let lines = input.split('\n');
+
+        try {
+          if (activeTab.value === 'sequence') {
+            const result = [];
+            const { start, end, step, radix, zeroPad, padWidth } = modSeq.value;
+            const actualStep = step || 1;
+            if (actualStep === 0) throw new Error('步進值不可為 0');
+            const limit = Math.min(Math.max(Math.abs(end), 1), 5000);
+            const maxCount = 5000;
+
+            if (actualStep > 0) {
+              for (let i = start; i <= end && result.length < maxCount; i += actualStep) {
+                let val = Number(i).toString(radix).toUpperCase();
+                if (zeroPad) val = val.padStart(padWidth || 1, '0');
+                result.push(val);
+              }
+            } else {
+              for (let i = start; i >= end && result.length < maxCount; i += actualStep) {
+                let val = Number(i).toString(radix).toUpperCase();
+                if (zeroPad) val = val.padStart(padWidth || 1, '0');
+                result.push(val);
+              }
+            }
+            outputContent.value = result.join('\n');
+
+          } else if (activeTab.value === 'affix') {
+            let counter = 1;
+            const { prefix, suffix, numberingStyle, ignoreEmpty, trimLine } = modAffix.value;
+            
+            outputContent.value = lines.map(rawLine => {
+              let line = trimLine ? rawLine.trim() : rawLine;
+              if (ignoreEmpty && line.length === 0) return '';
+              
+              let numPrefix = '';
+              if (numberingStyle === '1.') numPrefix = `${counter}. `;
+              else if (numberingStyle === '[1]') numPrefix = `[${counter}] `;
+              else if (numberingStyle === '01.') numPrefix = `${String(counter).padStart(2, '0')}. `;
+              else if (numberingStyle === '#1') numPrefix = `#${counter} `;
+              else if (numberingStyle === '(1)') numPrefix = `(${counter}) `;
+              
+              counter++;
+              return `${prefix}${numPrefix}${line}${suffix}`;
+            }).filter(line => !ignoreEmpty || line.length > 0).join('\n');
+
+          } else if (activeTab.value === 'filter') {
+            let resLines = [...lines];
+            const { search, replaceWith, isRegex, removeDuplicate, removeEmpty, sortAsc, sortDesc } = modFilter.value;
+
+            if (search) {
+              try {
+                if (isRegex) {
+                  const regex = new RegExp(search, 'g');
+                  resLines = resLines.map(l => l.replace(regex, replaceWith));
+                } else {
+                  resLines = resLines.map(l => l.split(search).join(replaceWith));
+                }
+              } catch (reErr) {
+                throw new Error('正規表達式無效: ' + reErr.message);
+              }
+            }
+            if (removeEmpty) resLines = resLines.filter(l => l.trim().length > 0);
+            if (removeDuplicate) resLines = [...new Set(resLines)];
+            if (sortAsc) resLines.sort((a, b) => a.localeCompare(b, 'zh-TW'));
+            if (sortDesc) resLines.sort((a, b) => b.localeCompare(a, 'zh-TW'));
+            outputContent.value = resLines.join('\n');
+
+          } else if (activeTab.value === 'case') {
+            const mode = modCase.value.mode;
+            let result = '';
+
+            if (mode === 'upper') result = input.toUpperCase();
+            else if (mode === 'lower') result = input.toLowerCase();
+            else if (mode === 'title') result = toTitleCase(input);
+            else if (mode === 'sentence') result = toSentenceCase(input);
+            else if (mode === 'camel') result = lines.map(l => toCamelCase(l)).join('\n');
+            else if (mode === 'pascal') result = lines.map(l => toPascalCase(l)).join('\n');
+            else if (mode === 'snake') result = lines.map(l => toSnakeCase(l)).join('\n');
+            else if (mode === 'kebab') result = lines.map(l => toKebabCase(l)).join('\n');
+            else if (mode === 'constant') result = lines.map(l => toConstantCase(l)).join('\n');
+            else if (mode === 'reverse') result = Array.from(input).reverse().join('');
+            else if (mode === 'reverseLines') result = [...lines].reverse().join('\n');
+            else if (mode === 'full2half') result = full2half(input);
+            else if (mode === 'half2full') result = half2full(input);
+            else result = input;
+
+            outputContent.value = result;
+
+          } else if (activeTab.value === 'encode') {
+            const mode = modEncode.value.mode;
+            const lineByLine = modEncode.value.lineByLine;
+
+            const processOne = (text) => {
+              if (mode === 'base64encode') {
+                return btoa(unescape(encodeURIComponent(text)));
+              } else if (mode === 'base64decode') {
+                try {
+                  return decodeURIComponent(escape(atob(text.trim())));
+                } catch {
+                  throw new Error('Base64 解碼失敗，請確認輸入格式正確');
+                }
+              } else if (mode === 'urlencode') {
+                return encodeURIComponent(text);
+              } else if (mode === 'urldecode') {
+                return decodeURIComponent(text);
+              } else if (mode === 'htmlencode') {
+                return htmlEncode(text);
+              } else if (mode === 'htmldecode') {
+                return htmlDecode(text);
+              } else if (mode === 'unicode') {
+                return toUnicodeEscape(text);
+              } else if (mode === 'fromUnicode') {
+                return fromUnicodeEscape(text);
+              }
+              return text;
+            };
+
+            if (lineByLine && (mode.startsWith('base64') || mode.startsWith('url'))) {
+              outputContent.value = lines.map(l => {
+                if (!l.trim()) return '';
+                try { return processOne(l); } catch (e) { return `[錯誤] ${e.message}`; }
+              }).join('\n');
+            } else {
+              outputContent.value = processOne(input);
+            }
+
+          } else if (activeTab.value === 'split') {
+            const { mode, separator, columnIndex } = modSplit.value;
+            let sep = separator.replace(/\\t/g, '\t').replace(/\\n/g, '\n');
+
+            if (mode === 'join') {
+              outputContent.value = lines.filter(l => l.trim() || true).join(sep);
+            } else if (mode === 'split') {
+              // 把整個 input 用分隔符切開成多行
+              outputContent.value = input.split(sep).join('\n');
+            } else if (mode === 'column') {
+              const idx = Math.max(0, (columnIndex || 1) - 1);
+              outputContent.value = lines.map(l => {
+                const cols = l.split(sep);
+                return cols[idx] !== undefined ? cols[idx] : '';
+              }).join('\n');
+            } else if (mode === 'chunk') {
+              const n = parseInt(separator) || 5;
+              const result = [];
+              for (let i = 0; i < lines.length; i++) {
+                result.push(lines[i]);
+                if ((i + 1) % n === 0 && i !== lines.length - 1) result.push('');
+              }
+              outputContent.value = result.join('\n');
+            } else if (mode === 'reverseLines') {
+              outputContent.value = [...lines].reverse().join('\n');
+            } else if (mode === 'shuffle') {
+              const arr = [...lines];
+              for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+              }
+              outputContent.value = arr.join('\n');
+            }
+
+          } else if (activeTab.value === 'script') {
+            const sandboxFn = new Function('input', 'lines', modScript.value.code);
+            const result = sandboxFn(input, lines);
+            outputContent.value = (result === undefined || result === null) ? '' : String(result);
+          }
+        } catch (err) {
+          outputContent.value = `[執行錯誤]: ${err.message}`;
+        }
+      };
+
+      // 自動執行監聽
+      watch(
+        [inputContent, modSeq, modAffix, modFilter, modCase, modEncode, modSplit, modScript, activeTab],
+        () => { if (autoExecute.value) runProcessing(); },
+        { deep: true }
+      );
+
+      // 工具列功能
+      const pasteFromClipboard = async () => {
+        try {
+          inputContent.value = await navigator.clipboard.readText();
+        } catch {
+          alert('無法讀取剪貼簿，請使用快捷鍵 Ctrl+V / Cmd+V 貼上');
+        }
+      };
+
+      const selectAllInput = () => {
+        const textarea = document.querySelector('textarea');
+        if (textarea) {
+          textarea.focus();
+          textarea.select();
+        }
+      };
+
+      const copyToClipboard = async () => {
+        if (!outputContent.value) return;
+        try {
+          await navigator.clipboard.writeText(outputContent.value);
+          // 簡單視覺回饋
+          const btn = event?.target;
+          if (btn) {
+            const original = btn.textContent;
+            btn.textContent = '✅ 已複製';
+            setTimeout(() => btn.textContent = original, 1200);
+          } else {
+            alert('已成功複製到剪貼簿！');
+          }
+        } catch {
+          alert('複製失敗，請手動選取文字');
+        }
+      };
+
+      const overwriteInput = () => {
+        inputContent.value = outputContent.value;
+      };
+
+      const appendInput = () => {
+        inputContent.value += (inputContent.value ? '\n' : '') + outputContent.value;
+      };
+
+      const downloadOutput = () => {
+        const blob = new Blob([outputContent.value], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `TextFlow_Export_${Date.now()}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      const loadExample = () => {
+        inputContent.value = `TypeScript
+JavaScript
+Python
+Rust
+Golang
+Tailwind CSS
+Vue.js
+React
+Next.js`;
+      };
+
+      return {
+        isOnline, isDark, autoExecute, isPreviewMode,
+        inputContent, outputContent, activeTab, tabs,
+        modSeq, modAffix, modFilter, modCase, modEncode, modSplit, modScript,
+        caseOptions, encodeOptions, scriptPresets,
+        inputStats, outputStats,
+        runProcessing, toggleDark,
+        pasteFromClipboard, selectAllInput, copyToClipboard,
+        overwriteInput, appendInput, downloadOutput, loadExample
+      };
+    }
+  }).mount('#app');
+</script>
+</body>
+</html>
