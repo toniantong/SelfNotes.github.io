@@ -110,3 +110,5 @@
 
 
 [MultiFunc-Text-Gen-Output-Processor.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/MultiFunc-Text-Gen-Output-Processor.html)
+
+[offline-text-toolkit.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/offline-text-toolkit.html)
