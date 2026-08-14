@@ -1,0 +1,1912 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>若循環 (WHILE) 程式語言 - 靜態除錯模擬器</title>
+  <style>
+/* Modern Responsive Dark/Light Theme for WHILE Language Debugger */
+
+:root {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --bg-editor: #090d16;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --border-color: #334155;
+  --accent-primary: #6366f1;
+  --accent-hover: #4f46e5;
+  --accent-light: rgba(99, 102, 241, 0.15);
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --danger-color: #ef4444;
+  --active-line-bg: rgba(245, 158, 11, 0.25);
+  --active-line-border: #f59e0b;
+  --breakpoint-color: #ef4444;
+  --font-sans: 'PingFang TC', 'Microsoft JhengHei', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'Fira Code', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.4);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+}
+
+[data-theme="light"] {
+  --bg-primary: #f1f5f9;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #e2e8f0;
+  --bg-editor: #f8fafc;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --border-color: #cbd5e1;
+  --accent-primary: #4f46e5;
+  --accent-hover: #4338ca;
+  --accent-light: rgba(79, 70, 229, 0.1);
+  --active-line-bg: rgba(245, 158, 11, 0.2);
+  --active-line-border: #d97706;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Header */
+.app-header {
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  padding: 12px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow-sm);
+  z-index: 10;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-icon {
+  font-size: 24px;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.brand-title h1 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.brand-title p {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Buttons & Inputs */
+.btn {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn:hover:not(:disabled) {
+  background-color: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background-color: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--accent-hover);
+}
+
+.btn-danger {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: var(--danger-color);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.btn-icon-only {
+  padding: 8px;
+  border-radius: var(--radius-sm);
+}
+
+/* Debugger Toolbar */
+.control-bar {
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  padding: 10px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.select-input {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.speed-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background-color: var(--bg-primary);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+.speed-control input[type="range"] {
+  width: 90px;
+  accent-color: var(--accent-primary);
+}
+
+.status-pill {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-ready { background-color: rgba(100, 116, 139, 0.2); color: var(--text-secondary); }
+.status-running { background-color: rgba(16, 185, 129, 0.2); color: var(--success-color); }
+.status-paused { background-color: rgba(245, 158, 11, 0.2); color: var(--warning-color); }
+.status-halted { background-color: rgba(99, 102, 241, 0.2); color: var(--accent-primary); }
+.status-error { background-color: rgba(239, 68, 68, 0.2); color: var(--danger-color); }
+
+.step-badge {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+  background-color: var(--bg-primary);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+/* Main Layout Grid */
+.main-container {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  flex: 1;
+  gap: 1px;
+  background-color: var(--border-color);
+  overflow: hidden;
+}
+
+@media (max-width: 960px) {
+  .main-container {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+}
+
+.editor-section {
+  background-color: var(--bg-secondary);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panel-header {
+  padding: 10px 16px;
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text-secondary);
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-primary);
+}
+
+/* Code Editor Component */
+.editor-wrapper {
+  flex: 1;
+  display: flex;
+  position: relative;
+  background-color: var(--bg-editor);
+  overflow: auto;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.editor-gutter {
+  width: 50px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-right: 1px solid var(--border-color);
+  user-select: none;
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--text-muted);
+}
+
+.line-number {
+  width: 100%;
+  height: 22.4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.line-number:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+.breakpoint-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: transparent;
+  transition: all 0.2s;
+}
+
+.line-number.has-breakpoint .breakpoint-dot {
+  background-color: var(--breakpoint-color);
+  box-shadow: 0 0 8px var(--breakpoint-color);
+}
+
+.editor-area-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.editor-textarea {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 12px;
+  border: none;
+  outline: none;
+  resize: none;
+  background: transparent;
+  color: transparent;
+  caret-color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre;
+  overflow: auto;
+  z-index: 2;
+}
+
+.editor-display {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 12px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.code-line {
+  height: 22.4px;
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+  border-radius: 3px;
+}
+
+.code-line.active-line {
+  background-color: var(--active-line-bg);
+  border-left: 3px solid var(--active-line-border);
+  box-shadow: inset 0 0 10px rgba(245, 158, 11, 0.1);
+  font-weight: 600;
+}
+
+/* Syntax Highlighting */
+.kw-while { color: #f43f5e; font-weight: bold; }
+.kw-if { color: #3b82f6; font-weight: bold; }
+.kw-do { color: #a855f7; font-weight: bold; }
+.kw-print { color: #10b981; font-weight: bold; }
+.kw-assign { color: #ec4899; font-weight: bold; }
+.syn-number { color: #f59e0b; }
+.syn-string { color: #10b981; }
+.syn-comment { color: #64748b; font-style: italic; }
+.syn-var { color: #38bdf8; }
+
+/* Side Panels */
+.side-section {
+  background-color: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: auto;
+}
+
+.side-panel {
+  background-color: var(--bg-secondary);
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+}
+
+.side-panel-body {
+  padding: 12px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Watch Table */
+.watch-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.watch-table th {
+  text-align: left;
+  padding: 8px 10px;
+  background-color: var(--bg-primary);
+  color: var(--text-secondary);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.watch-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-color);
+  font-family: var(--font-mono);
+}
+
+.watch-table tr.var-updated {
+  animation: highlightFlash 1s ease-out;
+}
+
+@keyframes highlightFlash {
+  0% { background-color: rgba(16, 185, 129, 0.3); }
+  100% { background-color: transparent; }
+}
+
+.value-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+.delta-badge {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: rgba(16, 185, 129, 0.15);
+  color: var(--success-color);
+}
+
+/* Call Stack List */
+.stack-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.stack-item {
+  padding: 8px 12px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-left: 3px solid var(--accent-primary);
+  border-radius: var(--radius-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stack-item.active {
+  border-left-color: var(--warning-color);
+  background-color: var(--accent-light);
+}
+
+/* Output Console */
+.console-box {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background-color: var(--bg-editor);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  height: 150px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.console-line {
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.console-error {
+  color: var(--danger-color);
+  background-color: rgba(239, 68, 68, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  border-left: 3px solid var(--danger-color);
+}
+
+.console-info {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  width: 90%;
+  max-width: 650px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  font-size: 14px;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.syntax-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+
+.syntax-table th, .syntax-table td {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  text-align: left;
+}
+
+.syntax-table th {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+code {
+  font-family: var(--font-mono);
+  background-color: var(--bg-primary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--accent-primary);
+}
+
+/* Quick Cheat Badges */
+.cheat-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 16px;
+  background-color: var(--bg-primary);
+  border-top: 1px solid var(--border-color);
+  font-size: 12px;
+}
+
+.badge {
+  background-color: var(--bg-tertiary);
+  color: var(--text-secondary);
+  padding: 2px 8px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.badge:hover {
+  background-color: var(--accent-primary);
+  color: white;
+}
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-icon">🔄</div>
+      <div class="brand-title">
+        <h1>若循環 (WHILE) 程式語言除錯模擬器</h1>
+        <p>靜態響應式單頁應用 • 逐行單步除錯 • 變數狀態追蹤</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn" id="btnHelp">📖 語法說明</button>
+      <button class="btn" id="btnThemeToggle">🌙 切換主題</button>
+      <button class="btn btn-primary" id="btnResetAll">↺ 重置環境</button>
+    </div>
+  </header>
+
+  <!-- Debugger Control Bar -->
+  <div class="control-bar">
+    <div class="control-group">
+      <label for="presetSelect" style="font-size: 13px; font-weight: 600;">範例程式：</label>
+      <select id="presetSelect" class="select-input">
+        <option value="factorial">1. 階乘計算 (Factorial 5!)</option>
+        <option value="fibonacci">2. 費氏數列 (Fibonacci Sequence)</option>
+        <option value="gcd">3. 輾轉相除法 (GCD - Greatest Common Divisor)</option>
+        <option value="prime">4. 質數判斷 (Prime Test)</option>
+        <option value="sum_if">5. 1到N累加與條件分類 (Sum & Conditional)</option>
+      </select>
+
+      <div class="speed-control">
+        <span>速度:</span>
+        <input type="range" id="speedSlider" min="50" max="1500" value="500" step="50">
+        <span id="speedVal">500ms</span>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <button class="btn btn-primary" id="btnRun">▶ 自動執行</button>
+      <button class="btn" id="btnPause" disabled>⏸ 暫停</button>
+      <button class="btn" id="btnStepInto">⤵ 單步進入 (Step)</button>
+      <button class="btn" id="btnStepOver">↷ 單步跳過 (Over)</button>
+      <button class="btn btn-danger" id="btnReset">↺ 重置</button>
+
+      <span class="status-pill status-ready" id="statusPill">就緒 (READY)</span>
+      <span class="step-badge" id="stepCounter">Step: 0</span>
+    </div>
+  </div>
+
+  <!-- Main Grid Workspace -->
+  <main class="main-container">
+
+    <!-- Code Editor Section -->
+    <section class="editor-section">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span>💻 程式碼編輯器 (可直接編輯 & 點擊行號設定斷點)</span>
+        </div>
+        <span style="font-size: 12px; color: var(--text-muted);">支援 中文/英文 關鍵字</span>
+      </div>
+
+      <div class="editor-wrapper">
+        <div class="editor-gutter" id="editorGutter">
+          <!-- Line numbers & breakpoint indicators dynamically injected -->
+        </div>
+
+        <div class="editor-area-container">
+          <textarea id="codeTextarea" class="editor-textarea" spellcheck="false"></textarea>
+          <div id="codeDisplay" class="editor-display"></div>
+        </div>
+      </div>
+
+      <div class="cheat-badges">
+        <span style="font-weight: 600; color: var(--text-muted); font-size: 11px;">快速語法：</span>
+        <span class="badge" onclick="insertSnippet('當 (i <= n) 做 {\n  i := i + 1;\n}')">當 (while) ... 做</span>
+        <span class="badge" onclick="insertSnippet('若 (x % 2 == 0) 則 {\n  print x;\n} 否則 {\n  print 0;\n}')">若 (if) ... 則 ... 否則</span>
+        <span class="badge" onclick="insertSnippet('x := x + 1;')">變數賦值 :=</span>
+        <span class="badge" onclick="insertSnippet('print x;')">印出 print</span>
+      </div>
+    </section>
+
+    <!-- Side Debugging Panels -->
+    <aside class="side-section">
+
+      <!-- Variable Scope Inspector -->
+      <div class="side-panel">
+        <div class="panel-header">
+          <div class="panel-title">📊 變數監視器 (Variable Scope)</div>
+          <span style="font-size: 11px;" id="varCountBadge">0 個變數</span>
+        </div>
+        <div class="side-panel-body">
+          <table class="watch-table">
+            <thead>
+              <tr>
+                <th>變數名稱</th>
+                <th>目前數值</th>
+                <th>變更狀態</th>
+              </tr>
+            </thead>
+            <tbody id="watchTableBody">
+              <tr>
+                <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 20px;">尚未開始執行程式</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Call / Control Stack Tree -->
+      <div class="side-panel">
+        <div class="panel-header">
+          <div class="panel-title">📚 控制堆疊視圖 (Call / Control Stack)</div>
+        </div>
+        <div class="side-panel-body">
+          <ul class="stack-list" id="stackList">
+            <li class="stack-item"><span>Program Main</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Output Console -->
+      <div class="side-panel" style="flex: 1;">
+        <div class="panel-header">
+          <div class="panel-title">🖥️ 輸出主控台 (Console)</div>
+          <button class="btn" style="padding: 2px 8px; font-size: 11px;" id="btnClearConsole">清空</button>
+        </div>
+        <div class="side-panel-body">
+          <div class="console-box" id="consoleBox">
+            <div class="console-line console-info">系統就緒。請點擊「自動執行」或「單步進入」開始除錯模擬。</div>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- Help Modal -->
+  <div class="modal-overlay" id="helpModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 style="font-size: 16px;">📖 若循環 (WHILE) 語言語法手冊</h3>
+        <button class="btn btn-icon-only" id="btnCloseModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <p><strong>若循環 (WHILE) 語言</strong> 是一個經典的演算法與理論計算機科學程式語言模型。本模擬器完全支援<b>中文關鍵字</b>與<b>傳統英文關鍵字</b>雙語混用！</p>
+
+        <table class="syntax-table">
+          <thead>
+            <tr>
+              <th>語法功能</th>
+              <th>中文語法寫法</th>
+              <th>英文標準寫法</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>While 循環</strong></td>
+              <td><code>當 (條件) 做 { ... }</code></td>
+              <td><code>while (cond) do { ... } end</code></td>
+            </tr>
+            <tr>
+              <td><strong>If 條件判斷</strong></td>
+              <td><code>若 (條件) 則 { ... } 否則 { ... }</code></td>
+              <td><code>if (cond) then { ... } else { ... }</code></td>
+            </tr>
+            <tr>
+              <td><strong>變數賦值</strong></td>
+              <td><code>x := 10;</code> 或 <code>設 x = 10;</code></td>
+              <td><code>x := 10;</code> 或 <code>x = 10;</code></td>
+            </tr>
+            <tr>
+              <td><strong>數值與運算</strong></td>
+              <td><code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>%</code></td>
+              <td><code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>%</code></td>
+            </tr>
+            <tr>
+              <td><strong>邏輯比較</strong></td>
+              <td><code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>與</code>, <code>或</code></td>
+              <td><code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>&amp;&amp;</code>, <code>||</code></td>
+            </tr>
+            <tr>
+              <td><strong>輸出列印</strong></td>
+              <td><code>印出 x;</code> 或 <code>顯示 x;</code></td>
+              <td><code>print x;</code></td>
+            </tr>
+            <tr>
+              <td><strong>註解 (Comment)</strong></td>
+              <td><code>// 這是註解</code> 或 <code># 註解</code></td>
+              <td><code>// comment</code></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div>
+          <h4>💡 除錯模式 (Debugger Mode) 使用提示：</h4>
+          <ul style="padding-left: 20px; margin-top: 6px; display: flex; flex-direction: column; gap: 4px;">
+            <li><strong>設定斷點 (Breakpoint)</strong>：點擊編輯器左側行號，會出現紅色圓點，程式自動執行至該行會暫停。</li>
+            <li><strong>單步進入 (Step Into)</strong>：每次點擊執行微小的一步（包含求值與變數賦值），並突顯目前執行的程式行。</li>
+            <li><strong>變數監視器</strong>：即時觀察變數值的改變，數值發生變化時會閃爍綠色提示。</li>
+            <li><strong>無窮循環保護</strong>：系統內建 100,000 步上限保護，防止瀏覽器當機。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+/* WHILE Programming Language Debugger & Simulator Front-end Application */
+
+// 1. Preset Programs Dictionary
+const PRESETS = {
+  factorial: `// 範例 1：階乘計算 (Factorial 5!)
+n := 5;
+fact := 1;
+i := 1;
+
+當 (i <= n) 做 {
+  fact := fact * i;
+  i := i + 1;
+}
+
+印出 fact;`,
+
+  fibonacci: `// 範例 2：費氏數列前 N 項 (Fibonacci Sequence)
+n := 8;
+a := 0;
+b := 1;
+count := 0;
+
+印出 a;
+印出 b;
+
+當 (count < n - 2) 做 {
+  temp := a + b;
+  a := b;
+  b := temp;
+  印出 b;
+  count := count + 1;
+}`,
+
+  gcd: `// 範例 3：輾轉相除法求最大公因數 (Euclidean Algorithm GCD)
+a := 48;
+b := 18;
+
+印出 a;
+印出 b;
+
+當 (b != 0) 做 {
+  r := a % b;
+  a := b;
+  b := r;
+}
+
+// 最終最大公因數為 a
+印出 a;`,
+
+  prime: `// 範例 4：質數判斷 (Prime Test)
+num := 29;
+is_prime := 1;
+d := 2;
+
+當 (d * d <= num && is_prime == 1) 做 {
+  若 (num % d == 0) 則 {
+    is_prime := 0;
+  } 否則 {
+    d := d + 1;
+  }
+}
+
+若 (is_prime == 1) 則 {
+  印出 1; // 1 代表是質數
+} 否則 {
+  印出 0; // 0 代表不是質數
+}`,
+
+  sum_if: `// 範例 5：1至10累加與奇偶數分類
+sum := 0;
+even_count := 0;
+odd_count := 0;
+i := 1;
+
+當 (i <= 10) 做 {
+  sum := sum + i;
+  
+  若 (i % 2 == 0) 則 {
+    even_count := even_count + 1;
+  } 否則 {
+    odd_count := odd_count + 1;
+  }
+  
+  i := i + 1;
+}
+
+印出 sum;
+印出 even_count;
+印出 odd_count;`
+};
+
+// 2. Lexer
+class Lexer {
+  constructor(input) {
+    this.input = input;
+    this.pos = 0;
+    this.line = 1;
+    this.col = 1;
+  }
+
+  peek() {
+    return this.pos < this.input.length ? this.input[this.pos] : null;
+  }
+
+  next() {
+    const ch = this.peek();
+    if (ch === '\n') {
+      this.line++;
+      this.col = 1;
+    } else {
+      this.col++;
+    }
+    this.pos++;
+    return ch;
+  }
+
+  tokenize() {
+    const tokens = [];
+    while (this.pos < this.input.length) {
+      const ch = this.peek();
+
+      if (/\s/.test(ch)) {
+        this.next();
+        continue;
+      }
+
+      if ((ch === '/' && this.input[this.pos + 1] === '/') || ch === '#') {
+        while (this.peek() && this.peek() !== '\n') {
+          this.next();
+        }
+        continue;
+      }
+
+      const line = this.line;
+      const col = this.col;
+
+      if (/\d/.test(ch)) {
+        let numStr = '';
+        while (this.peek() && /[\d\.]/.test(this.peek())) {
+          numStr += this.next();
+        }
+        tokens.push({ type: 'NUMBER', value: parseFloat(numStr), line, col });
+        continue;
+      }
+
+      if (ch === ':' && this.input[this.pos + 1] === '=') {
+        this.next(); this.next();
+        tokens.push({ type: 'ASSIGN', value: ':=', line, col });
+        continue;
+      }
+
+      const twoChar = this.input.substr(this.pos, 2);
+      if (['==', '!=', '<=', '>=', '&&', '||'].includes(twoChar)) {
+        this.next(); this.next();
+        tokens.push({ type: 'OPERATOR', value: twoChar, line, col });
+        continue;
+      }
+
+      if (['+', '-', '*', '/', '%', '(', ')', '{', '}', ';', ',', '!', '<', '>', '='].includes(ch)) {
+        this.next();
+        const type = ch === '=' ? 'ASSIGN' : (['(', ')', '{', '}', ';', ','].includes(ch) ? 'PUNCT' : 'OPERATOR');
+        tokens.push({ type, value: ch, line, col });
+        continue;
+      }
+
+      if (/[a-zA-Z_$_\u4e00-\u9fa5]/.test(ch)) {
+        let idStr = '';
+        while (this.peek() && /[a-zA-Z0-9_$_\u4e00-\u9fa5]/.test(this.peek())) {
+          idStr += this.next();
+        }
+
+        const normalized = idStr.toLowerCase();
+        let kwType = null;
+
+        if (['while', '當', '若循環', '循環'].includes(normalized)) kwType = 'WHILE';
+        else if (['do', '做', '則做'].includes(normalized)) kwType = 'DO';
+        else if (['if', '若', '如果'].includes(normalized)) kwType = 'IF';
+        else if (['then', '則'].includes(normalized)) kwType = 'THEN';
+        else if (['else', '否則'].includes(normalized)) kwType = 'ELSE';
+        else if (['end', '結束'].includes(normalized)) kwType = 'END';
+        else if (['skip', '空', '無作為'].includes(normalized)) kwType = 'SKIP';
+        else if (['print', '印出', '輸出', '顯示'].includes(normalized)) kwType = 'PRINT';
+        else if (['true', '真', '正確'].includes(normalized)) {
+          tokens.push({ type: 'BOOLEAN', value: true, line, col });
+          continue;
+        } else if (['false', '假', '錯誤'].includes(normalized)) {
+          tokens.push({ type: 'BOOLEAN', value: false, line, col });
+          continue;
+        } else if (['and', '與'].includes(normalized)) {
+          tokens.push({ type: 'OPERATOR', value: '&&', line, col });
+          continue;
+        } else if (['or', '或'].includes(normalized)) {
+          tokens.push({ type: 'OPERATOR', value: '||', line, col });
+          continue;
+        } else if (['not', '非'].includes(normalized)) {
+          tokens.push({ type: 'OPERATOR', value: '!', line, col });
+          continue;
+        } else if (['設'].includes(normalized)) {
+          continue;
+        }
+
+        if (kwType) {
+          tokens.push({ type: kwType, value: idStr, line, col });
+        } else {
+          tokens.push({ type: 'IDENTIFIER', value: idStr, line, col });
+        }
+        continue;
+      }
+
+      throw new Error(`[第 ${line} 行, 第 ${col} 字元] 未知符號: '${ch}'`);
+    }
+
+    tokens.push({ type: 'EOF', value: 'EOF', line: this.line, col: this.col });
+    return tokens;
+  }
+}
+
+// 3. Parser
+class Parser {
+  constructor(tokens) {
+    this.tokens = tokens;
+    this.pos = 0;
+  }
+
+  peek() {
+    return this.tokens[this.pos];
+  }
+
+  next() {
+    return this.tokens[this.pos++];
+  }
+
+  match(type, val = null) {
+    const tok = this.peek();
+    if (!tok) return false;
+    if (tok.type === type && (val === null || tok.value === val)) {
+      this.next();
+      return true;
+    }
+    return false;
+  }
+
+  expect(type, val = null) {
+    const tok = this.peek();
+    if (this.match(type, val)) return tok;
+    throw new Error(`[第 ${tok.line} 行, 第 ${tok.col} 字元] 語法錯誤：預期 ${val ? `'${val}'` : type}，但得到 '${tok.value}'`);
+  }
+
+  parse() {
+    const statements = [];
+    while (this.peek().type !== 'EOF' && !this.isBlockEnd()) {
+      const stmt = this.parseStatement();
+      if (stmt) statements.push(stmt);
+      this.match('PUNCT', ';');
+    }
+    return { type: 'Program', body: statements, line: 1 };
+  }
+
+  isBlockEnd() {
+    const tok = this.peek();
+    return tok.type === 'END' || (tok.type === 'PUNCT' && tok.value === '}') || tok.type === 'ELSE';
+  }
+
+  parseStatement() {
+    const tok = this.peek();
+
+    if (tok.type === 'PUNCT' && tok.value === ';') {
+      this.next();
+      return { type: 'SkipStatement', line: tok.line };
+    }
+
+    if (tok.type === 'SKIP') {
+      this.next();
+      return { type: 'SkipStatement', line: tok.line };
+    }
+
+    if (tok.type === 'PRINT') {
+      this.next();
+      const expr = this.parseExpression();
+      return { type: 'PrintStatement', expr, line: tok.line };
+    }
+
+    if (tok.type === 'IF') {
+      this.next();
+      const condition = this.parseExpression();
+      this.match('THEN');
+      let thenBranch = this.parseBlockOrStatement();
+      let elseBranch = null;
+
+      if (this.match('ELSE')) {
+        elseBranch = this.parseBlockOrStatement();
+      }
+
+      if (this.peek().type === 'END') {
+        this.next();
+      }
+
+      return { type: 'IfStatement', condition, thenBranch, elseBranch, line: tok.line };
+    }
+
+    if (tok.type === 'WHILE') {
+      this.next();
+      const condition = this.parseExpression();
+      this.match('DO');
+      const body = this.parseBlockOrStatement();
+
+      if (this.peek().type === 'END') {
+        this.next();
+      }
+
+      return { type: 'WhileStatement', condition, body, line: tok.line };
+    }
+
+    if (tok.type === 'PUNCT' && tok.value === '{') {
+      this.next();
+      const body = [];
+      while (this.peek().type !== 'EOF' && !(this.peek().type === 'PUNCT' && this.peek().value === '}')) {
+        body.push(this.parseStatement());
+        this.match('PUNCT', ';');
+      }
+      this.expect('PUNCT', '}');
+      return { type: 'BlockStatement', body, line: tok.line };
+    }
+
+    if (tok.type === 'IDENTIFIER') {
+      const varName = tok.value;
+      this.next();
+      this.expect('ASSIGN');
+      const expr = this.parseExpression();
+      return { type: 'Assignment', varName, expr, line: tok.line };
+    }
+
+    throw new Error(`[第 ${tok.line} 行, 第 ${tok.col} 字元] 無法解析敘述: '${tok.value}'`);
+  }
+
+  parseBlockOrStatement() {
+    if (this.peek().type === 'PUNCT' && this.peek().value === '{') {
+      return this.parseStatement();
+    }
+    const stmts = [];
+    while (this.peek().type !== 'EOF' && !this.isBlockEnd()) {
+      stmts.push(this.parseStatement());
+      this.match('PUNCT', ';');
+    }
+    return { type: 'BlockStatement', body: stmts, line: stmts[0]?.line || this.peek().line };
+  }
+
+  parseExpression() {
+    return this.parseLogicalOr();
+  }
+
+  parseLogicalOr() {
+    let left = this.parseLogicalAnd();
+    while (this.peek().type === 'OPERATOR' && this.peek().value === '||') {
+      const op = this.next().value;
+      const right = this.parseLogicalAnd();
+      left = { type: 'BinaryExpr', operator: op, left, right, line: left.line };
+    }
+    return left;
+  }
+
+  parseLogicalAnd() {
+    let left = this.parseEquality();
+    while (this.peek().type === 'OPERATOR' && this.peek().value === '&&') {
+      const op = this.next().value;
+      const right = this.parseEquality();
+      left = { type: 'BinaryExpr', operator: op, left, right, line: left.line };
+    }
+    return left;
+  }
+
+  parseEquality() {
+    let left = this.parseRelational();
+    while (this.peek().type === 'OPERATOR' && ['==', '!=', '='].includes(this.peek().value)) {
+      let op = this.next().value;
+      if (op === '=') op = '==';
+      const right = this.parseRelational();
+      left = { type: 'BinaryExpr', operator: op, left, right, line: left.line };
+    }
+    return left;
+  }
+
+  parseRelational() {
+    let left = this.parseAdditive();
+    while (this.peek().type === 'OPERATOR' && ['<', '<=', '>', '>=', '==', '!='].includes(this.peek().value)) {
+      const op = this.next().value;
+      const right = this.parseAdditive();
+      left = { type: 'BinaryExpr', operator: op, left, right, line: left.line };
+    }
+    return left;
+  }
+
+  parseAdditive() {
+    let left = this.parseMultiplicative();
+    while (this.peek().type === 'OPERATOR' && ['+', '-'].includes(this.peek().value)) {
+      const op = this.next().value;
+      const right = this.parseMultiplicative();
+      left = { type: 'BinaryExpr', operator: op, left, right, line: left.line };
+    }
+    return left;
+  }
+
+  parseMultiplicative() {
+    let left = this.parseUnary();
+    while (this.peek().type === 'OPERATOR' && ['*', '/', '%'].includes(this.peek().value)) {
+      const op = this.next().value;
+      const right = this.parseUnary();
+      left = { type: 'BinaryExpr', operator: op, left, right, line: left.line };
+    }
+    return left;
+  }
+
+  parseUnary() {
+    if (this.peek().type === 'OPERATOR' && ['!', '-'].includes(this.peek().value)) {
+      const tok = this.next();
+      const expr = this.parseUnary();
+      return { type: 'UnaryExpr', operator: tok.value, expr, line: tok.line };
+    }
+    return this.parsePrimary();
+  }
+
+  parsePrimary() {
+    const tok = this.peek();
+
+    if (tok.type === 'NUMBER') {
+      this.next();
+      return { type: 'Literal', value: tok.value, line: tok.line };
+    }
+
+    if (tok.type === 'BOOLEAN') {
+      this.next();
+      return { type: 'Literal', value: tok.value, line: tok.line };
+    }
+
+    if (tok.type === 'IDENTIFIER') {
+      this.next();
+      return { type: 'Variable', name: tok.value, line: tok.line };
+    }
+
+    if (tok.type === 'PUNCT' && tok.value === '(') {
+      this.next();
+      const expr = this.parseExpression();
+      this.expect('PUNCT', ')');
+      return expr;
+    }
+
+    throw new Error(`[第 ${tok.line} 行, 第 ${tok.col} 字元] 無法識別的算式: '${tok.value}'`);
+  }
+}
+
+// 4. Debugger Core Engine
+class DebuggerEngine {
+  constructor(ast) {
+    this.ast = ast;
+    this.env = {};
+    this.prevEnv = {};
+    this.lastChangedVar = null;
+    this.output = [];
+    this.stack = [];
+    this.stepCount = 0;
+    this.maxSteps = 100000;
+    this.status = 'READY';
+    this.lastLine = 1;
+    this.breakpoints = new Set();
+    this.init();
+  }
+
+  init() {
+    this.env = {};
+    this.prevEnv = {};
+    this.lastChangedVar = null;
+    this.output = [];
+    this.stepCount = 0;
+    this.status = 'READY';
+    this.lastLine = 1;
+
+    this.stack = [{
+      type: 'BlockStatement',
+      body: this.ast.body,
+      index: 0,
+      line: 1,
+      description: 'Program Main'
+    }];
+  }
+
+  setBreakpoints(lineArray) {
+    this.breakpoints = new Set(lineArray);
+  }
+
+  evalExpr(node) {
+    if (node.type === 'Literal') return node.value;
+    if (node.type === 'Variable') {
+      if (this.env[node.name] === undefined) {
+        throw new Error(`[第 ${node.line} 行] 變數 '${node.name}' 未定義 (未初始化)`);
+      }
+      return this.env[node.name];
+    }
+    if (node.type === 'UnaryExpr') {
+      const val = this.evalExpr(node.expr);
+      if (node.operator === '-') return -val;
+      if (node.operator === '!') return !val;
+    }
+    if (node.type === 'BinaryExpr') {
+      const l = this.evalExpr(node.left);
+      const r = this.evalExpr(node.right);
+      switch (node.operator) {
+        case '+': return l + r;
+        case '-': return l - r;
+        case '*': return l * r;
+        case '/':
+          if (r === 0) throw new Error(`[第 ${node.line} 行] 執行階段錯誤：除以零 (Division by Zero)`);
+          return Math.floor(l / r);
+        case '%': return l % r;
+        case '==': return l === r;
+        case '!=': return l !== r;
+        case '<': return l < r;
+        case '<=': return l <= r;
+        case '>': return l > r;
+        case '>=': return l >= r;
+        case '&&': return Boolean(l && r);
+        case '||': return Boolean(l || r);
+      }
+    }
+    throw new Error(`[第 ${node.line} 行] 未知的運算表達式`);
+  }
+
+  updateVar(name, val) {
+    this.prevEnv[name] = this.env[name];
+    this.env[name] = val;
+    this.lastChangedVar = name;
+  }
+
+  stepInto() {
+    if (this.status === 'HALTED' || this.status === 'ERROR') {
+      return this.getState();
+    }
+
+    if (this.stack.length === 0) {
+      this.status = 'HALTED';
+      return this.getState();
+    }
+
+    this.stepCount++;
+    if (this.stepCount > this.maxSteps) {
+      this.status = 'ERROR';
+      throw new Error(`執行步驟超過最大限制 (${this.maxSteps})，已中斷可能包含無窮循環的程式`);
+    }
+
+    const frame = this.stack[this.stack.length - 1];
+
+    if (frame.type === 'BlockStatement') {
+      if (frame.index < frame.body.length) {
+        const stmt = frame.body[frame.index];
+        frame.index++;
+        this.pushStmtFrame(stmt);
+      } else {
+        this.stack.pop();
+      }
+    } else if (frame.type === 'Assignment') {
+      const val = this.evalExpr(frame.node.expr);
+      this.updateVar(frame.node.varName, val);
+      this.lastLine = frame.node.line;
+      this.stack.pop();
+    } else if (frame.type === 'PrintStatement') {
+      const val = this.evalExpr(frame.node.expr);
+      this.output.push(`[第 ${frame.node.line} 行 輸出] ${val}`);
+      this.lastLine = frame.node.line;
+      this.stack.pop();
+    } else if (frame.type === 'SkipStatement') {
+      this.lastLine = frame.node.line;
+      this.stack.pop();
+    } else if (frame.type === 'IfStatement') {
+      if (!frame.evaluated) {
+        const cond = this.evalExpr(frame.node.condition);
+        frame.evaluated = true;
+        this.lastLine = frame.node.line;
+        if (cond) {
+          if (frame.node.thenBranch) this.pushStmtFrame(frame.node.thenBranch);
+        } else {
+          if (frame.node.elseBranch) this.pushStmtFrame(frame.node.elseBranch);
+        }
+      } else {
+        this.stack.pop();
+      }
+    } else if (frame.type === 'WhileStatement') {
+      const cond = this.evalExpr(frame.node.condition);
+      this.lastLine = frame.node.line;
+      if (cond) {
+        this.pushStmtFrame(frame.node.body);
+      } else {
+        this.stack.pop();
+      }
+    }
+
+    this.status = this.stack.length === 0 ? 'HALTED' : 'RUNNING';
+    return this.getState();
+  }
+
+  stepOver() {
+    if (this.status === 'HALTED' || this.status === 'ERROR') {
+      return this.getState();
+    }
+    if (this.stack.length === 0) {
+      this.status = 'HALTED';
+      return this.getState();
+    }
+
+    const targetDepth = this.stack.length;
+    let steps = 0;
+    const maxOverSteps = 50000;
+
+    while (this.stack.length >= targetDepth && this.status !== 'HALTED' && this.status !== 'ERROR') {
+      this.stepInto();
+      steps++;
+      if (steps > maxOverSteps) {
+        this.status = 'ERROR';
+        throw new Error(`單步跳過超過安全步數上限 (${maxOverSteps})，已中斷`);
+      }
+      const st = this.getState();
+      if (st.isBreakpoint && steps > 1) break;
+    }
+    return this.getState();
+  }
+
+  pushStmtFrame(stmt) {
+    if (!stmt) return;
+    if (stmt.type === 'BlockStatement') {
+      this.stack.push({
+        type: 'BlockStatement',
+        body: stmt.body,
+        index: 0,
+        line: stmt.line,
+        description: `區塊 Block (第 ${stmt.line} 行)`
+      });
+    } else if (stmt.type === 'WhileStatement') {
+      this.stack.push({
+        type: 'WhileStatement',
+        node: stmt,
+        line: stmt.line,
+        description: `當 (While Loop) (第 ${stmt.line} 行)`
+      });
+    } else if (stmt.type === 'IfStatement') {
+      this.stack.push({
+        type: 'IfStatement',
+        node: stmt,
+        evaluated: false,
+        line: stmt.line,
+        description: `若 (If-Else) (第 ${stmt.line} 行)`
+      });
+    } else {
+      this.stack.push({
+        type: stmt.type,
+        node: stmt,
+        line: stmt.line,
+        description: `${stmt.type} (第 ${stmt.line} 行)`
+      });
+    }
+  }
+
+  getState() {
+    const currentFrame = this.stack[this.stack.length - 1];
+    const currentLine = currentFrame ? currentFrame.line : this.lastLine;
+
+    return {
+      status: this.status,
+      currentLine,
+      stepCount: this.stepCount,
+      env: { ...this.env },
+      prevEnv: { ...this.prevEnv },
+      lastChangedVar: this.lastChangedVar,
+      output: [...this.output],
+      callStack: this.stack.map(f => f.description),
+      isBreakpoint: this.breakpoints.has(currentLine)
+    };
+  }
+}
+
+// 5. UI Controller & Application Manager
+let engine = null;
+let autoRunTimer = null;
+let breakpoints = new Set();
+let lastOutputLen = 0;
+
+// DOM Elements
+const codeTextarea = document.getElementById('codeTextarea');
+const codeDisplay = document.getElementById('codeDisplay');
+const editorGutter = document.getElementById('editorGutter');
+const presetSelect = document.getElementById('presetSelect');
+const speedSlider = document.getElementById('speedSlider');
+const speedVal = document.getElementById('speedVal');
+
+const btnRun = document.getElementById('btnRun');
+const btnPause = document.getElementById('btnPause');
+const btnStepInto = document.getElementById('btnStepInto');
+const btnStepOver = document.getElementById('btnStepOver');
+const btnReset = document.getElementById('btnReset');
+const btnResetAll = document.getElementById('btnResetAll');
+const btnHelp = document.getElementById('btnHelp');
+const btnCloseModal = document.getElementById('btnCloseModal');
+const btnThemeToggle = document.getElementById('btnThemeToggle');
+const btnClearConsole = document.getElementById('btnClearConsole');
+
+const statusPill = document.getElementById('statusPill');
+const stepCounter = document.getElementById('stepCounter');
+const watchTableBody = document.getElementById('watchTableBody');
+const varCountBadge = document.getElementById('varCountBadge');
+const stackList = document.getElementById('stackList');
+const consoleBox = document.getElementById('consoleBox');
+const helpModal = document.getElementById('helpModal');
+
+// Initialize App
+window.addEventListener('DOMContentLoaded', () => {
+  codeTextarea.value = PRESETS.factorial;
+  syncEditor();
+  resetDebugger();
+
+  codeTextarea.addEventListener('input', () => {
+    syncEditor();
+    resetDebugger();
+  });
+
+  codeTextarea.addEventListener('scroll', () => {
+    codeDisplay.scrollTop = codeTextarea.scrollTop;
+    codeDisplay.scrollLeft = codeTextarea.scrollLeft;
+    editorGutter.scrollTop = codeTextarea.scrollTop;
+  });
+
+  presetSelect.addEventListener('change', (e) => {
+    const key = e.target.value;
+    if (PRESETS[key]) {
+      codeTextarea.value = PRESETS[key];
+      syncEditor();
+      resetDebugger();
+      logConsole(`已載入範例程式：${e.target.options[e.target.selectedIndex].text}`);
+    }
+  });
+
+  speedSlider.addEventListener('input', (e) => {
+    speedVal.textContent = `${e.target.value}ms`;
+    if (autoRunTimer) {
+      pauseAutoRun();
+      startAutoRun();
+    }
+  });
+
+  btnRun.addEventListener('click', startAutoRun);
+  btnPause.addEventListener('click', pauseAutoRun);
+  btnStepInto.addEventListener('click', doStepInto);
+  btnStepOver.addEventListener('click', doStepOver);
+  btnReset.addEventListener('click', resetDebugger);
+  btnResetAll.addEventListener('click', resetDebugger);
+  btnClearConsole.addEventListener('click', () => {
+    consoleBox.innerHTML = '';
+  });
+
+  btnHelp.addEventListener('click', () => helpModal.classList.add('active'));
+  btnCloseModal.addEventListener('click', () => helpModal.classList.remove('active'));
+  helpModal.addEventListener('click', (e) => {
+    if (e.target === helpModal) helpModal.classList.remove('active');
+  });
+
+  btnThemeToggle.addEventListener('click', () => {
+    const isLight = document.body.getAttribute('data-theme') === 'light';
+    document.body.setAttribute('data-theme', isLight ? 'dark' : 'light');
+    btnThemeToggle.textContent = isLight ? '🌙 切換主題' : '☀️ 淺色主題';
+  });
+});
+
+function highlightSyntaxLine(line) {
+  if (!line) return ' ';
+  const escaped = escapeHTML(line);
+
+  // Check comments
+  if (line.trim().startsWith('//') || line.trim().startsWith('#')) {
+    return `<span class="syn-comment">${escaped}</span>`;
+  }
+
+  return escaped
+    .replace(/\b(while|if|do|then|else|end|skip|print|true|false|當|若循環|循環|做|則做|若|如果|則|否則|結束|空|印出|輸出|顯示|真|假|正確|錯誤)\b/g, (match) => {
+      const lower = match.toLowerCase();
+      if (['while', '當', '若循環', '循環'].includes(lower)) return `<span class="kw-while">${match}</span>`;
+      if (['if', '若', '如果'].includes(lower)) return `<span class="kw-if">${match}</span>`;
+      if (['do', 'then', '做', '則做', '則'].includes(lower)) return `<span class="kw-do">${match}</span>`;
+      if (['print', '印出', '輸出', '顯示'].includes(lower)) return `<span class="kw-print">${match}</span>`;
+      return `<span class="kw-assign">${match}</span>`;
+    })
+    .replace(/(:\=|==|!=|&amp;&amp;|\|\||&lt;=|&gt;=|\+|-|\*|\/|%|=)/g, '<span class="kw-assign">$1</span>')
+    .replace(/\b(\d+(\.\d+)?)\b/g, '<span class="syn-number">$1</span>');
+}
+
+function syncEditor() {
+  const code = codeTextarea.value;
+  const lines = code.split('\n');
+
+  // Gutter Line Numbers & Breakpoints
+  let gutterHTML = '';
+  for (let i = 1; i <= lines.length; i++) {
+    const isBp = breakpoints.has(i);
+    gutterHTML += `
+      <div class="line-number ${isBp ? 'has-breakpoint' : ''}" onclick="toggleBreakpoint(${i})">
+        <span>${i}</span>
+        <div class="breakpoint-dot"></div>
+      </div>
+    `;
+  }
+  editorGutter.innerHTML = gutterHTML;
+
+  // Code Display Highlight Lines
+  let currentActiveLine = engine ? engine.getState().currentLine : -1;
+  let codeHTML = '';
+  lines.forEach((line, idx) => {
+    const lineNum = idx + 1;
+    const isActive = lineNum === currentActiveLine;
+    const highlightedContent = highlightSyntaxLine(line);
+    codeHTML += `
+      <div class="code-line ${isActive ? 'active-line' : ''}" id="codeLine-${lineNum}">
+        ${highlightedContent}
+      </div>
+    `;
+  });
+  codeDisplay.innerHTML = codeHTML;
+}
+
+function escapeHTML(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function toggleBreakpoint(lineNum) {
+  if (breakpoints.has(lineNum)) {
+    breakpoints.delete(lineNum);
+  } else {
+    breakpoints.add(lineNum);
+  }
+  if (engine) engine.setBreakpoints(Array.from(breakpoints));
+  syncEditor();
+}
+
+function insertSnippet(text) {
+  const start = codeTextarea.selectionStart;
+  const end = codeTextarea.selectionEnd;
+  const current = codeTextarea.value;
+  codeTextarea.value = current.substring(0, start) + text + current.substring(end);
+  codeTextarea.focus();
+  syncEditor();
+  resetDebugger();
+}
+
+function parseEngine() {
+  if (engine) return true;
+  try {
+    const lexer = new Lexer(codeTextarea.value);
+    const tokens = lexer.tokenize();
+    const parser = new Parser(tokens);
+    const ast = parser.parse();
+    engine = new DebuggerEngine(ast);
+    engine.setBreakpoints(Array.from(breakpoints));
+    return true;
+  } catch (err) {
+    updateStatus('ERROR');
+    logConsole(err.message, 'error');
+    return false;
+  }
+}
+
+function resetDebugger() {
+  pauseAutoRun();
+  engine = null;
+  lastOutputLen = 0;
+  stepCounter.textContent = 'Step: 0';
+  updateStatus('READY');
+  updateWatchTable({});
+  updateCallStack([]);
+  syncEditor();
+  consoleBox.innerHTML = '<div class="console-line console-info">環境已重置。請重新開始除錯。</div>';
+}
+
+function doStepInto() {
+  if (!parseEngine()) return;
+
+  try {
+    const state = engine.stepInto();
+    renderState(state);
+
+    if (state.status === 'HALTED') {
+      pauseAutoRun();
+      logConsole('程式執行完成 (Execution Complete)。', 'info');
+    }
+  } catch (err) {
+    pauseAutoRun();
+    updateStatus('ERROR');
+    logConsole(err.message, 'error');
+  }
+}
+
+function doStepOver() {
+  if (!parseEngine()) return;
+
+  try {
+    const state = engine.stepOver();
+    renderState(state);
+
+    if (state.status === 'HALTED') {
+      pauseAutoRun();
+      logConsole('程式執行完成 (Execution Complete)。', 'info');
+    }
+  } catch (err) {
+    pauseAutoRun();
+    updateStatus('ERROR');
+    logConsole(err.message, 'error');
+  }
+}
+
+function startAutoRun() {
+  if (!parseEngine()) return;
+
+  btnRun.disabled = true;
+  btnPause.disabled = false;
+  updateStatus('RUNNING');
+
+  const speed = parseInt(speedSlider.value, 10);
+  autoRunTimer = setInterval(() => {
+    try {
+      const state = engine.stepInto();
+      renderState(state);
+
+      if (state.isBreakpoint) {
+        pauseAutoRun();
+        logConsole(`命中第 ${state.currentLine} 行斷點，暫停執行。`, 'info');
+      } else if (state.status === 'HALTED') {
+        pauseAutoRun();
+        logConsole('程式執行完成 (Execution Complete)。', 'info');
+      }
+    } catch (err) {
+      pauseAutoRun();
+      updateStatus('ERROR');
+      logConsole(err.message, 'error');
+    }
+  }, speed);
+}
+
+function pauseAutoRun() {
+  if (autoRunTimer) {
+    clearInterval(autoRunTimer);
+    autoRunTimer = null;
+  }
+  btnRun.disabled = false;
+  btnPause.disabled = true;
+  if (engine && engine.status === 'RUNNING') {
+    updateStatus('PAUSED');
+  }
+}
+
+function renderState(state) {
+  stepCounter.textContent = `Step: ${state.stepCount}`;
+  updateStatus(state.status);
+  updateWatchTable(state.env, state.prevEnv, state.lastChangedVar);
+  updateCallStack(state.callStack);
+  syncEditor();
+
+  // Only log newly produced output
+  if (state.output.length > lastOutputLen) {
+    for (let i = lastOutputLen; i < state.output.length; i++) {
+      logConsole(state.output[i]);
+    }
+    lastOutputLen = state.output.length;
+  }
+}
+
+function updateStatus(status) {
+  statusPill.className = 'status-pill';
+  switch (status) {
+    case 'READY':
+      statusPill.classList.add('status-ready');
+      statusPill.textContent = '就緒 (READY)';
+      break;
+    case 'RUNNING':
+      statusPill.classList.add('status-running');
+      statusPill.textContent = '執行中 (RUNNING)';
+      break;
+    case 'PAUSED':
+      statusPill.classList.add('status-paused');
+      statusPill.textContent = '暫停中 (PAUSED)';
+      break;
+    case 'HALTED':
+      statusPill.classList.add('status-halted');
+      statusPill.textContent = '完成 (HALTED)';
+      break;
+    case 'ERROR':
+      statusPill.classList.add('status-error');
+      statusPill.textContent = '錯誤 (ERROR)';
+      break;
+  }
+}
+
+function updateWatchTable(env, prevEnv = {}, lastVar = null) {
+  const keys = Object.keys(env);
+  varCountBadge.textContent = `${keys.length} 個變數`;
+
+  if (keys.length === 0) {
+    watchTableBody.innerHTML = `
+      <tr>
+        <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 20px;">目前尚無設定變數</td>
+      </tr>
+    `;
+    return;
+  }
+
+  let html = '';
+  keys.forEach(key => {
+    const val = env[key];
+    const prevVal = prevEnv[key];
+    const isUpdated = key === lastVar;
+
+    html += `
+      <tr class="${isUpdated ? 'var-updated' : ''}">
+        <td style="font-weight: 600; color: #38bdf8;">${escapeHTML(key)}</td>
+        <td><span class="value-badge">${val}</span></td>
+        <td>
+          ${isUpdated ? `<span class="delta-badge">變更 (${prevVal !== undefined ? prevVal : '新'} ➜ ${val})</span>` : '<span style="color:var(--text-muted)">無變化</span>'}
+        </td>
+      </tr>
+    `;
+  });
+  watchTableBody.innerHTML = html;
+}
+
+function updateCallStack(stackFrames) {
+  if (stackFrames.length === 0) {
+    stackList.innerHTML = `<li class="stack-item"><span>Program Main (Ready)</span></li>`;
+    return;
+  }
+
+  let html = '';
+  stackFrames.forEach((frameDesc, idx) => {
+    const isTop = idx === stackFrames.length - 1;
+    html += `
+      <li class="stack-item ${isTop ? 'active' : ''}">
+        <span>${escapeHTML(frameDesc)}</span>
+        ${isTop ? '<span style="color:var(--warning-color); font-size: 11px;">[目前執行中]</span>' : ''}
+      </li>
+    `;
+  });
+  stackList.innerHTML = html;
+}
+
+function logConsole(msg, type = 'normal') {
+  const line = document.createElement('div');
+  line.className = 'console-line';
+  if (type === 'error') line.classList.add('console-error');
+  if (type === 'info') line.classList.add('console-info');
+  line.textContent = msg;
+
+  consoleBox.appendChild(line);
+  consoleBox.scrollTop = consoleBox.scrollHeight;
+}
+</script>
+</body>
+</html>
