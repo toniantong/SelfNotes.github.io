@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>本機文字處理工作站</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --surface2: #243044;
+      --border: #2d3a4f;
+      --text: #e7ecf3;
+      --text-muted: #8b9bb4;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius: 10px;
+      --font: "Segoe UI", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+    }
+
+    /* ===== Header ===== */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .badge-offline {
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--success);
+      border: 1px solid rgba(34, 197, 94, 0.35);
+    }
+
+    .badge-mode {
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.35);
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ===== Main Layout ===== */
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      padding: 16px 20px;
+      max-width: 1600px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 900px) {
+      .main { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 320px;
+    }
+
+    .panel-header {
+      padding: 10px 14px;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .panel-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    button, .btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      padding: 5px 11px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+
+    button:hover, .btn:hover {
+      background: var(--surface2);
+      border-color: #3d4f6a;
+    }
+
+    button:active { transform: scale(0.97); }
+
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    button.primary:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+
+    button.danger {
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+    }
+
+    button.danger:hover {
+      background: rgba(239, 68, 68, 0.15);
+    }
+
+    textarea {
+      flex: 1;
+      width: 100%;
+      min-height: 180px;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      padding: 12px 14px;
+      font-family: "Cascadia Code", "Fira Code", "Consolas", "Noto Sans TC", monospace;
+      font-size: 0.9rem;
+      line-height: 1.55;
+      resize: vertical;
+      outline: none;
+    }
+
+    textarea::placeholder { color: var(--text-muted); }
+
+    .stats {
+      padding: 6px 14px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      background: var(--surface2);
+      display: flex;
+      gap: 14px;
+    }
+
+    #previewArea {
+      display: none;
+      flex: 1;
+      padding: 14px;
+      overflow: auto;
+      background: #0d1117;
+      border-top: 1px solid var(--border);
+      min-height: 120px;
+      font-size: 0.9rem;
+    }
+
+    #previewArea.active { display: block; }
+
+    /* ===== Tabs ===== */
+    .tabs-section {
+      padding: 0 20px 16px;
+      max-width: 1600px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .tab-bar {
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      border-bottom: 1px solid var(--border);
+      scrollbar-width: thin;
+    }
+
+    .tab-btn {
+      flex-shrink: 0;
+      padding: 10px 16px;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-radius: 0;
+      cursor: pointer;
+    }
+
+    .tab-btn:hover {
+      color: var(--text);
+      background: transparent;
+    }
+
+    .tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      background: transparent;
+    }
+
+    .tab-panels {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 var(--radius) var(--radius);
+      padding: 18px;
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .form-group label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      outline: none;
+      width: 100%;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: var(--accent);
+    }
+
+    .form-group textarea {
+      min-height: 80px;
+      resize: vertical;
+      font-family: "Cascadia Code", "Consolas", monospace;
+    }
+
+    .checkbox-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 20px;
+      margin-bottom: 14px;
+    }
+
+    .checkbox-row label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.88rem;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .checkbox-row input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent);
+    }
+
+    .action-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .hint {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 10px;
+    }
+
+    .status-msg {
+      font-size: 0.82rem;
+      color: var(--success);
+      margin-left: 8px;
+    }
+
+    .status-msg.error { color: var(--danger); }
+
+    /* ===== Footer ===== */
+    footer {
+      text-align: center;
+      padding: 14px 20px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    footer a { color: #60a5fa; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="header-left">
+      <div class="logo">🧰 本機文字處理工作站</div>
+      <span class="badge badge-offline"><span class="dot"></span> 離線模式</span>
+      <span class="badge badge-mode">手動執行</span>
+    </div>
+  </header>
+
+  <!-- Input / Output -->
+  <div class="main">
+    <!-- Input Section -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">📥 輸入區塊</div>
+        <div class="btn-row">
+          <button type="button" onclick="pasteInput()">貼上</button>
+          <button type="button" onclick="selectAll('inputText')">全選</button>
+          <button type="button" onclick="loadExample()">範例</button>
+          <button type="button" class="danger" onclick="clearInput()">清空</button>
+        </div>
+      </div>
+      <textarea id="inputText" placeholder="在此貼上或輸入文字…"></textarea>
+      <div class="stats">
+        <span>字元：<strong id="inChars">0</strong></span>
+        <span>行數：<strong id="inLines">0</strong></span>
+        <span>詞數：<strong id="inWords">0</strong></span>
+      </div>
+    </div>
+
+    <!-- Output Section -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">📤 輸出與可編輯區</div>
+        <div class="btn-row">
+          <button type="button" onclick="copyOutput()">複製</button>
+          <button type="button" onclick="selectAll('outputText')">全選</button>
+          <button type="button" onclick="overwriteInput()">覆蓋輸入</button>
+          <button type="button" onclick="appendInput()">追加輸入</button>
+          <button type="button" onclick="downloadOutput()">下載</button>
+          <button type="button" onclick="togglePreview()">預覽渲染</button>
+          <button type="button" class="danger" onclick="clearOutput()">清空</button>
+        </div>
+      </div>
+      <textarea id="outputText" placeholder="處理結果會顯示在這裡，也可直接編輯…"></textarea>
+      <div id="previewArea"></div>
+      <div class="stats">
+        <span>字元：<strong id="outChars">0</strong></span>
+        <span>行數：<strong id="outLines">0</strong></span>
+        <span>詞數：<strong id="outWords">0</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Function Tabs -->
+  <div class="tabs-section">
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="tab1">🔢 進位與序列生成</button>
+      <button class="tab-btn" data-tab="tab2">➕ 插入前後綴與編號</button>
+      <button class="tab-btn" data-tab="tab3">🔍 取代過濾與清洗</button>
+      <button class="tab-btn" data-tab="tab4">⚙️ JS腳本編譯</button>
+    </div>
+
+    <div class="tab-panels">
+      <!-- Tab 1: Base & Sequence -->
+      <div class="tab-panel active" id="tab1">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>模式</label>
+            <select id="baseMode">
+              <option value="convert">數字進位轉換（逐行）</option>
+              <option value="sequence">序列生成</option>
+            </select>
+          </div>
+          <div class="form-group" id="fromBaseGroup">
+            <label>來源進位 (2–36)</label>
+            <input type="number" id="fromBase" value="10" min="2" max="36" />
+          </div>
+          <div class="form-group" id="toBaseGroup">
+            <label>目標進位 (2–36)</label>
+            <input type="number" id="toBase" value="16" min="2" max="36" />
+          </div>
+          <div class="form-group" id="seqStartGroup" style="display:none">
+            <label>起始值</label>
+            <input type="number" id="seqStart" value="1" />
+          </div>
+          <div class="form-group" id="seqEndGroup" style="display:none">
+            <label>結束值</label>
+            <input type="number" id="seqEnd" value="10" />
+          </div>
+          <div class="form-group" id="seqStepGroup" style="display:none">
+            <label>步進</label>
+            <input type="number" id="seqStep" value="1" />
+          </div>
+          <div class="form-group" id="seqPadGroup" style="display:none">
+            <label>補零位數（0 = 不補）</label>
+            <input type="number" id="seqPad" value="0" min="0" max="20" />
+          </div>
+        </div>
+        <div class="action-bar">
+          <button class="primary" type="button" onclick="runBaseOrSeq()">執行</button>
+          <span class="status-msg" id="msg1"></span>
+        </div>
+        <p class="hint">進位轉換會把輸入區每一行當作一個數字進行轉換；序列生成則直接產生指定範圍的數字序列到輸出區。</p>
+      </div>
+
+      <!-- Tab 2: Prefix / Suffix / Numbering -->
+      <div class="tab-panel" id="tab2">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>前綴</label>
+            <input type="text" id="prefix" placeholder="例如：Item-" />
+          </div>
+          <div class="form-group">
+            <label>後綴</label>
+            <input type="text" id="suffix" placeholder="例如：.txt" />
+          </div>
+          <div class="form-group">
+            <label>編號起始</label>
+            <input type="number" id="numStart" value="1" />
+          </div>
+          <div class="form-group">
+            <label>編號步進</label>
+            <input type="number" id="numStep" value="1" />
+          </div>
+          <div class="form-group">
+            <label>編號位數（補零）</label>
+            <input type="number" id="numPad" value="0" min="0" max="10" />
+          </div>
+          <div class="form-group">
+            <label>編號位置</label>
+            <select id="numPos">
+              <option value="before">在前綴之後、內容之前</option>
+              <option value="after">在內容之後、後綴之前</option>
+              <option value="none">不插入編號</option>
+            </select>
+          </div>
+        </div>
+        <div class="action-bar">
+          <button class="primary" type="button" onclick="runPrefixSuffix()">執行套用</button>
+          <span class="status-msg" id="msg2"></span>
+        </div>
+        <p class="hint">會對輸入區每一行加入前綴、後綴與可選編號。空白行會被保留但跳過編號。</p>
+      </div>
+
+      <!-- Tab 3: Replace / Filter / Clean -->
+      <div class="tab-panel" id="tab3">
+        <div class="checkbox-row">
+          <label><input type="checkbox" id="optTrim" checked /> 去除每行首尾空白</label>
+          <label><input type="checkbox" id="optEmpty" /> 移除空白行</label>
+          <label><input type="checkbox" id="optDup" /> 移除重複行</label>
+          <label><input type="checkbox" id="optSort" /> 排序（字典序）</label>
+          <label><input type="checkbox" id="optReverse" /> 反轉行順序</label>
+          <label><input type="checkbox" id="optLower" /> 轉小寫</label>
+          <label><input type="checkbox" id="optUpper" /> 轉大寫</label>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>尋找（支援正規表達式）</label>
+            <input type="text" id="findStr" placeholder="要被取代的內容" />
+          </div>
+          <div class="form-group">
+            <label>取代為</label>
+            <input type="text" id="replaceStr" placeholder="取代後的內容" />
+          </div>
+          <div class="form-group">
+            <label>正規表達式旗標</label>
+            <input type="text" id="regexFlags" value="g" placeholder="例如：gi" />
+          </div>
+        </div>
+        <div class="checkbox-row">
+          <label><input type="checkbox" id="useRegex" /> 使用正規表達式</label>
+        </div>
+        <div class="action-bar">
+          <button class="primary" type="button" onclick="runClean()">執行清洗 / 取代</button>
+          <span class="status-msg" id="msg3"></span>
+        </div>
+      </div>
+
+      <!-- Tab 4: JS Script -->
+      <div class="tab-panel" id="tab4">
+        <div class="form-group">
+          <label>自訂 JavaScript 處理函式（參數名固定為 <code>input</code>，需 <code>return</code> 結果）</label>
+          <textarea id="jsCode" rows="8" spellcheck="false">// 範例：每行轉大寫並加上行號
+return input.split('\n').map((line, i) => {
+  return (i + 1) + '. ' + line.toUpperCase();
+}).join('\n');</textarea>
+        </div>
+        <div class="action-bar">
+          <button class="primary" type="button" onclick="runJS()">執行腳本</button>
+          <button type="button" onclick="loadJSExample()">載入範例</button>
+          <span class="status-msg" id="msg4"></span>
+        </div>
+        <p class="hint">腳本在瀏覽器本機執行，不會上傳任何資料。請避免使用可能造成頁面卡死的無限迴圈。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    © 2026 本機文字處理工作站 · 所有運算皆於瀏覽器本地完成，資料絕不離開您的裝置 · 純本機運算無上傳
+  </footer>
+
+  <script>
+    // ===== Stats =====
+    function countStats(text) {
+      const chars = text.length;
+      const lines = text === '' ? 0 : text.split('\n').length;
+      const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+      return { chars, lines, words };
+    }
+
+    function updateStats() {
+      const inVal = document.getElementById('inputText').value;
+      const outVal = document.getElementById('outputText').value;
+      const sIn = countStats(inVal);
+      const sOut = countStats(outVal);
+      document.getElementById('inChars').textContent = sIn.chars;
+      document.getElementById('inLines').textContent = sIn.lines;
+      document.getElementById('inWords').textContent = sIn.words;
+      document.getElementById('outChars').textContent = sOut.chars;
+      document.getElementById('outLines').textContent = sOut.lines;
+      document.getElementById('outWords').textContent = sOut.words;
+    }
+
+    document.getElementById('inputText').addEventListener('input', updateStats);
+    document.getElementById('outputText').addEventListener('input', updateStats);
+
+    // ===== Input / Output helpers =====
+    async function pasteInput() {
+      try {
+        const text = await navigator.clipboard.readText();
+        document.getElementById('inputText').value = text;
+        updateStats();
+      } catch (e) {
+        alert('無法讀取剪貼簿，請確認瀏覽器權限或改用 Ctrl+V');
+      }
+    }
+
+    function selectAll(id) {
+      const el = document.getElementById(id);
+      el.focus();
+      el.select();
+    }
+
+    function loadExample() {
+      document.getElementById('inputText').value =
+`蘋果
+香蕉
+橘子
+葡萄
+西瓜
+芒果
+鳳梨
+草莓`;
+      updateStats();
+    }
+
+    function clearInput() {
+      document.getElementById('inputText').value = '';
+      updateStats();
+    }
+
+    function clearOutput() {
+      document.getElementById('outputText').value = '';
+      document.getElementById('previewArea').innerHTML = '';
+      document.getElementById('previewArea').classList.remove('active');
+      updateStats();
+    }
+
+    async function copyOutput() {
+      const text = document.getElementById('outputText').value;
+      try {
+        await navigator.clipboard.writeText(text);
+        flashMsg('msg' + getActiveTabNum(), '已複製到剪貼簿');
+      } catch (e) {
+        alert('複製失敗');
+      }
+    }
+
+    function overwriteInput() {
+      document.getElementById('inputText').value = document.getElementById('outputText').value;
+      updateStats();
+    }
+
+    function appendInput() {
+      const inp = document.getElementById('inputText');
+      const out = document.getElementById('outputText').value;
+      if (inp.value && !inp.value.endsWith('\n') && out) {
+        inp.value += '\n';
+      }
+      inp.value += out;
+      updateStats();
+    }
+
+    function downloadOutput() {
+      const text = document.getElementById('outputText').value;
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'output.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function togglePreview() {
+      const area = document.getElementById('previewArea');
+      const out = document.getElementById('outputText').value;
+      if (area.classList.contains('active')) {
+        area.classList.remove('active');
+        area.innerHTML = '';
+      } else {
+        area.innerHTML = out; // 注意：本地工具，使用者自行負責內容
+        area.classList.add('active');
+      }
+    }
+
+    // ===== Tabs =====
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    function getActiveTabNum() {
+      const active = document.querySelector('.tab-btn.active');
+      return active ? active.dataset.tab.replace('tab', '') : '1';
+    }
+
+    function flashMsg(id, text, isError = false) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = text;
+      el.className = 'status-msg' + (isError ? ' error' : '');
+      setTimeout(() => { el.textContent = ''; }, 3000);
+    }
+
+    // ===== Mode switch for Tab 1 =====
+    document.getElementById('baseMode').addEventListener('change', function () {
+      const isSeq = this.value === 'sequence';
+      document.getElementById('fromBaseGroup').style.display = isSeq ? 'none' : '';
+      document.getElementById('toBaseGroup').style.display = isSeq ? 'none' : '';
+      document.getElementById('seqStartGroup').style.display = isSeq ? '' : 'none';
+      document.getElementById('seqEndGroup').style.display = isSeq ? '' : 'none';
+      document.getElementById('seqStepGroup').style.display = isSeq ? '' : 'none';
+      document.getElementById('seqPadGroup').style.display = isSeq ? '' : 'none';
+    });
+
+    // ===== Tab 1 Logic =====
+    function runBaseOrSeq() {
+      const mode = document.getElementById('baseMode').value;
+      const out = document.getElementById('outputText');
+      try {
+        if (mode === 'convert') {
+          const from = parseInt(document.getElementById('fromBase').value, 10);
+          const to = parseInt(document.getElementById('toBase').value, 10);
+          if (from < 2 || from > 36 || to < 2 || to > 36) throw new Error('進位必須在 2–36');
+          const lines = document.getElementById('inputText').value.split('\n');
+          const result = lines.map(line => {
+            const t = line.trim();
+            if (!t) return '';
+            const num = parseInt(t, from);
+            if (isNaN(num)) return '[無效] ' + t;
+            return num.toString(to).toUpperCase();
+          });
+          out.value = result.join('\n');
+          flashMsg('msg1', '進位轉換完成');
+        } else {
+          const start = Number(document.getElementById('seqStart').value);
+          const end = Number(document.getElementById('seqEnd').value);
+          const step = Number(document.getElementById('seqStep').value) || 1;
+          const pad = parseInt(document.getElementById('seqPad').value, 10) || 0;
+          if (step === 0) throw new Error('步進不可為 0');
+          const arr = [];
+          if (step > 0) {
+            for (let i = start; i <= end; i += step) {
+              arr.push(pad > 0 ? String(i).padStart(pad, '0') : String(i));
+            }
+          } else {
+            for (let i = start; i >= end; i += step) {
+              arr.push(pad > 0 ? String(i).padStart(pad, '0') : String(i));
+            }
+          }
+          out.value = arr.join('\n');
+          flashMsg('msg1', `已產生 ${arr.length} 筆序列`);
+        }
+        updateStats();
+      } catch (e) {
+        flashMsg('msg1', e.message, true);
+      }
+    }
+
+    // ===== Tab 2 Logic =====
+    function runPrefixSuffix() {
+      const prefix = document.getElementById('prefix').value;
+      const suffix = document.getElementById('suffix').value;
+      const start = Number(document.getElementById('numStart').value);
+      const step = Number(document.getElementById('numStep').value) || 1;
+      const pad = parseInt(document.getElementById('numPad').value, 10) || 0;
+      const pos = document.getElementById('numPos').value;
+
+      const lines = document.getElementById('inputText').value.split('\n');
+      let n = start;
+      const result = lines.map(line => {
+        if (line.trim() === '' && pos !== 'none') {
+          return line; // 保留空白行但不編號
+        }
+        let numStr = '';
+        if (pos !== 'none') {
+          numStr = pad > 0 ? String(n).padStart(pad, '0') : String(n);
+          n += step;
+        }
+        if (pos === 'before') return prefix + numStr + line + suffix;
+        if (pos === 'after') return prefix + line + numStr + suffix;
+        return prefix + line + suffix;
+      });
+      document.getElementById('outputText').value = result.join('\n');
+      updateStats();
+      flashMsg('msg2', '前後綴與編號已套用');
+    }
+
+    // ===== Tab 3 Logic =====
+    function runClean() {
+      let text = document.getElementById('inputText').value;
+      let lines = text.split('\n');
+
+      if (document.getElementById('optTrim').checked) {
+        lines = lines.map(l => l.trim());
+      }
+      if (document.getElementById('optEmpty').checked) {
+        lines = lines.filter(l => l !== '');
+      }
+      if (document.getElementById('optDup').checked) {
+        const seen = new Set();
+        lines = lines.filter(l => {
+          if (seen.has(l)) return false;
+          seen.add(l);
+          return true;
+        });
+      }
+      if (document.getElementById('optSort').checked) {
+        lines = [...lines].sort((a, b) => a.localeCompare(b, 'zh-Hant'));
+      }
+      if (document.getElementById('optReverse').checked) {
+        lines = lines.reverse();
+      }
+
+      text = lines.join('\n');
+
+      if (document.getElementById('optLower').checked) text = text.toLowerCase();
+      if (document.getElementById('optUpper').checked) text = text.toUpperCase();
+
+      const find = document.getElementById('findStr').value;
+      const repl = document.getElementById('replaceStr').value;
+      if (find) {
+        try {
+          if (document.getElementById('useRegex').checked) {
+            const flags = document.getElementById('regexFlags').value || 'g';
+            const re = new RegExp(find, flags);
+            text = text.replace(re, repl);
+          } else {
+            text = text.split(find).join(repl);
+          }
+        } catch (e) {
+          flashMsg('msg3', '正規表達式錯誤：' + e.message, true);
+          return;
+        }
+      }
+
+      document.getElementById('outputText').value = text;
+      updateStats();
+      flashMsg('msg3', '清洗 / 取代完成');
+    }
+
+    // ===== Tab 4 Logic =====
+    function runJS() {
+      const code = document.getElementById('jsCode').value;
+      const input = document.getElementById('inputText').value;
+      try {
+        // 使用 Function 建構子，參數固定為 input
+        const fn = new Function('input', code);
+        const result = fn(input);
+        document.getElementById('outputText').value =
+          result === undefined || result === null ? '' : String(result);
+        updateStats();
+        flashMsg('msg4', '腳本執行成功');
+      } catch (e) {
+        flashMsg('msg4', '執行錯誤：' + e.message, true);
+      }
+    }
+
+    function loadJSExample() {
+      document.getElementById('jsCode').value =
+`// 範例：每行加上行號並轉大寫
+return input.split('\\n').map((line, i) => {
+  return (i + 1).toString().padStart(3, '0') + ' | ' + line.toUpperCase();
+}).join('\\n');`;
+    }
+
+    // Init
+    updateStats();
+  </script>
+</body>
+</html>
