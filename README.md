@@ -118,3 +118,5 @@
 [segment.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/segment.html)
 
 [svg-to-raster.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/svg-to-raster.html)
+
+[bronze_mean](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/bronze_mean.html)
