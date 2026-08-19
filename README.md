@@ -116,3 +116,5 @@
 [textflow-studio.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/textflow-studio.html)
 
 [segment.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/segment.html)
+
+[svg-to-raster.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/svg-to-raster.html)
