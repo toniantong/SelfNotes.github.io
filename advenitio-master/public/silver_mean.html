@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>白銀比例計算工具 (Silver Ratio Calculator)</title>
+  <style>
+    :root {
+      --primary: #4a5568;
+      --primary-dark: #2d3748;
+      --primary-light: #718096;
+      --bg: #f7fafc;
+      --card-bg: #ffffff;
+      --text-main: #1a202c;
+      --text-muted: #718096;
+      --border: #e2e8f0;
+      --accent: #cbd5e0;
+      --highlight: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(45, 55, 72, 0.08);
+      width: 100%;
+      max-width: 580px;
+      padding: 32px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      color: var(--primary-dark);
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .formula-tag {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 4px 12px;
+      background: #edf2f7;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      color: var(--primary-dark);
+      font-weight: 600;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-main);
+    }
+
+    input[type="number"], select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="number"]:focus, select:focus {
+      border-color: var(--primary);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .mode-selector {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+
+    .mode-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .visual-wrapper {
+      margin: 24px 0;
+    }
+
+    .visual-bar {
+      display: flex;
+      height: 38px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .bar-long {
+      background: var(--primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      transition: width 0.3s ease;
+    }
+
+    .bar-short {
+      background: var(--accent);
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      transition: width 0.3s ease;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .result-card {
+      background: #f8fafc;
+      padding: 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .result-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .result-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      word-break: break-all;
+    }
+
+    .full-width {
+      grid-column: span 2;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 20px;
+      }
+      .grid-2, .results-grid {
+        grid-template-columns: 1fr;
+      }
+      .full-width {
+        grid-column: span 1;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>白銀比例計算機</h1>
+      <p class="subtitle">Silver Ratio (Metallic Mean n=2)</p>
+      <div class="formula-tag">δ<sub>S</sub> = 1 + √2 ≈ 2.414214</div>
+    </header>
+
+    <div class="form-group">
+      <label for="inputValue">輸入數值</label>
+      <input type="number" id="inputValue" value="100" step="any" min="0.0001">
+    </div>
+
+    <div class="grid-2">
+      <div class="form-group">
+        <label for="calcType">數值定義</label>
+        <select id="calcType">
+          <option value="short">此數值為「短邊 (B)」</option>
+          <option value="long">此數值為「長邊 (A)」</option>
+          <option value="total">此數值為「總長度 (A+B)」</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>輸出模式</label>
+        <div class="mode-selector">
+          <button class="mode-btn active" data-mode="float">小數</button>
+          <button class="mode-btn" data-mode="fraction">分數</button>
+          <button class="mode-btn" data-mode="int">整數</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="visual-wrapper">
+      <label>分割視覺化 (A : B ≈ 70.71% : 29.29%)</label>
+      <div class="visual-bar">
+        <div class="bar-long" id="barLong" style="width: 70.71%;">長邊 A</div>
+        <div class="bar-short" id="barShort" style="width: 29.29%;">短邊 B</div>
+      </div>
+    </div>
+
+    <div class="results-grid">
+      <div class="result-card">
+        <div class="result-label">長邊 (A)</div>
+        <div class="result-value" id="resA">-</div>
+      </div>
+      <div class="result-card">
+        <div class="result-label">短邊 (B)</div>
+        <div class="result-value" id="resB">-</div>
+      </div>
+      <div class="result-card full-width">
+        <div class="result-label">總長度 (A + B)</div>
+        <div class="result-value" id="resTotal">-</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SILVER_RATIO = 1 + Math.sqrt(2);
+    let currentMode = "float";
+
+    // 連分數逼近求最佳有理數
+    function toFraction(val, maxDenominator = 10000) {
+      if (Number.isInteger(val)) return `${val}`;
+      let bestNum = 1, bestDen = 1, minError = Math.abs(val - 1);
+      
+      for (let den = 1; den <= maxDenominator; den++) {
+        let num = Math.round(val * den);
+        let error = Math.abs(val - num / den);
+        if (error < minError) {
+          minError = error;
+          bestNum = num;
+          bestDen = den;
+          if (error === 0) break;
+        }
+      }
+      return `${bestNum}/${bestDen}`;
+    }
+
+    function formatValue(num, mode) {
+      if (isNaN(num) || num <= 0) return "-";
+      if (mode === "int") {
+        return Math.round(num).toLocaleString();
+      } else if (mode === "float") {
+        return (Math.round(num * 1000) / 1000).toFixed(3);
+      } else if (mode === "fraction") {
+        return toFraction(num);
+      }
+    }
+
+    function calculate() {
+      const input = parseFloat(document.getElementById("inputValue").value);
+      const type = document.getElementById("calcType").value;
+
+      if (isNaN(input) || input <= 0) {
+        document.getElementById("resA").innerText = "-";
+        document.getElementById("resB").innerText = "-";
+        document.getElementById("resTotal").innerText = "-";
+        return;
+      }
+
+      let a = 0, b = 0;
+
+      if (type === "short") {
+        b = input;
+        a = b * SILVER_RATIO;
+      } else if (type === "long") {
+        a = input;
+        b = a / SILVER_RATIO;
+      } else if (type === "total") {
+        b = input / (1 + SILVER_RATIO);
+        a = input - b;
+      }
+
+      const total = a + b;
+
+      document.getElementById("resA").innerText = formatValue(a, currentMode);
+      document.getElementById("resB").innerText = formatValue(b, currentMode);
+      document.getElementById("resTotal").innerText = formatValue(total, currentMode);
+
+      // 更新進度條比例 (A / (A+B) = 1/√2 ≈ 70.71%)
+      const aPct = ((a / total) * 100).toFixed(1);
+      const bPct = (100 - aPct).toFixed(1);
+      document.getElementById("barLong").style.width = `${aPct}%`;
+      document.getElementById("barShort").style.width = `${bPct}%`;
+    }
+
+    document.getElementById("inputValue").addEventListener("input", calculate);
+    document.getElementById("calcType").addEventListener("change", calculate);
+
+    document.querySelectorAll(".mode-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+        e.target.classList.add("active");
+        currentMode = e.target.getAttribute("data-mode");
+        calculate();
+      });
+    });
+
+    calculate();
+  </script>
+</body>
+</html>
