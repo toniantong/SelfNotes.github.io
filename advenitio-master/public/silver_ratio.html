@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>白銀比例計算工具 (Silver Ratio)</title>
+  <style>
+    :root {
+      --primary: #4a5568;
+      --primary-dark: #2d3748;
+      --bg: #f7fafc;
+      --card-bg: #ffffff;
+      --text-main: #1a202c;
+      --text-muted: #718096;
+      --border: #e2e8f0;
+      --accent: #cbd5e0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(45, 55, 72, 0.08);
+      width: 100%;
+      max-width: 520px;
+      padding: 32px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    h1 {
+      font-size: 1.55rem;
+      color: var(--primary-dark);
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .formula-tag {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 4px 14px;
+      background: #edf2f7;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      color: var(--primary-dark);
+      font-weight: 600;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-main);
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 13px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 1.1rem;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="number"]:focus {
+      border-color: var(--primary);
+    }
+
+    .mode-selector {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 9px;
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+
+    .mode-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .results {
+      margin-top: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .result-card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+    }
+
+    .result-title {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .result-value {
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      word-break: break-all;
+    }
+
+    .result-hint {
+      font-size: 0.8rem;
+      color: #a0aec0;
+      margin-top: 4px;
+    }
+
+    .visual-wrapper {
+      margin-top: 24px;
+    }
+
+    .visual-bar {
+      display: flex;
+      height: 36px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .bar-long {
+      background: var(--primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 600;
+      width: 70.71%;
+    }
+
+    .bar-short {
+      background: var(--accent);
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 600;
+      width: 29.29%;
+    }
+
+    .note {
+      margin-top: 18px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>白銀比例計算機</h1>
+      <p class="subtitle">輸入一個長度 → 輸出兩種可能的另一邊</p>
+      <div class="formula-tag">δ<sub>S</sub> = 1 + √2 ≈ 2.414214</div>
+    </header>
+
+    <div class="form-group">
+      <label for="inputValue">輸入長度（可為闊度或高度）</label>
+      <input type="number" id="inputValue" value="100" step="any" min="0.0001">
+    </div>
+
+    <div class="form-group">
+      <label>輸出模式</label>
+      <div class="mode-selector">
+        <button class="mode-btn active" data-mode="float">小數</button>
+        <button class="mode-btn" data-mode="fraction">分數</button>
+        <button class="mode-btn" data-mode="int">整數</button>
+      </div>
+    </div>
+
+    <div class="results">
+      <div class="result-card">
+        <div class="result-title">若輸入為「短邊」→ 對應長邊</div>
+        <div class="result-value" id="resLong">-</div>
+        <div class="result-hint">長邊 = 輸入 × (1 + √2)</div>
+      </div>
+
+      <div class="result-card">
+        <div class="result-title">若輸入為「長邊」→ 對應短邊</div>
+        <div class="result-value" id="resShort">-</div>
+        <div class="result-hint">短邊 = 輸入 ÷ (1 + √2)</div>
+      </div>
+    </div>
+
+    <div class="visual-wrapper">
+      <label style="margin-bottom:8px;">白銀比例視覺化（長 : 短 ≈ 70.71% : 29.29%）</label>
+      <div class="visual-bar">
+        <div class="bar-long">長邊</div>
+        <div class="bar-short">短邊</div>
+      </div>
+    </div>
+
+    <p class="note">
+      把上面兩個數值分別當作「闊度」或「高度」即可形成白銀比例矩形。
+    </p>
+  </div>
+
+  <script>
+    const SILVER_RATIO = 1 + Math.sqrt(2); // ≈ 2.414213562
+    let currentMode = "float";
+
+    // 連分數逼近（求最佳有理數）
+    function toFraction(val, maxDenominator = 10000) {
+      if (Number.isInteger(val)) return String(val);
+      let bestNum = 1, bestDen = 1, minError = Math.abs(val - 1);
+
+      for (let den = 1; den <= maxDenominator; den++) {
+        const num = Math.round(val * den);
+        const error = Math.abs(val - num / den);
+        if (error < minError) {
+          minError = error;
+          bestNum = num;
+          bestDen = den;
+          if (error === 0) break;
+        }
+      }
+      return `${bestNum}/${bestDen}`;
+    }
+
+    function formatValue(num) {
+      if (isNaN(num) || num <= 0) return "-";
+      if (currentMode === "int") {
+        return Math.round(num).toLocaleString();
+      } else if (currentMode === "float") {
+        return (Math.round(num * 1000) / 1000).toFixed(3);
+      } else {
+        return toFraction(num);
+      }
+    }
+
+    function calculate() {
+      const L = parseFloat(document.getElementById("inputValue").value);
+
+      if (isNaN(L) || L <= 0) {
+        document.getElementById("resLong").innerText = "-";
+        document.getElementById("resShort").innerText = "-";
+        return;
+      }
+
+      // 兩個可能的另一邊
+      const longSide  = L * SILVER_RATIO;   // 假設輸入是短邊
+      const shortSide = L / SILVER_RATIO;   // 假設輸入是長邊
+
+      document.getElementById("resLong").innerText  = formatValue(longSide);
+      document.getElementById("resShort").innerText = formatValue(shortSide);
+    }
+
+    // 事件綁定
+    document.getElementById("inputValue").addEventListener("input", calculate);
+
+    document.querySelectorAll(".mode-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+        e.target.classList.add("active");
+        currentMode = e.target.getAttribute("data-mode");
+        calculate();
+      });
+    });
+
+    // 初始計算
+    calculate();
+  </script>
+</body>
+</html>
