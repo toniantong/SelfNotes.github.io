@@ -1,1 +1,291 @@
-test
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>白銀比例 / 大和比計算工具 (1 : √2)</title>
+  <style>
+    :root {
+      --primary: #3d5a80;
+      --primary-dark: #293241;
+      --primary-light: #98c1d9;
+      --bg: #f4f6f9;
+      --card-bg: #ffffff;
+      --text-main: #2b2d42;
+      --text-muted: #6c757d;
+      --border: #d0dbe5;
+      --accent: #e0fbfc;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(41, 50, 65, 0.08);
+      width: 100%;
+      max-width: 580px;
+      padding: 32px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      color: var(--primary-dark);
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .formula-tag {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 4px 12px;
+      background: var(--accent);
+      border-radius: 20px;
+      font-size: 0.82rem;
+      color: var(--primary-dark);
+      font-weight: 600;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-main);
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 1.1rem;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="number"]:focus {
+      border-color: var(--primary);
+    }
+
+    .mode-selector {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 9px;
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+
+    .mode-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .result-card {
+      background: #f8fafc;
+      padding: 18px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .result-card.highlight {
+      background: #f0f7fa;
+      border-color: var(--primary-light);
+    }
+
+    .result-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .result-value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      word-break: break-all;
+    }
+
+    .relation-tag {
+      font-size: 0.75rem;
+      color: var(--primary);
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    .paper-reference {
+      margin-top: 24px;
+      padding: 14px;
+      border-radius: 8px;
+      background: #fdfdfd;
+      border: 1px dashed var(--border);
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 20px;
+      }
+      .results-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>白銀比例計算器</h1>
+      <p class="subtitle">大和比 / ISO 216 紙張規格 (1 : √2)</p>
+      <div class="formula-tag">比例常數 √2 ≈ 1.41421356</div>
+    </header>
+
+    <div class="form-group">
+      <label for="inputValue">輸入基準數值 (如 A4 長邊 297)</label>
+      <input type="number" id="inputValue" value="297" step="any" min="0.0001">
+    </div>
+
+    <label>輸出模式</label>
+    <div class="mode-selector">
+      <button class="mode-btn active" data-mode="int">整數 (四捨五入)</button>
+      <button class="mode-btn" data-mode="float">小數 (3位)</button>
+      <button class="mode-btn" data-mode="fraction">分數逼近</button>
+    </div>
+
+    <div class="results-grid">
+      <div class="result-card highlight">
+        <div class="result-label">放大 / 長邊尺寸</div>
+        <div class="result-value" id="resLarge">-</div>
+        <div class="relation-tag">基準 × √2 (如 297 → 420)</div>
+      </div>
+
+      <div class="result-card highlight">
+        <div class="result-label">縮小 / 短邊尺寸</div>
+        <div class="result-value" id="resSmall">-</div>
+        <div class="relation-tag">基準 ÷ √2 (如 297 → 210)</div>
+      </div>
+    </div>
+
+    <div class="paper-reference">
+      <strong>常見 ISO 216 紙張規格對照：</strong><br>
+      • 基準 297 mm ➔ 放大為 <strong>420 mm</strong>（A3 長邊）、縮小為 <strong>210 mm</strong>（A4 寬邊）<br>
+      • 基準 210 mm ➔ 放大為 <strong>297 mm</strong>（A4 長邊）、縮小為 <strong>148 mm</strong>（A5 寬邊）
+    </div>
+  </div>
+
+  <script>
+    const SQRT2 = Math.SQRT2; // 1.4142135623730951
+    let currentMode = "int";
+
+    function toFraction(val, maxDenominator = 10000) {
+      if (Number.isInteger(val)) return `${val}`;
+      let bestNum = 1, bestDen = 1, minError = Math.abs(val - 1);
+      
+      for (let den = 1; den <= maxDenominator; den++) {
+        let num = Math.round(val * den);
+        let error = Math.abs(val - num / den);
+        if (error < minError) {
+          minError = error;
+          bestNum = num;
+          bestDen = den;
+          if (error === 0) break;
+        }
+      }
+      return `${bestNum}/${bestDen}`;
+    }
+
+    function formatValue(num, mode) {
+      if (isNaN(num) || num <= 0) return "-";
+      if (mode === "int") {
+        return Math.round(num).toLocaleString();
+      } else if (mode === "float") {
+        return (Math.round(num * 1000) / 1000).toFixed(3);
+      } else if (mode === "fraction") {
+        return toFraction(num);
+      }
+    }
+
+    function calculate() {
+      const input = parseFloat(document.getElementById("inputValue").value);
+
+      if (isNaN(input) || input <= 0) {
+        document.getElementById("resLarge").innerText = "-";
+        document.getElementById("resSmall").innerText = "-";
+        return;
+      }
+
+      const larger = input * SQRT2;  // 297 * √2 ≈ 420.02 -> 420
+      const smaller = input / SQRT2; // 297 / √2 ≈ 210.01 -> 210
+
+      document.getElementById("resLarge").innerText = formatValue(larger, currentMode);
+      document.getElementById("resSmall").innerText = formatValue(smaller, currentMode);
+    }
+
+    document.getElementById("inputValue").addEventListener("input", calculate);
+
+    document.querySelectorAll(".mode-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+        e.target.classList.add("active");
+        currentMode = e.target.getAttribute("data-mode");
+        calculate();
+      });
+    });
+
+    calculate();
+  </script>
+</body>
+</html>
