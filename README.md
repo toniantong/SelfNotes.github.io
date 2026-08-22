@@ -126,3 +126,5 @@
 [silver_ratio](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/silver_ratio.html)
 
 [yamato_mean](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/yamato_mean.html)
+
+[password_generator](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/password_generator.html)
