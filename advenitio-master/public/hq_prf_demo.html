@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HQ-PRF 確定性隨機生成器</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --accent: #10b981;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background-color: var(--bg); color: var(--text);
+      line-height: 1.5; padding: 20px;
+    }
+    .container { max-width: 800px; margin: 0 auto; }
+    h1 { margin-bottom: 5px; font-size: 1.8rem; }
+    p.subtitle { color: var(--text-muted); margin-bottom: 20px; font-size: 0.9rem; }
+    
+    .card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 20px; margin-bottom: 20px;
+    }
+    .grid-2 { display: grid; grid-template-columns: 1fr; gap: 15px; }
+    @media(min-width: 600px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+    
+    label { display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 500; color: var(--text-muted); }
+    input[type="text"], input[type="number"] {
+      width: 100%; padding: 10px; border-radius: 6px;
+      border: 1px solid var(--border); background: var(--bg); color: var(--text);
+      font-family: monospace; font-size: 1rem; outline: none;
+    }
+    input:focus { border-color: var(--primary); }
+    
+    button {
+      background: var(--primary); color: white; border: none;
+      padding: 10px 15px; border-radius: 6px; font-size: 1rem;
+      cursor: pointer; transition: background 0.2s; font-weight: 500;
+    }
+    button:hover { background: var(--primary-hover); }
+    button.btn-accent { background: var(--accent); }
+    button.btn-accent:hover { background: #059669; }
+    
+    .output-area {
+      background: #000; padding: 15px; border-radius: 6px;
+      font-family: monospace; word-break: break-all;
+      min-height: 80px; color: #10b981; font-size: 1.1rem;
+    }
+    
+    .diag-box {
+      font-family: monospace; font-size: 0.85rem; color: var(--text-muted);
+      background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px;
+    }
+    .diag-key { color: #38bdf8; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>HQ-PRF (Deterministic)</h1>
+  <p class="subtitle">純前端 JavaScript 移植版・跨環境位元對齊測試工具</p>
+
+  <!-- 初始化區塊 -->
+  <div class="card">
+    <div class="grid-2">
+      <div>
+        <label>種子 (Seeds，至少兩個數字，逗號分隔)</label>
+        <input type="text" id="cfg-seeds" value="11, 22, 33">
+      </div>
+      <div>
+        <label>領域隔離 (Domain Separation)</label>
+        <input type="text" id="cfg-domain" value="expA">
+      </div>
+    </div>
+    <div style="margin-top: 15px; display: flex; gap: 10px;">
+      <button onclick="initEngine()">1. 初始化 / 重置狀態機</button>
+    </div>
+  </div>
+
+  <!-- 生成操作區塊 -->
+  <div class="card">
+    <label style="margin-bottom: 10px; color: white;">2. 生成流式資料 (會推進內部 Counter)</label>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+      <button class="btn-accent" onclick="genFloat()">Next Float [0, 1)</button>
+      <button class="btn-accent" onclick="genU64()">Next U64 (BigInt)</button>
+      <button class="btn-accent" onclick="genBytes()">Next 32 Bytes (Hex)</button>
+    </div>
+    <hr style="border: 0; border-top: 1px solid var(--border); margin: 15px 0;">
+    <div class="grid-2">
+      <div>
+        <label>PRF Label</label>
+        <input type="text" id="prf-label" value="user_id_42">
+      </div>
+      <div>
+        <label>Output Length (1-64)</label>
+        <input type="number" id="prf-len" value="32" min="1" max="64">
+      </div>
+    </div>
+    <div style="margin-top: 15px;">
+      <button class="btn-accent" onclick="genPRF()">計算 PRF (Hex)</button>
+    </div>
+  </div>
+
+  <!-- 輸出區塊 -->
+  <div class="card">
+    <label>生成結果：</label>
+    <div id="output" class="output-area">等待初始化...</div>
+  </div>
+
+  <!-- 狀態診斷 -->
+  <div class="card">
+    <label>系統狀態快照 (Snapshot)：</label>
+    <div id="diag" class="diag-box">等待初始化...</div>
+  </div>
+</div>
+
+<script>
+/** 
+ * HQ-PRF 核心引擎 (直接內嵌)
+ */
+const HQPRF_CORE = (function() {
+  const Math = globalThis.Math;
+  const MASK64 = 0xffffffffffffffffn;
+  const GOLDEN = 0x9e3779b97f4a7c15n;
+  const PCG_MULT = 0x5851f42d4c957f2dn;
+  const PCG_INC = 0x14057b7ef767814fn;
+  const MIX_C1 = 0xbf58476d1ce4e5b9n;
+  const MIX_C2 = 0x94d049bb133111ebn;
+  const A5 = 0xa5a5a5a5a5a5a5a5n;
+  const PERSON = utf8("HQ-PRF:v4-sci");
+  const DET_KEY = utf8("det-mode-key-00");
+  const ZERO16 = new Uint8Array(16);
+
+  function utf8(s) {
+    const out = new Uint8Array(s.length);
+    for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i) & 0xff;
+    return out;
+  }
+
+  function asBytes(x) {
+    if (x instanceof Uint8Array) return x;
+    if (typeof x === "string") return utf8(x);
+    return new Uint8Array(0);
+  }
+
+  function u64(x) { return BigInt(x) & MASK64; }
+  function rotl64(x, r) { r = BigInt(r) & 63n; x &= MASK64; return ((x << r) | (x >> (64n - r))) & MASK64; }
+  function rotr64(x, r) { r = BigInt(r); x &= MASK64; return ((x >> r) | (x << (64n - r))) & MASK64; }
+  function mix64(x, y = 0n) {
+    let z = (u64(x) + u64(y) + GOLDEN) & MASK64;
+    z = ((z ^ (z >> 30n)) * MIX_C1) & MASK64;
+    z = ((z ^ (z >> 27n)) * MIX_C2) & MASK64;
+    return z ^ (z >> 31n);
+  }
+
+  function concatBytes(parts) {
+    let n = 0; parts.forEach(p => n += p.length);
+    const out = new Uint8Array(n);
+    let o = 0; parts.forEach(p => { out.set(p, o); o += p.length; });
+    return out;
+  }
+
+  function packU64LE(w) {
+    w = u64(w); const b = new Uint8Array(8); const dv = new DataView(b.buffer);
+    dv.setUint32(0, Number(w & 0xffffffffn), true);
+    dv.setUint32(4, Number((w >> 32n) & 0xffffffffn), true);
+    return b;
+  }
+
+  function packU64sLE(words) {
+    const b = new Uint8Array(words.length * 8); const dv = new DataView(b.buffer);
+    for (let i = 0; i < words.length; i++) {
+      const w = u64(words[i]);
+      dv.setUint32(i * 8, Number(w & 0xffffffffn), true);
+      dv.setUint32(i * 8 + 4, Number((w >> 32n) & 0xffffffffn), true);
+    }
+    return b;
+  }
+
+  function unpackU64sLE(bytes) {
+    const n = bytes.length & ~7; const dv = new DataView(bytes.buffer, bytes.byteOffset, n);
+    const out = [];
+    for (let i = 0; i < n; i += 8) {
+      const lo = BigInt(dv.getUint32(i, true));
+      const hi = BigInt(dv.getUint32(i + 4, true));
+      out.push(lo | (hi << 32n));
+    }
+    return out;
+  }
+
+  function float64BitsLE(x) {
+    const b = new Uint8Array(8); new DataView(b.buffer).setFloat64(0, x, true);
+    return unpackU64sLE(b)[0];
+  }
+
+  function hex(bytes) { return Array.from(bytes, c => c.toString(16).padStart(2, "0")).join(""); }
+  function pad16(bytes) { const o = new Uint8Array(16); o.set(bytes.subarray(0, 16)); return o; }
+
+  // BLAKE2b (簡化壓縮版以適應前端)
+  const BLAKE2B_IV = [
+    0x6a09e667f3bcc908n, 0xbb67ae8584caa73bn, 0x3c6ef372fe94f82bn, 0xa54ff53a5f1d36f1n,
+    0x510e527fade682d1n, 0x9b05688c2b3e6c1fn, 0x1f83d9abfb41bd6bn, 0x5be0cd19137e2179n
+  ];
+  const SIGMA = [[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],[14,10,4,8,9,15,13,6,1,12,0,2,11,7,5,3],[11,8,12,0,5,2,15,13,10,14,3,6,7,1,9,4],[7,9,3,1,13,12,11,14,2,6,5,10,4,0,15,8],[9,0,5,7,2,4,10,15,14,1,11,12,6,8,3,13],[2,12,6,10,0,11,8,3,4,13,7,5,15,14,1,9],[12,5,1,15,14,13,4,10,0,7,6,3,9,2,8,11],[13,11,7,14,12,1,3,9,5,0,15,4,8,6,2,10],[6,15,14,9,11,3,0,8,12,2,13,7,1,4,10,5],[10,2,8,4,7,6,1,5,15,11,9,14,3,12,13,0],[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],[14,10,4,8,9,15,13,6,1,12,0,2,11,7,5,3]];
+  
+  function blake2b(data, opts = {}) {
+    const outlen = opts.digestSize || 64;
+    const key = asBytes(opts.key); const salt = pad16(asBytes(opts.salt)); const person = pad16(asBytes(opts.person));
+    const msg = asBytes(data);
+    const p = new Uint8Array(64); p[0] = outlen; p[1] = key.length; p[2] = 1; p[3] = 1;
+    p.set(salt, 32); p.set(person, 48);
+    const h = BLAKE2B_IV.slice(); const pwords = unpackU64sLE(p);
+    for (let i = 0; i < 8; i++) h[i] ^= pwords[i];
+
+    function g(v, a, b, c, d, x, y) {
+      v[a] = (v[a] + v[b] + x) & MASK64; v[d] = rotr64(v[d] ^ v[a], 32);
+      v[c] = (v[c] + v[d]) & MASK64; v[b] = rotr64(v[b] ^ v[c], 24);
+      v[a] = (v[a] + v[b] + y) & MASK64; v[d] = rotr64(v[d] ^ v[a], 16);
+      v[c] = (v[c] + v[d]) & MASK64; v[b] = rotr64(v[b] ^ v[c], 63);
+    }
+    function compress(chunk, tlo, last) {
+      const m = unpackU64sLE(chunk); const v = h.concat(BLAKE2B_IV);
+      v[12] ^= tlo; if (last) v[14] ^= MASK64;
+      for (let r = 0; r < 12; r++) {
+        const s = SIGMA[r];
+        g(v, 0, 4, 8, 12, m[s[0]], m[s[1]]); g(v, 1, 5, 9, 13, m[s[2]], m[s[3]]);
+        g(v, 2, 6, 10, 14, m[s[4]], m[s[5]]); g(v, 3, 7, 11, 15, m[s[6]], m[s[7]]);
+        g(v, 0, 5, 10, 15, m[s[8]], m[s[9]]); g(v, 1, 6, 11, 12, m[s[10]], m[s[11]]);
+        g(v, 2, 7, 8, 13, m[s[12]], m[s[13]]); g(v, 3, 4, 9, 14, m[s[14]], m[s[15]]);
+      }
+      for (let i = 0; i < 8; i++) h[i] ^= v[i] ^ v[i + 8];
+    }
+
+    let total = msg;
+    if (key.length > 0) { const kb = new Uint8Array(128); kb.set(key); total = concatBytes([kb, msg]); }
+    if (total.length === 0) compress(new Uint8Array(128), 0n, true);
+    else {
+      let off = 0;
+      while (off < total.length) {
+        const n = Math.min(128, total.length - off); const chunk = new Uint8Array(128);
+        chunk.set(total.subarray(off, off + n)); const last = off + n === total.length;
+        compress(chunk, last ? BigInt(total.length) : BigInt(off + 128), last); off += 128;
+      }
+    }
+    return packU64sLE(h).subarray(0, outlen);
+  }
+
+  // 4D Chen Chaos
+  class HyperchaoticChen4D {
+    constructor() { this.a = 35.0; this.b = 3.0; this.c = 12.0; this.d = 7.0; this.r = 0.5; this.dt = 0.001; this.state = [0.1, 0.2, 0.3, 0.4]; }
+    setState(x, y, z, w) { this.state = [x, y, z, w]; }
+    deriv(x, y, z, w) { return [this.a * (y - x) + w, this.d * x - x * z + this.c * y, x * y - this.b * z, y * z + this.r * w]; }
+    step() {
+      let [x, y, z, w] = this.state; const dt = this.dt; const k1 = this.deriv(x, y, z, w);
+      const k2 = this.deriv(x + 0.5*dt*k1[0], y + 0.5*dt*k1[1], z + 0.5*dt*k1[2], w + 0.5*dt*k1[3]);
+      const k3 = this.deriv(x + 0.5*dt*k2[0], y + 0.5*dt*k2[1], z + 0.5*dt*k2[2], w + 0.5*dt*k2[3]);
+      const k4 = this.deriv(x + dt*k3[0], y + dt*k3[1], z + dt*k3[2], w + dt*k3[3]);
+      x += (dt/6)*(k1[0]+2*k2[0]+2*k3[0]+k4[0]); y += (dt/6)*(k1[1]+2*k2[1]+2*k3[1]+k4[1]);
+      z += (dt/6)*(k1[2]+2*k2[2]+2*k3[2]+k4[2]); w += (dt/6)*(k1[3]+2*k2[3]+2*k3[3]+k4[3]);
+      if (![x,y,z,w].every(Number.isFinite)) { x=0.11; y=0.23; z=8.0; w=0.17; }
+      if (Math.abs(w) > 200) w = Math.tanh(w/200)*80; if (Math.abs(x) > 200) x = Math.tanh(x/200)*80;
+      this.state = [x, y, z, w]; return this.state;
+    }
+  }
+
+  // Unitary Mixer
+  const cadd = (a, b) => ({ re: a.re + b.re, im: a.im + b.im });
+  const cmul = (a, b) => ({ re: a.re*b.re - a.im*b.im, im: a.re*b.im + a.im*b.re });
+  const cscale = (a, s) => ({ re: a.re * s, im: a.im * s });
+  const cabs2 = a => a.re*a.re + a.im*a.im;
+
+  class UnitaryMixer {
+    constructor(words) {
+      const src = words.length >= 2 ? words : words.concat(words);
+      const amps = [];
+      for (let i = 0; i < 4; i++) {
+        const w = src[i % src.length] ^ rotl64(src[(i+1) % src.length], 17+i);
+        amps.push({ re: (Number(w & 0xffffffffn)/4294967296)*2-1, im: (Number((w >> 32n) & 0xffffffffn)/4294967296)*2-1 });
+      }
+      const n = Math.sqrt(amps.reduce((s, a) => s + cabs2(a), 0));
+      this.psi = n > 1e-18 ? amps.map(a => cscale(a, 1/n)) : [{re:0.5,im:0},{re:0.5,im:0},{re:0.5,im:0},{re:0.5,im:0}];
+    }
+    su2(th, ph) {
+      const c = Math.cos(th*0.5), s = Math.sin(th*0.5);
+      return [{re:c,im:0}, cscale({re:Math.cos(-ph),im:Math.sin(-ph)},-s), cscale({re:Math.cos(ph),im:Math.sin(ph)},s), {re:c,im:0}];
+    }
+    evolve(word) {
+      const th = (Number(word & 0xffffffffn)/4294967296)*Math.PI; const ph = (Number((word >> 32n) & 0xffffffffn)/4294967296)*Math.PI;
+      const A = this.su2(th, ph), B = this.su2(ph, th), p = this.psi;
+      const t0 = cadd(cmul(B[0],p[0]), cmul(B[1],p[1])), t1 = cadd(cmul(B[2],p[0]), cmul(B[3],p[1]));
+      const t2 = cadd(cmul(B[0],p[2]), cmul(B[1],p[3])), t3 = cadd(cmul(B[2],p[2]), cmul(B[3],p[3]));
+      const q = [cadd(cmul(A[0],t0), cmul(A[1],t2)), cadd(cmul(A[0],t1), cmul(A[1],t3)), cadd(cmul(A[2],t1), cmul(A[3],t3)), cadd(cmul(A[2],t0), cmul(A[3],t2))]; // swapped 2,3 logic inline
+      const n = Math.sqrt(cabs2(q[0])+cabs2(q[1])+cabs2(q[2])+cabs2(q[3]));
+      if (n > 1e-18) this.psi = q.map(v => cscale(v, 1/n));
+      return cabs2(this.psi[0])*Math.atan2(this.psi[1].im, this.psi[1].re) - cabs2(this.psi[2])*Math.atan2(this.psi[3].im, this.psi[3].re);
+    }
+    purity() {
+      const [a,b,c,d] = this.psi; const r00 = cabs2(a)+cabs2(b), r11 = cabs2(c)+cabs2(d);
+      const re = a.re*c.re+a.im*c.im+b.re*d.re+b.im*d.im, im = a.im*c.re-a.re*c.im+b.im*d.re-b.re*d.im;
+      return r00*r00 + r11*r11 + 2*(re*re+im*im);
+    }
+  }
+
+  // 主類別
+  class HQPRF {
+    constructor(seeds, opts) {
+      if (seeds.length < 2) throw new Error("至少需要 2 個種子");
+      this.domain = asBytes(opts?.domain || ""); this.seeds = seeds.map(u64);
+      this.counter = 0n; this._buf = []; this._pos = 0; this.runNonce = ZERO16; this.initTicks = 0n;
+      this.pool = this._initPool();
+      this.chaos = new HyperchaoticChen4D(); this._seedChaos();
+      this.mixer = new UnitaryMixer(this.pool);
+      for(let i=0; i<400; i++) this.chaos.step();
+      this.runId = hex(blake2b(concatBytes([this.runNonce, packU64LE(this.initTicks), packU64sLE(this.seeds), this.domain]), {digestSize:16, person:PERSON}));
+    }
+    _initPool() {
+      const mat = concatBytes([packU64sLE(this.seeds), this.runNonce, packU64LE(this.initTicks), this.domain]);
+      const n = Math.max(4, this.seeds.length); let st = unpackU64sLE(blake2b(mat, {digestSize:64, person:PERSON}));
+      while(st.length < n) st.push(mix64(st[st.length-1], BigInt(st.length)));
+      st = st.slice(0, n);
+      for(let r=0; r<24; r++) for(let i=0; i<n; i++) {
+        let v = (st[i]+st[(i-1+n)%n])&MASK64; v = rotl64(v, 13)^st[(i+1)%n];
+        st[i] = ((v*GOLDEN)&MASK64)^(v>>29n);
+      }
+      return st;
+    }
+    _seedChaos() {
+      const u = (w, span, off) => off + (Number(w & ((1n<<52n)-1n))/Number(1n<<52n))*span;
+      this.chaos.setState(u(this.pool[0],4,0.15), u(this.pool[1%this.pool.length]^GOLDEN,4,0.15), u(this.pool[2%this.pool.length]^(GOLDEN<<1n),8,4), u(this.pool[3%this.pool.length]^A5,4,0.15));
+    }
+    _advance() {
+      const n = this.pool.length, idx = Number((this.pool[Number(this.counter%BigInt(n))]^this.counter)%BigInt(n));
+      let cur = this.pool[idx];
+      for(let t=0; t<3; t++) cur = rotl64((((cur^this.pool[(idx+t+1)%n])*PCG_MULT)+PCG_INC)&MASK64, 29);
+      this.pool[idx] = cur; this.counter = (this.counter+1n)&MASK64;
+      this.chaos.state[0] += Math.tanh(this.mixer.evolve(cur))*1e-4;
+      this.chaos.state[3] += Math.tanh((Number(cur%2001n)-1000)*1e-4)*1e-4;
+      this.chaos.step();
+      const bits = this.chaos.state.map(float64BitsLE);
+      return packU64sLE([cur, bits[0], bits[1], bits[2], bits[3], this.counter^this.pool[(idx+1)%n]]);
+    }
+    nextU64() {
+      if(this._pos >= this._buf.length) {
+        const mat = this._advance(), dom = new Uint8Array(8); dom.set(this.domain.subarray(0,8));
+        const s0 = concatBytes([packU64LE(this.counter), dom]), s1 = concatBytes([packU64LE(this.counter^GOLDEN), dom]);
+        this._buf = unpackU64sLE(concatBytes([blake2b(mat,{digestSize:64,key:DET_KEY,person:PERSON,salt:s0}), blake2b(concatBytes([mat,Uint8Array.of(1)]),{digestSize:64,key:DET_KEY,person:PERSON,salt:s1})]));
+        this._pos = 0;
+      }
+      return this._buf[this._pos++];
+    }
+    nextFloat() { return Number(this.nextU64() >> 11n) * Math.pow(2, -53); }
+    generateBytes(n) {
+      const out = new Uint8Array(n); let off = 0;
+      while(off < n) { const w = packU64LE(this.nextU64()); const take = Math.min(8, n-off); out.set(w.subarray(0,take), off); off+=take; }
+      return out;
+    }
+    prf(data, len=32) {
+      const key = blake2b(concatBytes([packU64sLE(this.pool), packU64LE(this.counter), this.runNonce]), {digestSize:32, person:PERSON});
+      return blake2b(asBytes(data), {digestSize:len, key, person:PERSON});
+    }
+    snap() {
+      return `Run ID:  ${this.runId}\nCounter: ${this.counter}\nPurity:  ${this.mixer.purity().toFixed(6)}\nChaos:   [${this.chaos.state.map(x=>x.toFixed(4)).join(', ')}]`;
+    }
+  }
+  return { HQPRF, hex };
+})();
+
+/**
+ * 網頁互動綁定區塊
+ */
+let rngInstance = null;
+
+function display(text) { document.getElementById('output').innerText = text; }
+function updateDiag() { 
+  if(rngInstance) document.getElementById('diag').innerText = rngInstance.snap(); 
+}
+
+function initEngine() {
+  try {
+    const seedsStr = document.getElementById('cfg-seeds').value;
+    const seeds = seedsStr.split(',').map(s => BigInt(s.trim()));
+    const domain = document.getElementById('cfg-domain').value;
+    rngInstance = new HQPRF_CORE.HQPRF(seeds, { domain });
+    display("✅ HQ-PRF 初始化成功！準備就緒。");
+    updateDiag();
+  } catch (e) {
+    display("❌ 錯誤: " + e.message);
+  }
+}
+
+function checkInit() {
+  if (!rngInstance) { initEngine(); }
+  return rngInstance !== null;
+}
+
+function genFloat() {
+  if (!checkInit()) return;
+  const val = rngInstance.nextFloat();
+  display(val.toString());
+  updateDiag();
+}
+
+function genU64() {
+  if (!checkInit()) return;
+  const val = rngInstance.nextU64();
+  display(val.toString() + "n");
+  updateDiag();
+}
+
+function genBytes() {
+  if (!checkInit()) return;
+  const bytes = rngInstance.generateBytes(32);
+  display(HQPRF_CORE.hex(bytes).match(/.{1,8}/g).join(" "));
+  updateDiag();
+}
+
+function genPRF() {
+  if (!checkInit()) return;
+  const label = document.getElementById('prf-label').value;
+  const len = parseInt(document.getElementById('prf-len').value) || 32;
+  try {
+    const out = rngInstance.prf(label, len);
+    display(`Label: "${label}"\nResult: ${HQPRF_CORE.hex(out)}`);
+    updateDiag();
+  } catch (e) {
+    display("❌ PRF 錯誤: " + e.message);
+  }
+}
+
+// 頁面載入時自動初始化
+window.onload = initEngine;
+</script>
+
+</body>
+</html>
