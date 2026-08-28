@@ -83,18 +83,22 @@
     </div>
     <div class="grid-2" style="margin-top: 15px;">
       <div>
-        <label>隨機種子個數 (2–8)</label>
+        <label>種子個數 (2–8，抽種時一併隨機)</label>
         <input type="number" id="cfg-seed-count" value="4" min="2" max="8">
       </div>
       <div>
-        <label>預熱丟棄字數 (初始化後先推進再給你用)</label>
-        <input type="number" id="cfg-warmup" value="8" min="0" max="256">
+        <label>預熱丟棄字數 (0–64，抽種時一併隨機)</label>
+        <input type="number" id="cfg-warmup" value="8" min="0" max="64">
       </div>
     </div>
     <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
-      <button onclick="initEngine()">初始化 / 重置狀態機</button>
       <button class="btn-accent" onclick="rollSeedsAndInit()">生成隨機種子並預熱</button>
+      <button onclick="initEngine()">用目前欄位重新初始化</button>
     </div>
+    <p class="subtitle" style="margin: 10px 0 0;">
+      「生成隨機種子並預熱」會重抽個數、種子、預熱步數與 domain。<br>
+      「用目前欄位重新初始化」不抽新種，只把狀態倒回這組參數的起點（例如對照同一條流、或改完欄位後重跑）。
+    </p>
   </div>
 
   <div class="card">
@@ -467,15 +471,24 @@ function initEngine() {
   }
 }
 
+function randInt(min, max) {
+  const span = max - min + 1;
+  if (globalThis.crypto && crypto.getRandomValues) {
+    const buf = new Uint32Array(1);
+    crypto.getRandomValues(buf);
+    return min + (buf[0] % span);
+  }
+  return min + Math.floor(Math.random() * span);
+}
+
 function rollSeedsAndInit() {
-  const count = parseInt(document.getElementById("cfg-seed-count").value, 10) || 4;
+  const count = randInt(2, 8);
+  const warmup = randInt(0, 64);
+  document.getElementById("cfg-seed-count").value = String(count);
+  document.getElementById("cfg-warmup").value = String(warmup);
   const seeds = generateRandomSeeds(count);
   document.getElementById("cfg-seeds").value = seeds.map(formatSeed).join(", ");
-  const stamp = Date.now().toString(36);
-  const domEl = document.getElementById("cfg-domain");
-  if (!domEl.value || domEl.value === "expA" || /^auto-/.test(domEl.value)) {
-    domEl.value = "auto-" + stamp;
-  }
+  document.getElementById("cfg-domain").value = "auto-" + Date.now().toString(36) + "-" + randInt(0, 0xffff).toString(16);
   initEngine();
 }
 
