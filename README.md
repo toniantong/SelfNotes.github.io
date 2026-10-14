@@ -132,3 +132,5 @@
 [hq_prf_demo.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/hq_prf_demo.html)
 
 [BinaryTreeMLM.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/BinaryTreeMLM.html)
+
+[MLMBinaryAnalyzer.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/MLMBinaryAnalyzer.html)
