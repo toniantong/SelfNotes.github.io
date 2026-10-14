@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>直銷二元樹（雙軌制）組織排線與業績模擬分析工具</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<style>
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC",
+      "PingFang TC", "Microsoft JhengHei", sans-serif;
+  }
+  #tree-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    touch-action: none;
+    background-color: #f8fafc;
+    background-image: radial-gradient(circle, #dbe3ec 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .node text { user-select: none; pointer-events: none; }
+  .node rect { transition: stroke .15s ease; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  .fade-in { animation: fadeIn .18s ease-out; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased">
+
+<div class="flex h-[100dvh] w-full overflow-hidden relative">
+
+  <!-- ================= 左側面板 ================= -->
+  <aside id="sidebar"
+    class="fixed lg:static inset-y-0 left-0 z-40 w-[88%] max-w-[380px] lg:w-[380px] shrink-0
+           bg-white border-r border-slate-200 flex flex-col
+           transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-out
+           shadow-2xl lg:shadow-none">
+
+    <!-- 標題 -->
+    <div class="px-4 pt-4 pb-3 border-b border-slate-200 bg-gradient-to-br from-indigo-600 to-violet-600 text-white">
+      <div class="flex items-start justify-between gap-2">
+        <div>
+          <h1 class="text-[15px] font-bold leading-tight tracking-tight">直銷二元樹 · 雙軌制</h1>
+          <p class="text-[11px] text-indigo-100 mt-0.5">組織排線與業績模擬分析工具</p>
+        </div>
+        <button id="closeSidebar"
+          class="lg:hidden w-8 h-8 -mt-1 -mr-1 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center text-white text-lg leading-none">
+          ×
+        </button>
+      </div>
+    </div>
+
+    <!-- 內容捲動區 -->
+    <div class="flex-1 overflow-y-auto p-3.5 space-y-3.5">
+
+      <!-- 選取成員 -->
+      <section class="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm">
+        <div class="flex items-center gap-2 mb-2.5">
+          <span class="w-1.5 h-4 rounded-full bg-indigo-500"></span>
+          <h2 class="text-[13px] font-bold text-slate-700">選取成員</h2>
+        </div>
+
+        <div id="selEmpty" class="text-xs text-slate-400 py-3 text-center hidden">
+          請點選樹狀圖中的節點
+        </div>
+
+        <div id="selContent">
+          <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
+              <div id="selName" class="text-base font-bold text-slate-800 truncate">—</div>
+              <div id="selPv" class="text-[11px] text-slate-500 mt-0.5">個人業績 0 PV</div>
+            </div>
+            <span class="shrink-0 text-[10px] font-semibold px-2 py-1 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100">
+              目前選取
+            </span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 mt-3">
+            <div class="rounded-xl bg-blue-50 border border-blue-100 p-2.5">
+              <div class="text-[10px] font-semibold text-blue-600 tracking-wide">左區總業績</div>
+              <div id="selLeft" class="text-[15px] font-bold text-blue-700 mt-0.5 leading-tight">0</div>
+              <div id="selLeftCount" class="text-[10px] text-blue-500/80 mt-0.5">0 人</div>
+            </div>
+            <div class="rounded-xl bg-emerald-50 border border-emerald-100 p-2.5">
+              <div class="text-[10px] font-semibold text-emerald-600 tracking-wide">右區總業績</div>
+              <div id="selRight" class="text-[15px] font-bold text-emerald-700 mt-0.5 leading-tight">0</div>
+              <div id="selRightCount" class="text-[10px] text-emerald-500/80 mt-0.5">0 人</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 mt-3">
+            <button id="btnAddLeft"
+              class="rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed
+                     text-white text-[12px] font-semibold py-2.5 transition active:scale-[0.98]">
+              ＋ 新增左下線
+            </button>
+            <button id="btnAddRight"
+              class="rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed
+                     text-white text-[12px] font-semibold py-2.5 transition active:scale-[0.98]">
+              ＋ 新增右下線
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 mt-2">
+            <button id="btnEdit"
+              class="rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 text-[12px] font-semibold py-2.5 transition active:scale-[0.98]">
+              ✎ 編輯成員
+            </button>
+            <button id="btnDelete"
+              class="rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 text-[12px] font-semibold py-2.5 transition active:scale-[0.98]">
+              🗑 刪除組織
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 對碰獎金 -->
+      <section class="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm">
+        <div class="flex items-center justify-between mb-2.5">
+          <div class="flex items-center gap-2">
+            <span class="w-1.5 h-4 rounded-full bg-amber-500"></span>
+            <h2 class="text-[13px] font-bold text-slate-700">對碰獎金模擬</h2>
+          </div>
+          <div class="flex items-center gap-1">
+            <input id="rateInput" type="number" min="0" max="100" step="0.5" value="10"
+              class="w-14 text-right rounded-lg border border-slate-300 px-1.5 py-1 text-[12px] font-semibold
+                     focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400" />
+            <span class="text-[12px] font-semibold text-slate-500">%</span>
+          </div>
+        </div>
+
+        <div id="bonusResult" class="space-y-1.5"></div>
+      </section>
+
+      <!-- 排線智慧分析 -->
+      <section class="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm">
+        <div class="flex items-center gap-2 mb-2.5">
+          <span class="w-1.5 h-4 rounded-full bg-violet-500"></span>
+          <h2 class="text-[13px] font-bold text-slate-700">排線智慧分析</h2>
+        </div>
+        <button id="btnAdvice"
+          class="w-full rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-[12.5px] font-semibold py-2.5 transition active:scale-[0.98]">
+          🔍 產生最佳排線建議
+        </button>
+        <div id="adviceBox" class="hidden mt-3 text-[12px] leading-relaxed rounded-xl p-3 border"></div>
+      </section>
+
+      <!-- 成員清單 -->
+      <section class="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm">
+        <div class="flex items-center justify-between mb-2.5">
+          <div class="flex items-center gap-2">
+            <span class="w-1.5 h-4 rounded-full bg-slate-400"></span>
+            <h2 class="text-[13px] font-bold text-slate-700">組織成員清單</h2>
+          </div>
+          <span id="memberCount" class="text-[10px] text-slate-400">0 人</span>
+        </div>
+        <div id="memberList" class="space-y-0.5 max-h-72 overflow-y-auto pr-0.5"></div>
+      </section>
+
+      <!-- 資料管理 -->
+      <section class="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm">
+        <div class="flex items-center gap-2 mb-2.5">
+          <span class="w-1.5 h-4 rounded-full bg-slate-400"></span>
+          <h2 class="text-[13px] font-bold text-slate-700">資料管理</h2>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <button id="btnExport"
+            class="rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 text-[12px] font-semibold py-2.5 transition active:scale-[0.98]">
+            ⬇ 匯出 JSON
+          </button>
+          <button id="btnImport"
+            class="rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 text-[12px] font-semibold py-2.5 transition active:scale-[0.98]">
+            ⬆ 匯入 JSON
+          </button>
+        </div>
+        <input id="fileInput" type="file" accept="application/json,.json" class="hidden" />
+        <button id="btnReset"
+          class="w-full mt-2 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 text-[12px] font-semibold py-2.5 transition active:scale-[0.98]">
+          ⟳ 清空重設組織
+        </button>
+        <p class="text-[10px] text-slate-400 mt-2 leading-relaxed">
+          資料自動儲存於此瀏覽器（LocalStorage），重新整理不會遺失。
+        </p>
+      </section>
+
+      <div class="h-2"></div>
+    </div>
+  </aside>
+
+  <!-- 手機遮罩 -->
+  <div id="overlay" class="fixed inset-0 z-30 bg-slate-900/40 backdrop-blur-[2px] hidden lg:hidden"></div>
+
+  <!-- ================= 右側畫布 ================= -->
+  <main class="flex-1 relative min-w-0 bg-slate-50">
+    <svg id="tree-svg"></svg>
+
+    <!-- 手機選單按鈕 -->
+    <button id="menuBtn"
+      class="lg:hidden absolute top-4 left-4 z-20 w-11 h-11 rounded-xl bg-white shadow-lg border border-slate-200
+             flex items-center justify-center text-slate-600 active:scale-95 transition">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <line x1="3" y1="12" x2="21" y2="12" />
+        <line x1="3" y1="18" x2="21" y2="18" />
+      </svg>
+    </button>
+
+    <!-- 縮放控制 -->
+    <div class="absolute bottom-4 right-4 z-20 flex flex-col gap-2">
+      <button id="zoomIn"
+        class="w-10 h-10 rounded-xl bg-white shadow-lg border border-slate-200 flex items-center justify-center
+               text-slate-600 text-lg font-bold hover:bg-slate-50 active:scale-95 transition">＋</button>
+      <button id="zoomOut"
+        class="w-10 h-10 rounded-xl bg-white shadow-lg border border-slate-200 flex items-center justify-center
+               text-slate-600 text-lg font-bold hover:bg-slate-50 active:scale-95 transition">−</button>
+      <button id="zoomFit"
+        class="w-10 h-10 rounded-xl bg-white shadow-lg border border-slate-200 flex items-center justify-center
+               text-slate-600 hover:bg-slate-50 active:scale-95 transition" title="適應畫面">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- 圖例 -->
+    <div class="absolute bottom-4 left-4 z-10 hidden sm:flex items-center gap-3 text-[11px] text-slate-500
+                bg-white/85 backdrop-blur px-3 py-1.5 rounded-full border border-slate-200 shadow-sm">
+      <span class="flex items-center gap-1.5">
+        <span class="inline-block w-3.5 h-[2.5px] rounded bg-blue-400"></span>左區
+      </span>
+      <span class="flex items-center gap-1.5">
+        <span class="inline-block w-3.5 h-[2.5px] rounded bg-emerald-400"></span>右區
+      </span>
+      <span class="text-slate-300">|</span>
+      <span>滾輪縮放・拖曳平移</span>
+    </div>
+  </main>
+</div>
+
+<!-- ================= 新增/編輯 Modal ================= -->
+<div id="modal" class="fixed inset-0 z-[60] hidden items-center justify-center p-4">
+  <div id="modalBackdrop" class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
+  <div class="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl p-5 fade-in">
+    <h3 id="modalTitle" class="text-[15px] font-bold text-slate-800">新增成員</h3>
+    <p id="modalSub" class="text-[11px] text-slate-500 mt-0.5 mb-4"></p>
+
+    <label class="block text-[11px] font-semibold text-slate-600 mb-1">姓名</label>
+    <input id="modalName" type="text" maxlength="24" placeholder="請輸入姓名"
+      class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm mb-3
+             focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+
+    <label class="block text-[11px] font-semibold text-slate-600 mb-1">個人業績（PV）</label>
+    <input id="modalPv" type="number" min="0" step="1" value="0" placeholder="0"
+      class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm mb-5
+             focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+
+    <div class="flex gap-2">
+      <button id="modalCancel"
+        class="flex-1 rounded-xl border border-slate-300 py-2.5 text-[13px] font-semibold text-slate-600 hover:bg-slate-50 transition active:scale-[0.98]">
+        取消
+      </button>
+      <button id="modalConfirm"
+        class="flex-1 rounded-xl bg-indigo-600 hover:bg-indigo-700 py-2.5 text-[13px] font-semibold text-white transition active:scale-[0.98]">
+        確認
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   直銷二元樹（雙軌制）組織排線與業績模擬分析工具
+   ============================================================ */
+
+const STORAGE_KEY = 'mlm_binary_tree_v1';
+const NODE_W = 140, NODE_H = 84, NODE_R = 16;
+const X_GAP = 176, Y_GAP = 128;
+
+let treeData = null;
+let selectedId = null;
+let bonusRate = 10;
+
+let svgSel = null;
+let gRoot = null;
+let zoomBehavior = null;
+
+/* ---------------- 工具函式 ---------------- */
+const uid = () => 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const fmt = (n) => (Number(n) || 0).toLocaleString('zh-TW');
+const money = (n) => 'NT$ ' + Math.round(Number(n) || 0).toLocaleString('zh-TW');
+const el = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"']/g, c => (
+  { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+));
+const truncate = (s, n) => { s = String(s ?? ''); return s.length > n ? s.slice(0, n) + '…' : s; };
+
+/* ---------------- 資料計算 ---------------- */
+function sumPV(node) {
+  if (!node) return 0;
+  return (Number(node.pv) || 0) + sumPV(node.left) + sumPV(node.right);
+}
+function countNodes(node) {
+  if (!node) return 0;
+  return 1 + countNodes(node.left) + countNodes(node.right);
+}
+function depthOf(node) {
+  if (!node) return 0;
+  return 1 + Math.max(depthOf(node.left), depthOf(node.right));
+}
+function findNode(id, node = treeData, parent = null, side = null) {
+  if (!node) return null;
+  if (node.id === id) return { node, parent, side };
+  return findNode(id, node.left, node, 'left') || findNode(id, node.right, node, 'right');
+}
+function sanitize(n) {
+  if (!n || typeof n !== 'object') return null;
+  return {
+    id: String(n.id || uid()),
+    name: String(n.name ?? '未命名').slice(0, 40),
+    pv: Number(n.pv) || 0,
+    left: sanitize(n.left),
+    right: sanitize(n.right)
+  };
+}
+
+/* ---------------- 預設示範樹 ---------------- */
+function demoTree() {
+  const root = { id: uid(), name: '創辦人', pv: 100, left: null, right: null };
+  root.left  = { id: uid(), name: '王小明', pv: 300, left: null, right: null };
+  root.right = { id: uid(), name: '陳大文', pv: 200, left: null, right: null };
+  root.left.left   = { id: uid(), name: '李美華', pv: 150, left: null, right: null };
+  root.left.right  = { id: uid(), name: '林建宏', pv: 90,  left: null, right: null };
+  root.right.left  = { id: uid(), name: '張志強', pv: 120, left: null, right: null };
+  return root;
+}
+
+/* ---------------- 儲存 / 讀取 ---------------- */
+function save() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      tree: treeData, selectedId, bonusRate
+    }));
+  } catch (e) { console.warn('儲存失敗', e); }
+}
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const obj = JSON.parse(raw);
+    const t = sanitize(obj.tree);
+    if (!t) return false;
+    treeData = t;
+    selectedId = obj.selectedId || t.id;
+    bonusRate = (typeof obj.bonusRate === 'number' && isFinite(obj.bonusRate))
+      ? Math.max(0, Math.min(100, obj.bonusRate)) : 10;
+    return true;
+  } catch (e) {
+    console.warn('讀取失敗', e);
+    return false;
+  }
+}
+
+/* ============================================================
+   D3 初始化
+   ============================================================ */
+function initD3() {
+  svgSel = d3.select('#tree-svg');
+
+  // 陰影濾鏡
+  const defs = svgSel.append('defs');
+  const f = defs.append('filter')
+    .attr('id', 'nodeShadow')
+    .attr('x', '-50%').attr('y', '-50%')
+    .attr('width', '200%').attr('height', '200%');
+  f.append('feDropShadow')
+    .attr('dx', 0).attr('dy', 2)
+    .attr('stdDeviation', 3)
+    .attr('flood-color', '#0f172a')
+    .attr('flood-opacity', 0.09);
+
+  gRoot = svgSel.append('g').attr('class', 'root-layer');
+
+  zoomBehavior = d3.zoom()
+    .scaleExtent([0.12, 2.6])
+    .on('zoom', (event) => {
+      gRoot.attr('transform', event.transform);
+    });
+
+  svgSel.call(zoomBehavior);
+  svgSel.on('dblclick.zoom', null);
+}
+
+/* ---------------- 適應畫面 ---------------- */
+function fitToView(animate = true) {
+  if (!svgSel || !gRoot) return;
+  const svgNode = svgSel.node();
+  const rect = svgNode.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
+
+  let bbox;
+  try { bbox = gRoot.node().getBBox(); } catch (e) { return; }
+  if (!bbox.width || !bbox.height) return;
+
+  const pad = 70;
+  const rawScale = Math.min(
+    (rect.width - pad * 2) / bbox.width,
+    (rect.height - pad * 2) / bbox.height
+  );
+  const s = Math.max(0.12, Math.min(rawScale, 1.15));
+
+  const tx = rect.width / 2 - (bbox.x + bbox.width / 2) * s;
+  const ty = rect.height / 2 - (bbox.y + bbox.height / 2) * s;
+
+  const t = d3.zoomIdentity.translate(tx, ty).scale(s);
+  if (animate) {
+    svgSel.transition().duration(450).ease(d3.easeCubicOut)
+      .call(zoomBehavior.transform, t);
+  } else {
+    svgSel.call(zoomBehavior.transform, t);
+  }
+}
+
+/* ============================================================
+   建立階層結構（含空位節點）
+   ============================================================ */
+function makePlaceholder(parentId, side) {
+  return {
+    id: 'ph_' + parentId + '_' + side,
+    node: null,
+    name: '空位',
+    pv: 0,
+    side: side,
+    placeholder: true,
+    parentId: parentId,
+    children: []
+  };
+}
+function buildHier(node, side) {
+  const h = {
+    id: node.id,
+    node: node,
+    name: node.name,
+    pv: node.pv,
+    side: side || null,
+    placeholder: false,
+    children: []
+  };
+  h.children.push(node.left ? buildHier(node.left, 'left') : makePlaceholder(node.id, 'left'));
+  h.children.push(node.right ? buildHier(node.right, 'right') : makePlaceholder(node.id, 'right'));
+  return h;
+}
+
+/* ============================================================
+   渲染樹狀圖
+   ============================================================ */
+function render() {
+  if (!treeData) return;
+
+  const hier = buildHier(treeData, null);
+  const root = d3.hierarchy(hier, d => d.children);
+  const layout = d3.tree().nodeSize([X_GAP, Y_GAP]);
+  layout(root);
+
+  gRoot.selectAll('*').remove();
+
+  /* --- 連線 --- */
+  const linkGen = d3.linkVertical().x(d => d.x).y(d => d.y);
+
+  gRoot.append('g')
+    .attr('fill', 'none')
+    .selectAll('path')
+    .data(root.links())
+    .join('path')
+    .attr('d', d => linkGen({ source: d.source, target: d.target }))
+    .attr('stroke', d => (d.target.data.side === 'left' ? '#60a5fa' : '#34d399'))
+    .attr('stroke-width', 2)
+    .attr('stroke-opacity', 0.9)
+    .attr('stroke-linecap', 'round');
+
+  /* --- 節點 --- */
+  gRoot.append('g')
+    .selectAll('g')
+    .data(root.descendants())
+    .join('g')
+    .attr('class', 'node')
+    .attr('transform', d => `translate(${d.x},${d.y})`)
+    .style('cursor', 'pointer')
+    .on('click', (event, d) => handleNodeClick(event, d))
+    .each(function (d) { drawNode(d3.select(this), d); });
+}
+
+/* ---------------- 繪製單一節點 ---------------- */
+function drawNode(sel, d) {
+  const isPh = !!d.data.placeholder;
+  const isSel = !isPh && d.data.id === selectedId;
+
+  /* === 空位節點 === */
+  if (isPh) {
+    const isLeft = d.data.side === 'left';
+    sel.append('rect')
+      .attr('x', -NODE_W / 2).attr('y', -NODE_H / 2)
+      .attr('width', NODE_W).attr('height', NODE_H)
+      .attr('rx', NODE_R)
+      .attr('fill', '#ffffff')
+      .attr('fill-opacity', 0.55)
+      .attr('stroke', isLeft ? '#bfdbfe' : '#a7f3d0')
+      .attr('stroke-width', 2)
+      .attr('stroke-dasharray', '7 6');
+
+    sel.append('text')
+      .attr('text-anchor', 'middle').attr('y', -2)
+      .attr('font-size', 24).attr('font-weight', 400)
+      .attr('fill', isLeft ? '#3b82f6' : '#10b981')
+      .attr('opacity', 0.85)
+      .text('+');
+
+    sel.append('text')
+      .attr('text-anchor', 'middle').attr('y', 21)
+      .attr('font-size', 10).attr('fill', '#94a3b8')
+      .text(isLeft ? '新增左下線' : '新增右下線');
+    return;
+  }
+
+  /* === 正式成員節點 === */
+  const n = d.data.node;
+  const L = sumPV(n.left);
+  const R = sumPV(n.right);
+
+  // 選取光暈（先插入，位於底層）
+  if (isSel) {
+    sel.insert('rect', ':first-child')
+      .attr('x', -NODE_W / 2 - 5).attr('y', -NODE_H / 2 - 5)
+      .attr('width', NODE_W + 10).attr('height', NODE_H + 10)
+      .attr('rx', NODE_R + 5)
+      .attr('fill', '#eef2ff')
+      .attr('stroke', '#a5b4fc')
+      .attr('stroke-width', 1.5);
+  }
+
+  // 主體
+  sel.append('rect')
+    .attr('x', -NODE_W / 2).attr('y', -NODE_H / 2)
+    .attr('width', NODE_W).attr('height', NODE_H)
+    .attr('rx', NODE_R)
+    .attr('fill', '#ffffff')
+    .attr('stroke', isSel ? '#6366f1' : '#e2e8f0')
+    .attr('stroke-width', isSel ? 3 : 1.5)
+    .attr('filter', 'url(#nodeShadow)');
+
+  // 姓名
+  sel.append('text')
+    .attr('text-anchor', 'middle')
+    .attr('y', -18)
+    .attr('font-size', 13.5)
+    .attr('font-weight', 700)
+    .attr('fill', '#1e293b')
+    .text(truncate(n.name, 7));
+
+  // 個人 PV
+  sel.append('text')
+    .attr('text-anchor', 'middle')
+    .attr('y', 0)
+    .attr('font-size', 11)
+    .attr('fill', '#64748b')
+    .text(`個人 ${fmt(n.pv)} PV`);
+
+  // 分隔線
+  sel.append('line')
+    .attr('x1', -NODE_W / 2 + 14).attr('x2', NODE_W / 2 - 14)
+    .attr('y1', 10).attr('y2', 10)
+    .attr('stroke', '#f1f5f9').attr('stroke-width', 1);
+
+  // L / R 業績
+  const t = sel.append('text')
+    .attr('text-anchor', 'middle')
+    .attr('y', 26)
+    .attr('font-size', 9.2)
+    .attr('font-weight', 600);
+
+  t.append('tspan').attr('fill', '#2563eb').text(`L: ${fmt(L)}`);
+  t.append('tspan').attr('fill', '#cbd5e1').attr('font-weight', 400).text(' / ');
+  t.append('tspan').attr('fill', '#059669').text(`R: ${fmt(R)}`);
+}
+
+/* ---------------- 節點點擊 ---------------- */
+function handleNodeClick(event, d) {
+  if (event) event.stopPropagation();
+
+  if (d.data.placeholder) {
+    openAddModal(d.data.parentId, d.data.side);
+    return;
+  }
+  selectedId = d.data.id;
+  save();
+  render();
+  updatePanel();
+  renderMemberList();
+
+  if (window.innerWidth < 1024) openSidebar();
+}
+
+/* ============================================================
+   左側面板更新
+   ============================================================ */
+function updatePanel() {
+  if (!treeData) return;
+
+  let f = selectedId ? findNode(selectedId) : null;
+  if (!f) {
+    selectedId = treeData.id;
+    f = findNode(selectedId);
+  }
+  if (!f) return;
+
+  const n = f.node;
+  const L = sumPV(n.left);
+  const R = sumPV(n.right);
+
+  el('selEmpty').classList.add('hidden');
+  el('selContent').classList.remove('hidden');
+
+  el('selName').textContent = n.name;
+  el('selPv').textContent = `個人業績 ${fmt(n.pv)} PV`;
+
+  el('selLeft').textContent = `${fmt(L)} PV`;
+  el('selRight').textContent = `${fmt(R)} PV`;
+  el('selLeftCount').textContent = `${countNodes(n.left)} 人 · 深度 ${depthOf(n.left)}`;
+  el('selRightCount').textContent = `${countNodes(n.right)} 人 · 深度 ${depthOf(n.right)}`;
+
+  /* --- 新增按鈕 --- */
+  const btnL = el('btnAddLeft');
+  const btnR = el('btnAddRight');
+
+  btnL.disabled = !!n.left;
+  btnL.textContent = n.left ? '左區已滿' : '＋ 新增左下線';
+  btnL.onclick = () => openAddModal(n.id, 'left');
+
+  btnR.disabled = !!n.right;
+  btnR.textContent = n.right ? '右區已滿' : '＋ 新增右下線';
+  btnR.onclick = () => openAddModal(n.id, 'right');
+
+  /* --- 編輯 / 刪除 --- */
+  const btnEdit = el('btnEdit');
+  const btnDel = el('btnDelete');
+
+  const isRoot = (f.parent === null);
+  btnEdit.onclick = () => openEditModal(n.id);
+
+  if (isRoot) {
+    btnDel.disabled = true;
+    btnDel.classList.add('opacity-40', 'cursor-not-allowed');
+    btnDel.textContent = '🗑 根節點不可刪';
+    btnDel.onclick = null;
+  } else {
+    btnDel.disabled = false;
+    btnDel.classList.remove('opacity-40', 'cursor-not-allowed');
+    btnDel.textContent = '🗑 刪除組織';
+    btnDel.onclick = () => {
+      const cnt = countNodes(n) - 1;
+      if (!confirm(
+        `確定要刪除「${n.name}」及其所有下線嗎？\n\n` +
+        `此舉將一併移除 ${cnt} 位下線成員，且無法復原。`
+      )) return;
+      f.parent[f.side] = null;
+      selectedId = f.parent.id;
+      save();
+      refreshAll();
+      toast('已刪除組織');
+    };
+  }
+
+  /* --- 對碰獎金 --- */
+  const base = Math.min(L, R);
+  const bonus = base * bonusRate / 100;
+  const carry = Math.abs(L - R);
+  const carrySide = L > R ? '左區' : (R > L ? '右區' : null);
+  const total = L + R;
+
+  const pctL = total > 0 ? (L / total) * 100 : 50;
+  const pctR = 100 - pctL;
+
+  el('bonusResult').innerHTML = `
+    <div class="flex items-center justify-between text-[12px]">
+      <span class="text-slate-500">對碰基數（弱區）</span>
+      <span class="font-semibold text-slate-800">${fmt(base)} PV</span>
+    </div>
+    <div class="flex items-center justify-between text-[12px]">
+      <span class="text-slate-500">對碰獎金（${bonusRate}%）</span>
+      <span class="font-bold text-amber-600">${money(bonus)}</span>
+    </div>
+    <div class="flex items-center justify-between text-[12px]">
+      <span class="text-slate-500">剩餘大區業績</span>
+      <span class="font-semibold text-slate-800">
+        ${fmt(carry)} PV${carrySide ? ` <span class="text-[10px] text-slate-400">（${carrySide}）</span>` : ''}
+      </span>
+    </div>
+    <div class="pt-1.5">
+      <div class="flex h-2 rounded-full overflow-hidden bg-slate-100">
+        <div class="bg-blue-400" style="width:${pctL}%"></div>
+        <div class="bg-emerald-400" style="width:${pctR}%"></div>
+      </div>
+      <div class="flex justify-between text-[10px] mt-1">
+        <span class="text-blue-500 font-medium">左 ${pctL.toFixed(0)}%</span>
+        <span class="text-emerald-500 font-medium">右 ${pctR.toFixed(0)}%</span>
+      </div>
+    </div>
+  `;
+
+  /* --- 建議結果若已展開則同步更新 --- */
+  const adviceBox = el('adviceBox');
+  if (!adviceBox.classList.contains('hidden')) {
+    showAdvice(n);
+  }
+}
+
+/* ============================================================
+   成員清單
+   ============================================================ */
+function renderMemberList() {
+  const container = el('memberList');
+  const items = [];
+  (function walk(node, depth, side) {
+    if (!node) return;
+    items.push({ node, depth, side });
+    walk(node.left, depth + 1, 'left');
+    walk(node.right, depth + 1, 'right');
+  })(treeData, 0, null);
+
+  el('memberCount').textContent = `${items.length} 人`;
+
+  container.innerHTML = items.map(it => {
+    const isSel = it.node.id === selectedId;
+    const badgeCls = it.side === 'left'
+      ? 'bg-blue-100 text-blue-600'
+      : it.side === 'right'
+        ? 'bg-emerald-100 text-emerald-600'
+        : 'bg-slate-200 text-slate-600';
+    const badgeTxt = it.side === 'left' ? 'L' : it.side === 'right' ? 'R' : '★';
+    const pad = 8 + Math.min(it.depth, 6) * 10;
+
+    return `
+      <button data-id="${it.node.id}"
+        style="padding-left:${pad}px"
+        class="w-full text-left flex items-center gap-2 pr-2 py-1.5 rounded-lg transition
+               ${isSel ? 'bg-indigo-50 ring-1 ring-indigo-200' : 'hover:bg-slate-100'}">
+        <span class="shrink-0 w-5 h-5 rounded-md text-[10px] flex items-center justify-center font-bold ${badgeCls}">${badgeTxt}</span>
+        <span class="flex-1 truncate text-[12.5px] ${isSel ? 'text-indigo-700 font-semibold' : 'text-slate-700'}">${esc(it.node.name)}</span>
+        <span class="shrink-0 text-[10px] text-slate-400">${fmt(it.node.pv)}</span>
+      </button>
+    `;
+  }).join('');
+
+  container.querySelectorAll('button[data-id]').forEach(btn => {
+    btn.onclick = () => {
+      selectedId = btn.dataset.id;
+      save();
+      render();
+      updatePanel();
+      renderMemberList();
+      if (window.innerWidth < 1024) closeSidebar();
+    };
+  });
+}
+
+/* ============================================================
+   排線智慧分析
+   ============================================================ */
+function showAdvice(node) {
+  const L = sumPV(node.left);
+  const R = sumPV(node.right);
+  const box = el('adviceBox');
+
+  let side, title, reason, tone;
+
+  if (!node.left && !node.right) {
+    side = '左';
+    tone = 'blue';
+    title = '建議安置於【左區】';
+    reason = '目前左右兩區皆為空，依業界慣例「先左後右」建立第一條線，可為日後的對碰打下基礎。';
+  } else if (!node.left) {
+    side = '左';
+    tone = 'blue';
+    title = '建議安置於【左區】';
+    reason = `左區目前為空（0 PV），右區已有 ${fmt(R)} PV。將新成員安置左區可立即形成對碰基數，產生第一筆對碰獎金。`;
+  } else if (!node.right) {
+    side = '右';
+    tone = 'green';
+    title = '建議安置於【右區】';
+    reason = `右區目前為空（0 PV），左區已有 ${fmt(L)} PV。將新成員安置右區可立即形成對碰基數，產生第一筆對碰獎金。`;
+  } else if (L < R) {
+    side = '左';
+    tone = 'blue';
+    title = '建議安置於【左區】';
+    const gap = R - L;
+    reason = `左區 ${fmt(L)} PV ＜ 右區 ${fmt(R)} PV，對碰基數受限於左區。補強弱區可直接提升對碰基數（目前差距 ${fmt(gap)} PV）；每補進 1 PV 於左區，對碰獎金最多增加 ${(bonusRate / 100).toFixed(2)} 元。`;
+  } else if (R < L) {
+    side = '右';
+    tone = 'green';
+    title = '建議安置於【右區】';
+    const gap = L - R;
+    reason = `右區 ${fmt(R)} PV ＜ 左區 ${fmt(L)} PV，對碰基數受限於右區。補強弱區可直接提升對碰基數（目前差距 ${fmt(gap)} PV）；每補進 1 PV 於右區，對碰獎金最多增加 ${(bonusRate / 100).toFixed(2)} 元。`;
+  } else {
+    // 左右完全相等 → 比較深度 / 人數
+    const ld = depthOf(node.left), rd = depthOf(node.right);
+    const lc = countNodes(node.left), rc = countNodes(node.right);
+    if (ld < rd || (ld === rd && lc <= rc)) {
+      side = '左';
+      tone = 'blue';
+      title = '建議安置於【左區】';
+      reason = `左右業績完全相同（各 ${fmt(L)} PV），但左區深度 ${ld} 層／${lc} 人，相對較淺。優先深耕左區可維持組織結構平衡，為下一輪對碰鋪路。`;
+    } else {
+      side = '右';
+      tone = 'green';
+      title = '建議安置於【右區】';
+      reason = `左右業績完全相同（各 ${fmt(R)} PV），但右區深度 ${rd} 層／${rc} 人，相對較淺。優先深耕右區可維持組織結構平衡，為下一輪對碰鋪路。`;
+    }
+  }
+
+  const styles = tone === 'blue'
+    ? { bg: 'bg-blue-50', bd: 'border-blue-200', tx: 'text-blue-700', dot: 'bg-blue-500' }
+    : { bg: 'bg-emerald-50', bd: 'border-emerald-200', tx: 'text-emerald-700', dot: 'bg-emerald-500' };
+
+  box.className = `mt-3 text-[12px] leading-relaxed rounded-xl p-3 border ${styles.bg} ${styles.bd}`;
+  box.classList.remove('hidden');
+  box.innerHTML = `
+    <div class="flex items-center gap-2 font-bold ${styles.tx} mb-1">
+      <span class="w-2 h-2 rounded-full ${styles.dot}"></span>
+      ${title}
+    </div>
+    <p class="text-slate-600">${reason}</p>
+    <div class="mt-2 pt-2 border-t border-black/5 grid grid-cols-2 gap-2 text-[11px]">
+      <div class="text-slate-500">左區：<span class="font-semibold text-blue-600">${fmt(L)} PV</span></div>
+      <div class="text-slate-500">右區：<span class="font-semibold text-emerald-600">${fmt(R)} PV</span></div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   Modal
+   ============================================================ */
+let modalMode = null;      // 'add' | 'edit'
+let modalTarget = null;
+
+function openModal() {
+  const m = el('modal');
+  m.classList.remove('hidden');
+  m.classList.add('flex');
+  setTimeout(() => el('modalName').focus(), 60);
+}
+function closeModal() {
+  const m = el('modal');
+  m.classList.add('hidden');
+  m.classList.remove('flex');
+  modalMode = null;
+  modalTarget = null;
+}
+
+function openAddModal(parentId, side) {
+  const f = findNode(parentId);
+  if (!f) return;
+  if (f.node[side]) {
+    toast('該區已有成員');
+    return;
+  }
+  modalMode = 'add';
+  modalTarget = { parentId, side };
+
+  el('modalTitle').textContent = side === 'left' ? '新增左下線' : '新增右下線';
+  el('modalSub').textContent = `安置於「${f.node.name}」的${side === 'left' ? '左' : '右'}區`;
+  el('modalName').value = '';
+  el('modalPv').value = 0;
+  openModal();
+}
+
+function openEditModal(nodeId) {
+  const f = findNode(nodeId);
+  if (!f) return;
+  modalMode = 'edit';
+  modalTarget = { nodeId };
+
+  el('modalTitle').textContent = '編輯成員資料';
+  el('modalSub').textContent = '修改姓名與個人業績（PV）';
+  el('modalName').value = f.node.name;
+  el('modalPv').value = f.node.pv;
+  openModal();
+}
+
+function confirmModal() {
+  const name = (el('modalName').value || '').trim();
+  const pv = Math.max(0, Number(el('modalPv').value) || 0);
+
+  if (!name) {
+    alert('請輸入姓名');
+    el('modalName').focus();
+    return;
+  }
+
+  if (modalMode === 'add') {
+    const f = findNode(modalTarget.parentId);
+    if (!f) { closeModal(); return; }
+    if (f.node[modalTarget.side]) {
+      alert('該區已有成員，請重新選擇');
+      closeModal();
+      return;
+    }
+    const newNode = { id: uid(), name, pv, left: null, right: null };
+    f.node[modalTarget.side] = newNode;
+    selectedId = newNode.id;
+    toast(`已新增「${name}」`);
+  } else if (modalMode === 'edit') {
+    const f = findNode(modalTarget.nodeId);
+    if (!f) { closeModal(); return; }
+    f.node.name = name;
+    f.node.pv = pv;
+    toast('已更新成員資料');
+  }
+
+  save();
+  refreshAll();
+  closeModal();
+}
+
+/* ============================================================
+   匯出 / 匯入 / 重設
+   ============================================================ */
+function exportJSON() {
+  const payload = {
+    app: 'mlm-binary-tree-tool',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    bonusRate: bonusRate,
+    tree: treeData
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const d = new Date();
+  const stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+  a.href = url;
+  a.download = `二元樹組織_${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('已匯出 JSON 備份');
+}
+
+function importJSON(file) {
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const obj = JSON.parse(ev.target.result);
+      const rawTree = obj.tree ? obj.tree : obj;
+      const t = sanitize(rawTree);
+      if (!t || !t.id) throw new Error('檔案結構不符');
+
+      treeData = t;
+      selectedId = t.id;
+      if (typeof obj.bonusRate === 'number' && isFinite(obj.bonusRate)) {
+        bonusRate = Math.max(0, Math.min(100, obj.bonusRate));
+        el('rateInput').value = bonusRate;
+      }
+      save();
+      refreshAll();
+      setTimeout(() => fitToView(true), 60);
+      toast('匯入成功');
+    } catch (err) {
+      alert('匯入失敗：' + err.message);
+    }
+  };
+  reader.onerror = () => alert('讀取檔案失敗');
+  reader.readAsText(file, 'utf-8');
+}
+
+function resetAll() {
+  if (!confirm('確定要清空所有組織資料嗎？\n\n此動作將刪除全部節點，且無法復原。')) return;
+  treeData = { id: uid(), name: '我', pv: 0, left: null, right: null };
+  selectedId = treeData.id;
+  el('adviceBox').classList.add('hidden');
+  save();
+  refreshAll();
+  setTimeout(() => fitToView(true), 60);
+  toast('已清空並重設組織');
+}
+
+/* ============================================================
+   側邊欄（手機版）
+   ============================================================ */
+function openSidebar() {
+  el('sidebar').classList.remove('-translate-x-full');
+  el('overlay').classList.remove('hidden');
+}
+function closeSidebar() {
+  el('sidebar').classList.add('-translate-x-full');
+  el('overlay').classList.add('hidden');
+}
+
+/* ============================================================
+   Toast
+   ============================================================ */
+function toast(msg) {
+  const t = document.createElement('div');
+  t.className =
+    'fixed left-1/2 -translate-x-1/2 bottom-8 z-[80] px-4 py-2.5 rounded-xl ' +
+    'bg-slate-800/95 text-white text-[12.5px] font-medium shadow-2xl ' +
+    'transition-all duration-300 opacity-0 translate-y-2 pointer-events-none whitespace-nowrap';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  requestAnimationFrame(() => {
+    t.classList.remove('opacity-0', 'translate-y-2');
+  });
+  setTimeout(() => {
+    t.classList.add('opacity-0', 'translate-y-2');
+    setTimeout(() => t.remove(), 320);
+  }, 1900);
+}
+
+/* ============================================================
+   整體刷新
+   ============================================================ */
+function refreshAll() {
+  render();
+  updatePanel();
+  renderMemberList();
+}
+
+/* ============================================================
+   事件綁定
+   ============================================================ */
+function bindUI() {
+  // 側邊欄
+  el('menuBtn').onclick = openSidebar;
+  el('closeSidebar').onclick = closeSidebar;
+  el('overlay').onclick = closeSidebar;
+
+  // 縮放
+  el('zoomIn').onclick = () => svgSel.transition().duration(200).call(zoomBehavior.scaleBy, 1.3);
+  el('zoomOut').onclick = () => svgSel.transition().duration(200).call(zoomBehavior.scaleBy, 1 / 1.3);
+  el('zoomFit').onclick = () => fitToView(true);
+
+  // 獎金比例
+  el('rateInput').addEventListener('input', (e) => {
+    let v = parseFloat(e.target.value);
+    if (isNaN(v)) v = 0;
+    bonusRate = Math.max(0, Math.min(100, v));
+    save();
+    updatePanel();
+  });
+  el('rateInput').addEventListener('blur', (e) => {
+    e.target.value = bonusRate;
+  });
+
+  // 排線建議
+  el('btnAdvice').onclick = () => {
+    const f = selectedId ? findNode(selectedId) : null;
+    if (!f) return;
+    showAdvice(f.node);
+    toast('已產生排線建議');
+  };
+
+  // Modal
+  el('modalCancel').onclick = closeModal;
+  el('modalBackdrop').onclick = closeModal;
+  el('modalConfirm').onclick = confirmModal;
+  el('modalName').addEventListener('keydown', e => { if (e.key === 'Enter') el('modalPv').focus(); });
+  el('modalPv').addEventListener('keydown', e => { if (e.key === 'Enter') confirmModal(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !el('modal').classList.contains('hidden')) closeModal();
+  });
+
+  // 資料管理
+  el('btnExport').onclick = exportJSON;
+  el('btnImport').onclick = () => el('fileInput').click();
+  el('fileInput').addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) importJSON(file);
+    e.target.value = '';
+  });
+  el('btnReset').onclick = resetAll;
+}
+
+/* ============================================================
+   啟動
+   ============================================================ */
+function boot() {
+  if (!load()) {
+    treeData = demoTree();
+    selectedId = treeData.id;
+    save();
+  }
+
+  initD3();
+  bindUI();
+
+  el('rateInput').value = bonusRate;
+
+  refreshAll();
+
+  requestAnimationFrame(() => {
+    fitToView(false);
+    setTimeout(() => fitToView(false), 60);
+  });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth >= 1024) {
+      el('overlay').classList.add('hidden');
+      el('sidebar').classList.remove('-translate-x-full');
+    }
+  });
+}
+
+boot();
+</script>
+</body>
+</html>
