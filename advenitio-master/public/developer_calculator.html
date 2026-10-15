@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>開發者位元運算計算機</title>
+    <style>
+        :root {
+            --bg-color: #1e1e24;
+            --card-bg: #2a2a35;
+            --text-color: #e3e3e6;
+            --accent-color: #4f46e5;
+            --accent-hover: #4338ca;
+            --input-bg: #141419;
+            --border-color: #3f3f46;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h2 {
+            margin-top: 0;
+            text-align: center;
+            color: #fff;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 15px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            color: #a1a1aa;
+            font-weight: 500;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        select, input {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-family: 'Courier New', Courier, monospace;
+            box-sizing: border-box;
+        }
+
+        select {
+            width: 80px;
+            cursor: pointer;
+        }
+
+        input {
+            flex: 1;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .op-select {
+            width: 100%;
+            margin-bottom: 15px;
+            font-family: sans-serif;
+        }
+
+        button {
+            width: 100%;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+            margin-bottom: 20px;
+        }
+
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .result-panel {
+            background-color: var(--input-bg);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #27272a;
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-size: 13px;
+            color: #a1a1aa;
+        }
+
+        .result-value {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            font-weight: bold;
+            color: #34d399;
+            word-break: break-all;
+        }
+
+        .error {
+            color: #ef4444;
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>💻 開發者邏輯計算機</h2>
+    
+    <!-- 數值 A 入口 -->
+    <div class="input-group">
+        <label>數值 A</label>
+        <div class="input-row">
+            <select id="baseA" onchange="validateInput('A')">
+                <option value="2">BIN</option>
+                <option value="10" selected>DEC</option>
+                <option value="16">HEX</option>
+            </select>
+            <input type="text" id="inputA" value="5" placeholder="請輸入數值" oninput="validateInput('A')">
+        </div>
+        <div id="errorA" class="error">輸入格式錯誤</div>
+    </div>
+
+    <!-- 運算子選擇 -->
+    <div class="input-group">
+        <label>位元運算子 (Operation)</label>
+        <select id="operator" class="op-select" onchange="toggleInputB()">
+            <option value="&">AND (&)</option>
+            <option value="|">OR (|)</option>
+            <option value="^">XOR (^)</option>
+            <option value="~">NOT (~)</option>
+            <option value="<<">左移 (&lt;&lt;)</option>
+            <option value=">>">右移 (&gt;&gt;)</option>
+        </select>
+    </div>
+
+    <!-- 數值 B 入口 -->
+    <div class="input-group" id="groupB">
+        <label id="labelB">數值 B</label>
+        <div class="input-row">
+            <select id="baseB" onchange="validateInput('B')">
+                <option value="2">BIN</option>
+                <option value="10" selected>DEC</option>
+                <option value="16">HEX</option>
+            </select>
+            <input type="text" id="inputB" value="3" placeholder="請輸入數值" oninput="validateInput('B')">
+        </div>
+        <div id="errorB" class="error">輸入格式錯誤</div>
+    </div>
+
+    <button onclick="calculate()">計算運算結果</button>
+
+    <!-- 多進制同屏輸出面板 -->
+    <div class="result-panel">
+        <div class="result-row">
+            <span class="result-label">二進制 (BIN):</span>
+            <span class="result-value" id="resBin">0b00000000</span>
+        </div>
+        <div class="result-row">
+            <span class="result-label">十進制 (DEC):</span>
+            <span class="result-value" id="resDec">0</span>
+        </div>
+        <div class="result-row">
+            <span class="result-label">十六進制 (HEX):</span>
+            <span class="result-value" id="resHex">0x0</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 驗證輸入欄位是否符合選定的進制
+    function validateInput(type) {
+        const inputEl = document.getElementById('input' + type);
+        const base = parseInt(document.getElementById('base' + type).value);
+        const errorEl = document.getElementById('error' + type);
+        const val = inputEl.value.trim();
+
+        if (!val) {
+            errorEl.style.display = "none";
+            return true;
+        }
+
+        let regex;
+        // 修正：使用 $ 作為字串結尾，而非 \$ 
+        if (base === 2) regex = /^[01]+$/;
+        else if (base === 10) regex = /^-?[0-9]+$/;
+        else if (base === 16) regex = /^[0-9a-fA-F]+$/;
+
+        if (regex.test(val)) {
+            errorEl.style.display = "none";
+            return true;
+        } else {
+            errorEl.style.display = "block";
+            errorEl.innerText = `錯誤：不符合 ${base === 2 ? '二' : base === 10 ? '十' : '十六'} 進制格式`;
+            return false;
+        }
+    }
+
+    // 當選擇 NOT 或 移位運算時，動態調整欄位 B 的外觀
+    function toggleInputB() {
+        const op = document.getElementById('operator').value;
+        const groupB = document.getElementById('groupB');
+        const labelB = document.getElementById('labelB');
+        const baseB = document.getElementById('baseB');
+        const inputB = document.getElementById('inputB');
+
+        if (op === '~') {
+            groupB.style.display = 'none';
+        } else {
+            groupB.style.display = 'block';
+            if (op === '<<' || op === '>>') {
+                // 若原本不是十進制，先將 B 的值轉為十進制，避免驗證失敗
+                if (baseB.value !== '10') {
+                    const oldBase = parseInt(baseB.value);
+                    const val = inputB.value.trim();
+                    if (val) {
+                        const num = parseInt(val, oldBase);
+                        if (!isNaN(num)) {
+                            inputB.value = num.toString(10);
+                        }
+                    }
+                }
+                labelB.innerText = '位移位數 (Bits)';
+                baseB.value = '10'; // 移位通常用十進制表示
+                baseB.disabled = true;
+            } else {
+                labelB.innerText = '數值 B';
+                baseB.disabled = false;
+            }
+        }
+        // 更新錯誤顯示狀態
+        validateInput('B');
+    }
+
+    // 主計算邏輯
+    function calculate() {
+        // 先驗證格式
+        if (!validateInput('A') || (document.getElementById('operator').value !== '~' && !validateInput('B'))) {
+            alert('請先修正輸入欄位的格式錯誤！');
+            return;
+        }
+
+        const valAStr = document.getElementById('inputA').value.trim();
+        const baseA = parseInt(document.getElementById('baseA').value);
+        if (!valAStr) {
+            alert('請輸入數值 A');
+            return;
+        }
+        
+        let a = parseInt(valAStr, baseA);
+        let b = 0;
+        
+        const op = document.getElementById('operator').value;
+
+        if (op !== '~') {
+            const valBStr = document.getElementById('inputB').value.trim();
+            const baseB = parseInt(document.getElementById('baseB').value);
+            if (!valBStr) {
+                alert('請輸入數值 B');
+                return;
+            }
+            b = parseInt(valBStr, baseB);
+
+            // 移位運算額外檢查：必須為非負整數
+            if (op === '<<' || op === '>>') {
+                if (isNaN(b) || b < 0) {
+                    alert('位移位數必須為非負整數');
+                    return;
+                }
+                if (b > 31) {
+                    alert('提示：JavaScript 位元移位會取模 32，建議位數在 0 到 31 之間。');
+                }
+            }
+        }
+
+        let result = 0;
+
+        // 執行位元運算
+        switch (op) {
+            case '&': result = a & b; break;
+            case '|': result = a | b; break;
+            case '^': result = a ^ b; break;
+            case '~': result = ~a; break;
+            case '<<': result = a << b; break;
+            case '>>': result = a >> b; break;
+        }
+
+        // JavaScript 位元運算會回傳 32 位元有號整數
+        // 如果是負數，將其轉為 32 位元無號整數以利視覺化顯示（處理 NOT 運算）
+        if (result < 0) {
+            result = result >>> 0; 
+        }
+
+        // 即時同屏輸出結果
+        document.getElementById('resDec').innerText = result.toString(10);
+        document.getElementById('resHex').innerText = '0x' + result.toString(16).toUpperCase();
+        
+        // 格式化二進制：補齊至 8 的倍數長度（最少 8 位）
+        let binStr = result.toString(2);
+        if (binStr.length < 8) {
+            binStr = binStr.padStart(8, '0');
+        } else {
+            const remainder = binStr.length % 4;
+            if (remainder !== 0) {
+                binStr = binStr.padStart(binStr.length + (4 - remainder), '0');
+            }
+        }
+        document.getElementById('resBin').innerText = '0b' + binStr;
+    }
+
+    // 初始化檢查一次
+    toggleInputB();
+</script>
+
+</body>
+</html>
