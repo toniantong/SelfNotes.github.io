@@ -134,3 +134,5 @@
 [BinaryTreeMLM.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/BinaryTreeMLM.html)
 
 [MLMBinaryAnalyzer.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/MLMBinaryAnalyzer.html)
+
+[excel_formula_to_latex.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/excel_formula_to_latex.html)
