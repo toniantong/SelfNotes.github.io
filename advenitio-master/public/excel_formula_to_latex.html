@@ -1,0 +1,1995 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Excel 公式轉 LaTeX 工具 | Excel Formula to LaTeX Converter</title>
+  <meta name="description" content="前端靜態響應式單一 HTML 工具，將 Excel 試算表公式智慧解析轉換為高品質 LaTeX 數學表達式，支援即時 KaTeX 渲染、自訂格式與批次轉換。">
+  <!-- KaTeX for live mathematical rendering (optional CDN, with graceful offline fallback) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+
+  <style>
+    :root {
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      
+      --bg-body: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-subtle: #f1f5f9;
+      --bg-input: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-label: #334155;
+      --border-color: #e2e8f0;
+      --border-focus: #3b82f6;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #dbeafe;
+      --success: #10b981;
+      --success-light: #d1fae5;
+      --danger: #ef4444;
+      --danger-light: #fee2e2;
+      --warning: #f59e0b;
+      --accent: #8b5cf6;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    [data-theme="dark"] {
+      --bg-body: #0b1120;
+      --bg-card: #1e293b;
+      --bg-subtle: #0f172a;
+      --bg-input: #111827;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-label: #cbd5e1;
+      --border-color: #334155;
+      --border-focus: #60a5fa;
+      --primary: #3b82f6;
+      --primary-hover: #60a5fa;
+      --primary-light: #1e3a8a;
+      --success: #10b981;
+      --success-light: #064e3b;
+      --danger: #f87171;
+      --danger-light: #450a0a;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.5);
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+    }
+
+    header {
+      background-color: var(--bg-card);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #10b981, #2563eb);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 1.25rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand-text h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .badge-pill {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.15rem 0.5rem;
+      border-radius: 9999px;
+      background-color: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .brand-text p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-card);
+      color: var(--text-main);
+      cursor: pointer;
+      user-select: none;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn:hover {
+      background-color: var(--bg-subtle);
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-sm {
+      padding: 0.25rem 0.6rem;
+      font-size: 0.8rem;
+    }
+
+    .tabs-nav {
+      display: flex;
+      background-color: var(--bg-subtle);
+      padding: 0.25rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+    }
+
+    .tab-btn {
+      padding: 0.4rem 0.85rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .tab-btn.active {
+      background-color: var(--bg-card);
+      color: var(--primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    main {
+      flex: 1;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .grid-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 1024px) {
+      .grid-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.75rem;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Form Styles */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .form-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-label);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .form-control {
+      width: 100%;
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-input);
+      color: var(--text-main);
+      outline: none;
+    }
+
+    .form-control:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    textarea.form-control {
+      min-height: 100px;
+      resize: vertical;
+      line-height: 1.4;
+    }
+
+    /* Preset Chips */
+    .presets-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .preset-chip {
+      font-size: 0.78rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 9999px;
+      background-color: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      color: var(--text-label);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+    }
+
+    .preset-chip:hover {
+      background-color: var(--primary-light);
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    /* Options Accordion / Grid */
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.75rem;
+      background-color: var(--bg-subtle);
+      padding: 1rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+    }
+
+    .select-sm {
+      font-family: var(--font-sans);
+      font-size: 0.825rem;
+      padding: 0.35rem 0.5rem;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-input);
+      color: var(--text-main);
+    }
+
+    .switch-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.825rem;
+      cursor: pointer;
+      user-select: none;
+      color: var(--text-label);
+    }
+
+    .switch-label input[type="checkbox"] {
+      cursor: pointer;
+      accent-color: var(--primary);
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Output & Preview Area */
+    .preview-box {
+      min-height: 130px;
+      padding: 1.5rem;
+      border-radius: var(--radius-sm);
+      border: 1px dashed var(--border-color);
+      background-color: var(--bg-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-x: auto;
+      position: relative;
+    }
+
+    .preview-controls {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      display: flex;
+      gap: 0.25rem;
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.15rem;
+      opacity: 0.85;
+    }
+
+    .code-container {
+      position: relative;
+    }
+
+    .code-box {
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+      color: var(--text-main);
+      max-height: 250px;
+      overflow-y: auto;
+    }
+
+    .status-msg {
+      font-size: 0.8rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .status-msg.error {
+      background-color: var(--danger-light);
+      color: var(--danger);
+      border: 1px solid var(--danger);
+    }
+
+    .status-msg.success {
+      background-color: var(--success-light);
+      color: var(--success);
+    }
+
+    /* Toast Notification */
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background-color: #1e293b;
+      color: white;
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      box-shadow: var(--shadow-lg);
+      font-size: 0.875rem;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.2s, transform 0.2s;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Batch Table */
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.85rem;
+    }
+
+    th, td {
+      padding: 0.65rem 0.85rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+      background-color: var(--bg-subtle);
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* AST & Token Inspector */
+    pre.tree-view {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      background-color: var(--bg-subtle);
+      padding: 1rem;
+      border-radius: var(--radius-sm);
+      overflow-x: auto;
+      max-height: 450px;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-color);
+      background-color: var(--bg-card);
+      padding: 1.25rem 1.5rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: auto;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body data-theme="light">
+
+  <header>
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-icon">∑</div>
+        <div class="brand-text">
+          <h1>Excel 公式轉 LaTeX 工具 <span class="badge-pill">v1.0 離線響應式</span></h1>
+          <p>Excel Formula to LaTeX Converter (Client-Side Standalone)</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <nav class="tabs-nav">
+          <button class="tab-btn active" onclick="switchTab('single')">📌 單筆轉換</button>
+          <button class="tab-btn" onclick="switchTab('batch')">📋 批次轉換</button>
+          <button class="tab-btn" onclick="switchTab('ast')">🌳 語法解析樹</button>
+          <button class="tab-btn" onclick="switchTab('history')">🕒 轉換歷史</button>
+        </nav>
+
+        <button class="btn btn-sm" onclick="toggleTheme()" title="切換深色/淺色模式" id="themeBtn">
+          🌙 深色模式
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- TAB 1: 單筆轉換 -->
+    <div id="tab-single" class="tab-pane">
+      <div class="grid-layout">
+        
+        <!-- 左側：輸入與設定 -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📝 Excel 公式輸入</div>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="btn btn-sm" onclick="pasteFormula()" title="從剪貼簿貼上">📋 貼上</button>
+              <button class="btn btn-sm" onclick="clearInput()" title="清空輸入">🧹 清空</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="formulaInput">
+              <span>輸入公式（可包含或省略前導等號 <code>=</code>）：</span>
+              <span id="charCount" style="font-size: 0.75rem; color: var(--text-muted);">0 字元</span>
+            </label>
+            <textarea id="formulaInput" class="form-control" placeholder="例如：=(-B1 + SQRT(B1^2 - 4*A1*C1)) / (2*A1)" spellcheck="false"></textarea>
+          </div>
+
+          <!-- 快速範例 -->
+          <div class="form-group">
+            <label class="form-label"><span>💡 快速範例庫（點擊立即載入）：</span></label>
+            <div class="presets-container">
+              <span class="preset-chip" onclick="loadPreset('quadratic')">一元二次方程根</span>
+              <span class="preset-chip" onclick="loadPreset('normal_dist')">常態分佈概率密度</span>
+              <span class="preset-chip" onclick="loadPreset('if_piecewise')">條件分段 IF</span>
+              <span class="preset-chip" onclick="loadPreset('logic_and_or')">邏輯判斷 (AND/OR)</span>
+              <span class="preset-chip" onclick="loadPreset('sum_avg')">統計求和與平均</span>
+              <span class="preset-chip" onclick="loadPreset('compound_interest')">複利終值公式</span>
+              <span class="preset-chip" onclick="loadPreset('trig_pi')">三角函數與圓周率</span>
+              <span class="preset-chip" onclick="loadPreset('matrix_array')">陣列常數矩陣</span>
+              <span class="preset-chip" onclick="loadPreset('vlookup')">查表參照 VLOOKUP</span>
+            </div>
+          </div>
+
+          <!-- 轉換參數設定 -->
+          <div class="card-header" style="margin-top: 0.5rem;">
+            <div class="card-title" style="font-size: 0.9rem;">⚙️ LaTeX 輸出風格設定</div>
+            <button class="btn btn-sm" onclick="resetOptions()">恢復預設</button>
+          </div>
+
+          <div class="options-grid">
+            <div class="form-group">
+              <label class="form-label">數學定界符 (Delimiters)</label>
+              <select id="optDelimiters" class="select-sm" onchange="convert()">
+                <option value="display">獨立行居中 \[ ... \]</option>
+                <option value="inline">行內表達式 \( ... \)</option>
+                <option value="dollar">雙錢號 $$ ... $$</option>
+                <option value="singledollar">單錢號 $ ... $</option>
+                <option value="equation">方程環境 \begin{equation}</option>
+                <option value="none">純代碼 (無定界符)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">除法與分數風格</label>
+              <select id="optFraction" class="select-sm" onchange="convert()">
+                <option value="frac">標準分式 \frac{A}{B}</option>
+                <option value="slash">斜線除法 A / B</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">乘號標記風格</label>
+              <select id="optMultiply" class="select-sm" onchange="convert()">
+                <option value="cdot">點乘 \cdot ( · )</option>
+                <option value="times">叉乘 \times ( × )</option>
+                <option value="star">星號 *</option>
+                <option value="space">緊湊空格</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">儲存格參照樣式</label>
+              <select id="optCellFormat" class="select-sm" onchange="convert()">
+                <option value="subscript">數學下標 A_{1}</option>
+                <option value="text">正體文字 \text{A1}</option>
+                <option value="mathrm">羅馬體 \mathrm{A1}</option>
+                <option value="boxed">方框標示 \boxed{A1}</option>
+                <option value="plain">原樣輸出 A1</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 語意轉換開關 -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.25rem;">
+            <label class="switch-label">
+              <input type="checkbox" id="optMathFuncs" checked onchange="convert()">
+              <span>數學函數轉換 (SQRT, EXP, LN, 三角等)</span>
+            </label>
+            <label class="switch-label">
+              <input type="checkbox" id="optPiecewiseIf" checked onchange="convert()">
+              <span>IF 條件轉為分段函數 cases</span>
+            </label>
+            <label class="switch-label">
+              <input type="checkbox" id="optLogicSymbols" checked onchange="convert()">
+              <span>邏輯函數符號化 (AND->∧, OR->∨)</span>
+            </label>
+            <label class="switch-label">
+              <input type="checkbox" id="optGreekVars" checked onchange="convert()">
+              <span>識別希臘字母變數 (PI->π, SIGMA->σ)</span>
+            </label>
+            <label class="switch-label">
+              <input type="checkbox" id="optSumProduct" checked onchange="convert()">
+              <span>SUM/PRODUCT 符號化 (\sum, \prod)</span>
+            </label>
+            <label class="switch-label">
+              <input type="checkbox" id="optSmartParens" checked onchange="convert()">
+              <span>智慧省略分式與根號外層冗餘括號</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 右側：LaTeX 輸出與數學渲染 -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">✨ KaTeX 實時數學渲染預覽</div>
+            <div style="display: flex; gap: 0.25rem; align-items: center;">
+              <button class="btn btn-sm" onclick="zoomPreview(0.1)" title="放大">➕</button>
+              <button class="btn btn-sm" onclick="zoomPreview(-0.1)" title="縮小">➖</button>
+              <button class="btn btn-sm" onclick="resetZoom()" title="重置大小">🔄 100%</button>
+            </div>
+          </div>
+
+          <div class="preview-box">
+            <div id="mathPreview" style="font-size: 1.25rem; transform-origin: center center;"></div>
+          </div>
+
+          <div id="statusMessage" class="status-msg hidden"></div>
+
+          <div class="card-header" style="margin-top: 0.5rem;">
+            <div class="card-title">📄 LaTeX 原始代碼</div>
+            <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+              <button class="btn btn-sm btn-primary" onclick="copyLatex()">📋 複製代碼</button>
+              <button class="btn btn-sm" onclick="copyMarkdown()">📝 複製 Markdown</button>
+              <button class="btn btn-sm" onclick="downloadTexFile()">💾 下載 .tex</button>
+            </div>
+          </div>
+
+          <div class="code-container">
+            <pre id="latexOutput" class="code-box">// 等待輸入公式...</pre>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-muted); padding-top: 0.5rem;">
+            <span id="outputMetrics">字符長度：0 | 轉換耗時：0 ms</span>
+            <span>支援 Overleaf, MathJax, KaTeX, Typst, Obsidian, MS Word</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 2: 批次轉換 -->
+    <div id="tab-batch" class="tab-pane hidden">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📋 批次 Excel 公式轉換</div>
+          <div style="display: flex; gap: 0.5rem;">
+            <button class="btn btn-sm btn-primary" onclick="processBatch()">⚡ 執行批次轉換</button>
+            <button class="btn btn-sm" onclick="copyBatchMarkdown()">📑 複製為 Markdown 表格</button>
+            <button class="btn btn-sm" onclick="copyBatchTSV()">📊 複製為 TSV (貼至 Excel)</button>
+            <button class="btn btn-sm" onclick="clearBatch()">🧹 清空</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">請在下方貼上多行 Excel 公式（每行一條）：</label>
+          <textarea id="batchInput" class="form-control" style="min-height: 140px;" placeholder="=SUM(A1:B10)&#10;=(A1 + B1) / (C1 - D1)&#10;=(-B1 + SQRT(B1^2 - 4*A1*C1)) / (2*A1)&#10;=IF(A1 >= 0, SQRT(A1), -1)"></textarea>
+        </div>
+
+        <div class="card-title" style="margin-top: 0.5rem;">📊 轉換結果列表 (<span id="batchCount">0</span> 條)</div>
+
+        <div class="table-container">
+          <table id="batchTable">
+            <thead>
+              <tr>
+                <th style="width: 50px;">#</th>
+                <th style="width: 35%;">原始 Excel 公式</th>
+                <th>LaTeX 代碼</th>
+                <th style="width: 100px; text-align: center;">操作</th>
+              </tr>
+            </thead>
+            <tbody id="batchTableBody">
+              <tr>
+                <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                  尚無批次數據，請輸入公式後點擊「執行批次轉換」
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: 語法解析樹 (AST & Tokens) -->
+    <div id="tab-ast" class="tab-pane hidden">
+      <div class="grid-layout">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🔤 詞法標記序列 (Lexical Tokens)</div>
+            <span id="tokenCountBadge" class="badge-pill">0 Tokens</span>
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-muted);">
+            顯示經過 Tokenizer 詞法分析器切分後的標記流（包含型態、數值與字元索引位置）：
+          </p>
+          <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+            <table id="tokensTable">
+              <thead>
+                <tr>
+                  <th>索引</th>
+                  <th>型態 (Type)</th>
+                  <th>標記值 (Value)</th>
+                  <th>位置</th>
+                </tr>
+              </thead>
+              <tbody id="tokensTableBody">
+                <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">無標記</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🌳 抽象語法樹 (Abstract Syntax Tree)</div>
+            <button class="btn btn-sm" onclick="copyAST()">📋 複製 AST JSON</button>
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-muted);">
+            基於運算子優先級解析器 (Pratt / Operator Precedence Parser) 產生的層級結構：
+          </p>
+          <pre id="astOutput" class="tree-view">// AST 將於公式解析後顯示...</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: 轉換歷史 -->
+    <div id="tab-history" class="tab-pane hidden">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🕒 本地轉換歷史記錄 (最近 20 筆)</div>
+          <button class="btn btn-sm" onclick="clearHistory()">🧹 清除全部記錄</button>
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-muted);">
+          數據儲存於您的瀏覽器本地 (localStorage)，完全離線隱私安全。點擊「載入」即可重現該公式。
+        </p>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 160px;">時間</th>
+                <th>Excel 公式</th>
+                <th>LaTeX 輸出</th>
+                <th style="width: 140px; text-align: center;">操作</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody">
+              <tr>
+                <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                  尚無歷史記錄
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div style="max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <strong>Excel 公式轉 LaTeX 工具</strong> · 單一靜態 HTML 檔案 · 純前端離線運作 · 繁體中文版本
+      </div>
+      <div>
+        相容於所有主流瀏覽器 (Chrome, Edge, Firefox, Safari) · 響應式流暢佈局
+      </div>
+    </div>
+  </footer>
+
+  <div id="toast">已成功複製到剪貼簿！</div>
+
+  <!-- JAVASCRIPT CORE: LEXER, PARSER, LATEX GENERATOR & UI -->
+  <script>
+    /* ==========================================================================
+       1. LEXER (詞法分析器)
+       ========================================================================== */
+    class Lexer {
+      constructor(input) {
+        this.rawInput = input || '';
+        let s = this.rawInput.trim();
+        if (s.startsWith('=')) {
+          s = s.substring(1).trim();
+        }
+        this.input = s;
+        this.pos = 0;
+        this.length = this.input.length;
+      }
+
+      peek(offset = 0) {
+        const idx = this.pos + offset;
+        return idx < this.length ? this.input[idx] : null;
+      }
+
+      consume() {
+        return this.pos < this.length ? this.input[this.pos++] : null;
+      }
+
+      isWhitespace(ch) {
+        return ch === ' ' || ch === '\t' || ch === '\r' || ch === '\n';
+      }
+
+      isDigit(ch) {
+        return typeof ch === 'string' && ch >= '0' && ch <= '9';
+      }
+
+      isAlpha(ch) {
+        return typeof ch === 'string' && (((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch === '_' || ch === '$'));
+      }
+
+      isIdentChar(ch) {
+        return this.isAlpha(ch) || this.isDigit(ch) || ch === '.' || ch === '!' || ch === "'";
+      }
+
+      tokenize() {
+        const tokens = [];
+
+        while (this.pos < this.length) {
+          const ch = this.peek();
+
+          if (this.isWhitespace(ch)) {
+            this.consume();
+            continue;
+          }
+
+          // 字串: "..."
+          if (ch === '"') {
+            const startPos = this.pos;
+            let str = '';
+            this.consume(); // 略過開頭引號
+            while (this.pos < this.length) {
+              if (this.peek() === '"') {
+                if (this.peek(1) === '"') {
+                  str += '"';
+                  this.consume();
+                  this.consume();
+                } else {
+                  this.consume(); // 結尾引號
+                  break;
+                }
+              } else {
+                str += this.consume();
+              }
+            }
+            tokens.push({ type: 'STRING', value: str, pos: startPos });
+            continue;
+          }
+
+          // 陣列常數花括號: { 1, 2; 3, 4 }
+          if (ch === '{' || ch === '}') {
+            const startPos = this.pos;
+            this.consume();
+            tokens.push({ type: ch === '{' ? 'LBRACE' : 'RBRACE', value: ch, pos: startPos });
+            continue;
+          }
+
+          // 數值: 123, 123.45, 1e-4, .5
+          if (this.isDigit(ch) || (ch === '.' && this.isDigit(this.peek(1)))) {
+            const startPos = this.pos;
+            let numStr = '';
+            while (this.isDigit(this.peek())) {
+              numStr += this.consume();
+            }
+            if (this.peek() === '.' && this.isDigit(this.peek(1))) {
+              numStr += this.consume();
+              while (this.isDigit(this.peek())) {
+                numStr += this.consume();
+              }
+            }
+            if (this.peek() === 'e' || this.peek() === 'E') {
+              let eStr = this.consume();
+              if (this.peek() === '+' || this.peek() === '-') {
+                eStr += this.consume();
+              }
+              if (this.isDigit(this.peek())) {
+                while (this.isDigit(this.peek())) {
+                  eStr += this.consume();
+                }
+                numStr += eStr;
+              } else {
+                this.pos -= eStr.length;
+              }
+            }
+            tokens.push({ type: 'NUMBER', value: numStr, pos: startPos });
+            continue;
+          }
+
+          // 雙字元比較運算子: <=, >=, <>
+          const next2 = ch + (this.peek(1) || '');
+          if (next2 === '<=' || next2 === '>=' || next2 === '<>') {
+            const startPos = this.pos;
+            this.consume();
+            this.consume();
+            tokens.push({ type: 'OPERATOR', value: next2, pos: startPos });
+            continue;
+          }
+
+          // 單字元運算子與分隔符
+          if ('+-*/^&=<>%:;(),'.includes(ch)) {
+            const startPos = this.pos;
+            this.consume();
+            if (ch === '(') tokens.push({ type: 'LPAREN', value: '(', pos: startPos });
+            else if (ch === ')') tokens.push({ type: 'RPAREN', value: ')', pos: startPos });
+            else if (ch === ',' || ch === ';') tokens.push({ type: 'COMMA', value: ch, pos: startPos });
+            else if (ch === ':') tokens.push({ type: 'COLON', value: ':', pos: startPos });
+            else if (ch === '%') tokens.push({ type: 'POSTFIX_OP', value: '%', pos: startPos });
+            else tokens.push({ type: 'OPERATOR', value: ch, pos: startPos });
+            continue;
+          }
+
+          // 包含單引號的工作表名稱: '工作表 1'!A1
+          if (ch === "'") {
+            const startPos = this.pos;
+            let sheetName = '';
+            this.consume(); // 略過開頭 '
+            while (this.pos < this.length) {
+              if (this.peek() === "'") {
+                if (this.peek(1) === "'") {
+                  sheetName += "'";
+                  this.consume();
+                  this.consume();
+                } else {
+                  this.consume(); // 結尾 '
+                  break;
+                }
+              } else {
+                sheetName += this.consume();
+              }
+            }
+            if (this.peek() === '!') {
+              this.consume(); // 略過 !
+              let cell = '';
+              while (this.pos < this.length && this.isIdentChar(this.peek())) {
+                cell += this.consume();
+              }
+              tokens.push({ type: 'CELL_REF', value: `'${sheetName}'!${cell}`, pos: startPos });
+            } else {
+              tokens.push({ type: 'STRING', value: sheetName, pos: startPos });
+            }
+            continue;
+          }
+
+          // 識別碼 / 函數 / 儲存格參照 / 布林值
+          if (this.isAlpha(ch)) {
+            const startPos = this.pos;
+            let ident = '';
+            while (this.pos < this.length && this.isIdentChar(this.peek())) {
+              ident += this.consume();
+            }
+
+            // 判斷是否緊隨 '(' 構成函數調用
+            let lookAhead = 0;
+            while (this.isWhitespace(this.peek(lookAhead))) {
+              lookAhead++;
+            }
+
+            if (this.peek(lookAhead) === '(') {
+              tokens.push({ type: 'FUNCTION', value: ident.toUpperCase(), pos: startPos });
+            } else {
+              const cellPattern = /^(\$?[A-Za-z]{1,3}\$?[0-9]{1,7})$/;
+              const sheetCellPattern = /^([A-Za-z0-9_]+)!(\$?[A-Za-z]{1,3}\$?[0-9]{1,7})$/;
+              if (cellPattern.test(ident) || sheetCellPattern.test(ident)) {
+                tokens.push({ type: 'CELL_REF', value: ident, pos: startPos });
+              } else if (ident.toUpperCase() === 'TRUE' || ident.toUpperCase() === 'FALSE') {
+                tokens.push({ type: 'BOOLEAN', value: ident.toUpperCase(), pos: startPos });
+              } else {
+                tokens.push({ type: 'VARIABLE', value: ident, pos: startPos });
+              }
+            }
+            continue;
+          }
+
+          // 未知字元
+          tokens.push({ type: 'UNKNOWN', value: this.consume(), pos: this.pos - 1 });
+        }
+
+        tokens.push({ type: 'EOF', value: '', pos: this.pos });
+        return tokens;
+      }
+    }
+
+    /* ==========================================================================
+       2. PARSER (語法分析器 - 運算子優先級 Pratt Parser)
+       ========================================================================== */
+    class Parser {
+      constructor(tokens) {
+        this.tokens = tokens;
+        this.pos = 0;
+      }
+
+      peek() {
+        return this.tokens[this.pos] || { type: 'EOF', value: '', pos: 0 };
+      }
+
+      consume(expectedType = null) {
+        const token = this.peek();
+        if (expectedType && token.type !== expectedType) {
+          throw new Error(`語法解析錯誤 (字元位置 ${token.pos + 1}): 預期符號為 ${expectedType}，但發現 ${token.type} (${token.value})`);
+        }
+        this.pos++;
+        return token;
+      }
+
+      match(type, value = null) {
+        const token = this.peek();
+        if (token.type === type && (value === null || token.value === value)) {
+          this.pos++;
+          return token;
+        }
+        return null;
+      }
+
+      getPrecedence(token) {
+        if (!token) return 0;
+        if (token.type === 'OPERATOR') {
+          const v = token.value;
+          if (['=', '<>', '<', '<=', '>', '>='].includes(v)) return 10;
+          if (v === '&') return 20;
+          if (v === '+' || v === '-') return 30;
+          if (v === '*' || v === '/') return 40;
+          if (v === '^') return 50;
+        }
+        if (token.type === 'COLON') return 70;
+        if (token.type === 'POSTFIX_OP' && token.value === '%') return 60;
+        return 0;
+      }
+
+      parseExpression(precedence = 0) {
+        let left = this.parsePrefix();
+
+        while (true) {
+          const token = this.peek();
+
+          // 後綴運算子 %
+          if (token.type === 'POSTFIX_OP' && token.value === '%') {
+            const opPrec = this.getPrecedence(token);
+            if (opPrec < precedence) break;
+            this.consume();
+            left = {
+              type: 'PostfixOp',
+              op: '%',
+              operand: left
+            };
+            continue;
+          }
+
+          const currentPrec = this.getPrecedence(token);
+          if (currentPrec <= precedence) {
+            break;
+          }
+
+          this.consume();
+          // 指數運算在 LaTeX 結構中習慣右結合
+          const right = this.parseExpression(token.value === '^' ? currentPrec - 1 : currentPrec);
+          left = {
+            type: 'BinaryOp',
+            op: token.value,
+            left: left,
+            right: right
+          };
+        }
+
+        return left;
+      }
+
+      parsePrefix() {
+        const token = this.peek();
+
+        // 前綴正負號 (單目運算子)
+        if (token.type === 'OPERATOR' && (token.value === '+' || token.value === '-')) {
+          this.consume();
+          const operand = this.parseExpression(75);
+          return {
+            type: 'UnaryOp',
+            op: token.value,
+            operand: operand
+          };
+        }
+
+        // 圓括號群組 (expression)
+        if (token.type === 'LPAREN') {
+          this.consume('LPAREN');
+          const expr = this.parseExpression(0);
+          this.consume('RPAREN');
+          return {
+            type: 'Group',
+            expression: expr
+          };
+        }
+
+        // 陣列常數 { 1, 2; 3, 4 }
+        if (token.type === 'LBRACE') {
+          this.consume('LBRACE');
+          const rows = [];
+          let currentRow = [];
+          while (this.peek().type !== 'RBRACE' && this.peek().type !== 'EOF') {
+            const item = this.parseExpression(0);
+            currentRow.push(item);
+            if (this.match('COMMA', ',')) {
+              continue;
+            } else if (this.match('COMMA', ';')) {
+              rows.push(currentRow);
+              currentRow = [];
+            } else {
+              break;
+            }
+          }
+          if (currentRow.length > 0) {
+            rows.push(currentRow);
+          }
+          this.consume('RBRACE');
+          return {
+            type: 'ArrayLiteral',
+            rows: rows
+          };
+        }
+
+        if (token.type === 'NUMBER') {
+          this.consume();
+          return { type: 'Number', value: token.value };
+        }
+
+        if (token.type === 'STRING') {
+          this.consume();
+          return { type: 'String', value: token.value };
+        }
+
+        if (token.type === 'BOOLEAN') {
+          this.consume();
+          return { type: 'Boolean', value: token.value };
+        }
+
+        if (token.type === 'CELL_REF') {
+          this.consume();
+          return { type: 'CellRef', value: token.value };
+        }
+
+        if (token.type === 'VARIABLE') {
+          this.consume();
+          return { type: 'Variable', value: token.value };
+        }
+
+        if (token.type === 'FUNCTION') {
+          const funcName = this.consume().value;
+          this.consume('LPAREN');
+          const args = [];
+          if (this.peek().type !== 'RPAREN') {
+            while (true) {
+              args.push(this.parseExpression(0));
+              if (this.match('COMMA')) {
+                continue;
+              } else {
+                break;
+              }
+            }
+          }
+          this.consume('RPAREN');
+          return {
+            type: 'FunctionCall',
+            name: funcName,
+            args: args
+          };
+        }
+
+        throw new Error(`語法解析錯誤 (字元位置 ${token.pos + 1}): 未預期的符號 ${token.type} (${token.value})`);
+      }
+
+      parse() {
+        if (this.peek().type === 'EOF') {
+          return null;
+        }
+        const ast = this.parseExpression(0);
+        if (this.peek().type !== 'EOF') {
+          const extra = this.peek();
+          throw new Error(`語法解析錯誤 (字元位置 ${extra.pos + 1}): 公式尾端有多餘標記 ${extra.type} (${extra.value})`);
+        }
+        return ast;
+      }
+    }
+
+    /* ==========================================================================
+       3. LATEX GENERATOR (LaTeX 程式碼生成器)
+       ========================================================================== */
+    class LatexGenerator {
+      constructor(options = {}) {
+        this.options = {
+          delimiters: 'display',
+          fractionMode: 'frac',
+          multiplySymbol: 'cdot',
+          cellFormat: 'subscript',
+          mathFunctions: true,
+          piecewiseIf: true,
+          logicSymbols: true,
+          greekVariables: true,
+          sumProduct: true,
+          smartParens: true,
+          ...options
+        };
+      }
+
+      formatCell(cellStr) {
+        let sheetPrefix = '';
+        let cellPart = cellStr;
+        if (cellStr.includes('!')) {
+          const parts = cellStr.split('!');
+          sheetPrefix = `\\text{${parts[0]}}!`;
+          cellPart = parts[1];
+        }
+        const cleanCell = cellPart.replace(/\$/g, '');
+        const match = cleanCell.match(/^([A-Za-z]+)([0-9]+)$/);
+
+        if (this.options.cellFormat === 'subscript' && match) {
+          return `${sheetPrefix}${match[1]}_{${match[2]}}`;
+        } else if (this.options.cellFormat === 'text') {
+          return `\\text{${cellStr}}`;
+        } else if (this.options.cellFormat === 'mathrm') {
+          return `${sheetPrefix}\\mathrm{${cleanCell}}`;
+        } else if (this.options.cellFormat === 'boxed') {
+          return `${sheetPrefix}\\boxed{\\text{${cleanCell}}}`;
+        } else if (this.options.cellFormat === 'plain') {
+          return `${sheetPrefix}${cleanCell}`;
+        }
+        return `\\text{${cellStr}}`;
+      }
+
+      stripOuterGroup(node) {
+        if (this.options.smartParens && node && node.type === 'Group') {
+          return node.expression;
+        }
+        return node;
+      }
+
+      generate(node, parentPrec = 0) {
+        if (!node) return '';
+
+        switch (node.type) {
+          case 'Number':
+            return node.value;
+
+          case 'String':
+            return `\\text{"${node.value}"}`;
+
+          case 'Boolean':
+            return `\\mathbf{${node.value}}`;
+
+          case 'CellRef':
+            return this.formatCell(node.value);
+
+          case 'Variable': {
+            const upper = node.value.toUpperCase();
+            if (this.options.greekVariables) {
+              const greek = {
+                PI: '\\pi', ALPHA: '\\alpha', BETA: '\\beta', GAMMA: '\\gamma',
+                DELTA: '\\delta', EPSILON: '\\epsilon', ZETA: '\\zeta', ETA: '\\eta',
+                THETA: '\\theta', IOTA: '\\iota', KAPPA: '\\kappa', LAMBDA: '\\lambda',
+                MU: '\\mu', NU: '\\nu', XI: '\\xi', RHO: '\\rho', SIGMA: '\\sigma',
+                TAU: '\\tau', UPSILON: '\\upsilon', PHI: '\\phi', CHI: '\\chi',
+                PSI: '\\psi', OMEGA: '\\omega'
+              };
+              if (greek[upper]) return greek[upper];
+            }
+            if (node.value.length === 1) return node.value;
+            return `\\mathit{${node.value}}`;
+          }
+
+          case 'Group':
+            return `\\left(${this.generate(node.expression)}\\right)`;
+
+          case 'ArrayLiteral': {
+            const rowsLatex = node.rows.map(row => row.map(cell => this.generate(cell)).join(' & ')).join(' \\\\ ');
+            return `\\begin{bmatrix} ${rowsLatex} \\end{bmatrix}`;
+          }
+
+          case 'UnaryOp': {
+            const op = node.op;
+            const operandLatex = this.generate(node.operand, 75);
+            if (node.operand.type === 'BinaryOp') {
+              return `${op}\\left(${operandLatex}\\right)`;
+            }
+            return `${op}${operandLatex}`;
+          }
+
+          case 'PostfixOp': {
+            const inner = this.generate(node.operand, 60);
+            if (node.op === '%') {
+              return `${inner}\\%`;
+            }
+            return `${inner}${node.op}`;
+          }
+
+          case 'BinaryOp': {
+            const { op, left, right } = node;
+
+            if (op === ':') {
+              return `${this.generate(left)} : ${this.generate(right)}`;
+            }
+
+            if (op === '/') {
+              if (this.options.fractionMode === 'frac') {
+                const num = this.stripOuterGroup(left);
+                const den = this.stripOuterGroup(right);
+                return `\\frac{${this.generate(num)}}{${this.generate(den)}}`;
+              } else {
+                return `${this.generate(left, 40)} / ${this.generate(right, 40)}`;
+              }
+            }
+
+            if (op === '^') {
+              let baseLatex = '';
+              if (left.type === 'BinaryOp' || left.type === 'UnaryOp') {
+                baseLatex = `\\left(${this.generate(left)}\\right)`;
+              } else if (left.type === 'Group') {
+                baseLatex = `\\left(${this.generate(left.expression)}\\right)`;
+              } else {
+                baseLatex = `{${this.generate(left)}}`;
+              }
+              const expNode = this.stripOuterGroup(right);
+              return `${baseLatex}^{${this.generate(expNode)}}`;
+            }
+
+            if (op === '*') {
+              let sym = '\\cdot';
+              if (this.options.multiplySymbol === 'times') sym = '\\times';
+              if (this.options.multiplySymbol === 'star') sym = '*';
+              if (this.options.multiplySymbol === 'space') sym = ' ';
+
+              let leftStr = this.generate(left, 40);
+              let rightStr = this.generate(right, 40);
+              if (left.type === 'BinaryOp' && (left.op === '+' || left.op === '-')) {
+                leftStr = `\\left(${leftStr}\\right)`;
+              }
+              if (right.type === 'BinaryOp' && (right.op === '+' || right.op === '-')) {
+                rightStr = `\\left(${rightStr}\\right)`;
+              }
+              return `${leftStr} ${sym} ${rightStr}`.trim();
+            }
+
+            if (op === '+' || op === '-') {
+              let leftStr = this.generate(left, 30);
+              let rightStr = this.generate(right, 30);
+              if (op === '-' && right.type === 'BinaryOp' && (right.op === '+' || right.op === '-')) {
+                rightStr = `\\left(${rightStr}\\right)`;
+              }
+              return `${leftStr} ${op} ${rightStr}`;
+            }
+
+            if (op === '&') {
+              return `${this.generate(left, 20)} \\mathbin{\\&} ${this.generate(right, 20)}`;
+            }
+
+            const compMap = {
+              '=': '=', '<>': '\\neq', '<': '<', '>': '>', '<=': '\\le', '>=': '\\ge'
+            };
+            if (compMap[op]) {
+              return `${this.generate(left, 10)} ${compMap[op]} ${this.generate(right, 10)}`;
+            }
+
+            return `${this.generate(left)} ${op} ${this.generate(right)}`;
+          }
+
+          case 'FunctionCall': {
+            const name = node.name.toUpperCase();
+            const args = node.args;
+
+            if (this.options.mathFunctions) {
+              if (name === 'SQRT' && args.length === 1) {
+                return `\\sqrt{${this.generate(this.stripOuterGroup(args[0]))}}`;
+              }
+              if (name === 'ABS' && args.length === 1) {
+                return `\\left| ${this.generate(this.stripOuterGroup(args[0]))} \\right|`;
+              }
+              if (name === 'PI' && args.length === 0) {
+                return '\\pi';
+              }
+              if (name === 'EXP' && args.length === 1) {
+                return `e^{${this.generate(this.stripOuterGroup(args[0]))}}`;
+              }
+              if (name === 'LN' && args.length === 1) {
+                return `\\ln\\left(${this.generate(this.stripOuterGroup(args[0]))}\\right)`;
+              }
+              if (name === 'LOG10' && args.length === 1) {
+                return `\\log_{10}\\left(${this.generate(this.stripOuterGroup(args[0]))}\\right)`;
+              }
+              if (name === 'LOG' && args.length === 1) {
+                return `\\log\\left(${this.generate(this.stripOuterGroup(args[0]))}\\right)`;
+              }
+              if (name === 'LOG' && args.length === 2) {
+                return `\\log_{${this.generate(this.stripOuterGroup(args[1]))}}\\left(${this.generate(this.stripOuterGroup(args[0]))}\\right)`;
+              }
+              if (name === 'POWER' && args.length === 2) {
+                return `{${this.generate(this.stripOuterGroup(args[0]))}}^{${this.generate(this.stripOuterGroup(args[1]))}}`;
+              }
+              if (['SIN', 'COS', 'TAN', 'COT', 'SEC', 'CSC'].includes(name) && args.length === 1) {
+                return `\\${name.toLowerCase()}\\left(${this.generate(this.stripOuterGroup(args[0]))}\\right)`;
+              }
+              if (['ASIN', 'ACOS', 'ATAN'].includes(name) && args.length === 1) {
+                const tr = { ASIN: 'arcsin', ACOS: 'arccos', ATAN: 'arctan' };
+                return `\\${tr[name]}\\left(${this.generate(this.stripOuterGroup(args[0]))}\\right)`;
+              }
+              if (['SINH', 'COSH', 'TANH'].includes(name) && args.length === 1) {
+                return `\\${name.toLowerCase()}\\left(${this.generate(this.stripOuterGroup(args[0]))}\\right)`;
+              }
+              if (name === 'MAX' || name === 'MIN') {
+                return `\\${name.toLowerCase()}\\left(${args.map(a => this.generate(a)).join(', ')}\\right)`;
+              }
+              if ((name === 'INT' || name === 'FLOOR') && args.length === 1) {
+                return `\\left\\lfloor ${this.generate(this.stripOuterGroup(args[0]))} \\right\\rfloor`;
+              }
+              if (name === 'CEILING' && args.length >= 1) {
+                return `\\left\\lceil ${this.generate(this.stripOuterGroup(args[0]))} \\right\\rceil`;
+              }
+            }
+
+            if (this.options.sumProduct) {
+              if (name === 'SUM') {
+                return `\\sum\\left(${args.map(a => this.generate(a)).join(', ')}\\right)`;
+              }
+              if (name === 'PRODUCT') {
+                return `\\prod\\left(${args.map(a => this.generate(a)).join(', ')}\\right)`;
+              }
+              if (name === 'AVERAGE') {
+                return `\\operatorname{AVERAGE}\\left(${args.map(a => this.generate(a)).join(', ')}\\right)`;
+              }
+            }
+
+            if (this.options.piecewiseIf && name === 'IF') {
+              if (args.length === 3) {
+                const cond = this.generate(args[0]);
+                const valTrue = this.generate(args[1]);
+                const valFalse = this.generate(args[2]);
+                return `\\begin{cases} ${valTrue}, & \\text{if } ${cond} \\\\[1ex] ${valFalse}, & \\text{otherwise} \\end{cases}`;
+              }
+              if (args.length === 2) {
+                const cond = this.generate(args[0]);
+                const valTrue = this.generate(args[1]);
+                return `\\begin{cases} ${valTrue}, & \\text{if } ${cond} \\end{cases}`;
+              }
+            }
+
+            if (this.options.logicSymbols) {
+              if (name === 'AND' && args.length >= 1) {
+                return args.map(a => {
+                  const s = this.generate(a);
+                  return a.type === 'BinaryOp' && ['=', '<>', '<', '<=', '>', '>='].includes(a.op) ? s : `\\left(${s}\\right)`;
+                }).join(' \\land ');
+              }
+              if (name === 'OR' && args.length >= 1) {
+                return args.map(a => {
+                  const s = this.generate(a);
+                  return a.type === 'BinaryOp' && ['=', '<>', '<', '<=', '>', '>='].includes(a.op) ? s : `\\left(${s}\\right)`;
+                }).join(' \\lor ');
+              }
+              if (name === 'NOT' && args.length === 1) {
+                return `\\neg\\left(${this.generate(args[0])}\\right)`;
+              }
+            }
+
+            const safeName = name.replace(/\./g, '\\.');
+            const argsStr = args.map(a => this.generate(a)).join(', ');
+            return `\\operatorname{${safeName}}\\left(${argsStr}\\right)`;
+          }
+
+          default:
+            return '';
+        }
+      }
+
+      toLatex(ast) {
+        if (!ast) return '';
+        const body = this.generate(ast);
+        switch (this.options.delimiters) {
+          case 'display':
+            return `\\[\n${body}\n\\]`;
+          case 'inline':
+            return `\\(${body}\\)`;
+          case 'dollar':
+            return `$$\n${body}\n$$`;
+          case 'singledollar':
+            return `$${body}$`;
+          case 'equation':
+            return `\\begin{equation}\n  ${body}\n\\end{equation}`;
+          case 'none':
+          default:
+            return body;
+        }
+      }
+    }
+
+    /* ==========================================================================
+       4. UI LOGIC & CONTROLLERS
+       ========================================================================== */
+    const presets = {
+      quadratic: "=(-B1 + SQRT(B1^2 - 4*A1*C1)) / (2*A1)",
+      normal_dist: "=(1 / (SIGMA * SQRT(2 * PI()))) * EXP(-((X - MU)^2) / (2 * SIGMA^2))",
+      if_piecewise: "=IF(A1 >= 0, SQRT(A1), -1)",
+      logic_and_or: "=AND(A1 > 0, OR(B1 < 10, C1 <> 5))",
+      sum_avg: "=AVERAGE(Sheet1!A1:A20) + SUM(B1:B20) / COUNT(B1:B20)",
+      compound_interest: "=(1 + R)^N - 1",
+      trig_pi: "=SIN(PI() * A1) + COS(2 * PI() * B1)",
+      matrix_array: "={1, 2, 3; 4, 5, 6} * 2",
+      vlookup: "=VLOOKUP(D2, $A$1:$B$10, 2, FALSE)"
+    };
+
+    let currentScale = 1.0;
+    let lastTokens = [];
+    let lastAST = null;
+    let lastRawLatex = '';
+    let lastFullLatex = '';
+
+    function getOptions() {
+      return {
+        delimiters: document.getElementById('optDelimiters').value,
+        fractionMode: document.getElementById('optFraction').value,
+        multiplySymbol: document.getElementById('optMultiply').value,
+        cellFormat: document.getElementById('optCellFormat').value,
+        mathFunctions: document.getElementById('optMathFuncs').checked,
+        piecewiseIf: document.getElementById('optPiecewiseIf').checked,
+        logicSymbols: document.getElementById('optLogicSymbols').checked,
+        greekVariables: document.getElementById('optGreekVars').checked,
+        sumProduct: document.getElementById('optSumProduct').checked,
+        smartParens: document.getElementById('optSmartParens').checked
+      };
+    }
+
+    function convert() {
+      const inputEl = document.getElementById('formulaInput');
+      const formula = inputEl.value.trim();
+      document.getElementById('charCount').innerText = `${formula.length} 字元`;
+
+      const statusEl = document.getElementById('statusMessage');
+      const mathPreviewEl = document.getElementById('mathPreview');
+      const latexOutputEl = document.getElementById('latexOutput');
+      const metricsEl = document.getElementById('outputMetrics');
+
+      if (!formula) {
+        statusEl.classList.add('hidden');
+        mathPreviewEl.innerHTML = '<span style="color: var(--text-muted); font-size: 1rem;">輸入公式後即時預覽數學渲染</span>';
+        latexOutputEl.innerText = '// 等待輸入公式...';
+        metricsEl.innerText = '字符長度：0 | 轉換耗時：0 ms';
+        lastTokens = [];
+        lastAST = null;
+        lastRawLatex = '';
+        lastFullLatex = '';
+        updateTokensAndAST();
+        return;
+      }
+
+      const startTime = performance.now();
+
+      try {
+        const lexer = new Lexer(formula);
+        const tokens = lexer.tokenize();
+        lastTokens = tokens;
+
+        const parser = new Parser(tokens);
+        const ast = parser.parse();
+        lastAST = ast;
+
+        const options = getOptions();
+        const generator = new LatexGenerator(options);
+        const rawLatex = generator.generate(ast);
+        const fullLatex = generator.toLatex(ast);
+
+        lastRawLatex = rawLatex;
+        lastFullLatex = fullLatex;
+
+        // 更新代碼
+        latexOutputEl.innerText = fullLatex;
+
+        // 渲染數學表達式 (KaTeX)
+        renderMath(rawLatex);
+
+        // 成功狀態
+        statusEl.classList.remove('hidden', 'error');
+        statusEl.classList.add('success');
+        statusEl.innerHTML = '✓ 公式解析成功';
+
+        const elapsed = (performance.now() - startTime).toFixed(1);
+        metricsEl.innerText = `字符長度：${fullLatex.length} | 轉換耗時：${elapsed} ms`;
+
+        // 儲存至歷史記錄 (去重與更新)
+        saveToHistory(formula, fullLatex);
+
+      } catch (err) {
+        statusEl.classList.remove('hidden', 'success');
+        statusEl.classList.add('error');
+        statusEl.innerHTML = `⚠️ ${err.message}`;
+
+        mathPreviewEl.innerHTML = `<span style="color: var(--danger); font-size: 0.9rem;">語法錯誤，請檢查輸入公式</span>`;
+        latexOutputEl.innerText = `// 錯誤：${err.message}`;
+      }
+
+      updateTokensAndAST();
+    }
+
+    function renderMath(latex) {
+      const mathPreviewEl = document.getElementById('mathPreview');
+      if (window.katex) {
+        try {
+          katex.render(latex, mathPreviewEl, {
+            displayMode: true,
+            throwOnError: false
+          });
+        } catch (e) {
+          mathPreviewEl.innerText = latex;
+        }
+      } else {
+        // 離線無 KaTeX CDN 時的退避方案
+        mathPreviewEl.innerHTML = `<div style="text-align: center;"><code style="font-family: var(--font-mono); font-size: 1.1rem; color: var(--primary);">${escapeHtml(latex)}</code><p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">（離線環境提示：LaTeX 代碼已正確生成；連接網絡即可載入 KaTeX 實時美化排版）</p></div>`;
+      }
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function updateTokensAndAST() {
+      // 標記表格
+      const tbody = document.getElementById('tokensTableBody');
+      document.getElementById('tokenCountBadge').innerText = `${lastTokens.length} Tokens`;
+
+      if (lastTokens.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">無標記</td></tr>';
+      } else {
+        tbody.innerHTML = lastTokens.map((t, idx) => `
+          <tr>
+            <td>${idx + 1}</td>
+            <td><code>${t.type}</code></td>
+            <td><strong>${escapeHtml(String(t.value))}</strong></td>
+            <td>字元 ${t.pos !== undefined ? t.pos + 1 : '-'}</td>
+          </tr>
+        `).join('');
+      }
+
+      // AST 預覽
+      const astOutputEl = document.getElementById('astOutput');
+      if (lastAST) {
+        astOutputEl.innerText = JSON.stringify(lastAST, null, 2);
+      } else {
+        astOutputEl.innerText = '// 尚無抽象語法樹數據';
+      }
+    }
+
+    function loadPreset(key) {
+      if (presets[key]) {
+        const input = document.getElementById('formulaInput');
+        input.value = presets[key];
+        convert();
+        showToast('已載入範例公式');
+      }
+    }
+
+    function clearInput() {
+      document.getElementById('formulaInput').value = '';
+      convert();
+    }
+
+    async function pasteFormula() {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text) {
+          document.getElementById('formulaInput').value = text;
+          convert();
+          showToast('已從剪貼簿貼上');
+        }
+      } catch (e) {
+        showToast('無法存取剪貼簿，請使用 Ctrl+V 貼上');
+      }
+    }
+
+    function resetOptions() {
+      document.getElementById('optDelimiters').value = 'display';
+      document.getElementById('optFraction').value = 'frac';
+      document.getElementById('optMultiply').value = 'cdot';
+      document.getElementById('optCellFormat').value = 'subscript';
+      document.getElementById('optMathFuncs').checked = true;
+      document.getElementById('optPiecewiseIf').checked = true;
+      document.getElementById('optLogicSymbols').checked = true;
+      document.getElementById('optGreekVars').checked = true;
+      document.getElementById('optSumProduct').checked = true;
+      document.getElementById('optSmartParens').checked = true;
+      convert();
+      showToast('已重設為預設輸出風格');
+    }
+
+    function zoomPreview(delta) {
+      currentScale = Math.min(Math.max(0.5, currentScale + delta), 2.5);
+      document.getElementById('mathPreview').style.transform = `scale(${currentScale})`;
+    }
+
+    function resetZoom() {
+      currentScale = 1.0;
+      document.getElementById('mathPreview').style.transform = `scale(1.0)`;
+    }
+
+    function copyLatex() {
+      if (!lastFullLatex) return;
+      navigator.clipboard.writeText(lastFullLatex).then(() => {
+        showToast('LaTeX 原始碼已複製到剪貼簿！');
+      });
+    }
+
+    function copyMarkdown() {
+      if (!lastRawLatex) return;
+      const md = `$$\n${lastRawLatex}\n$$`;
+      navigator.clipboard.writeText(md).then(() => {
+        showToast('Markdown 數學塊已複製到剪貼簿！');
+      });
+    }
+
+    function copyAST() {
+      if (!lastAST) return;
+      navigator.clipboard.writeText(JSON.stringify(lastAST, null, 2)).then(() => {
+        showToast('AST JSON 已複製到剪貼簿！');
+      });
+    }
+
+    function downloadTexFile() {
+      if (!lastFullLatex) return;
+      const doc = `% 由 Excel 公式轉 LaTeX 工具生成\n\\documentclass{article}\n\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\begin{document}\n\n${lastFullLatex}\n\n\\end{document}`;
+      const blob = new Blob([doc], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'formula.tex';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('已下載 formula.tex 檔案');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+
+    /* 標籤頁切換 */
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
+
+      if (tabId === 'single') {
+        document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+        document.getElementById('tab-single').classList.remove('hidden');
+      } else if (tabId === 'batch') {
+        document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+        document.getElementById('tab-batch').classList.remove('hidden');
+      } else if (tabId === 'ast') {
+        document.querySelector('.tab-btn:nth-child(3)').classList.add('active');
+        document.getElementById('tab-ast').classList.remove('hidden');
+        updateTokensAndAST();
+      } else if (tabId === 'history') {
+        document.querySelector('.tab-btn:nth-child(4)').classList.add('active');
+        document.getElementById('tab-history').classList.remove('hidden');
+        renderHistory();
+      }
+    }
+
+    /* 深色 / 淺色主題切換 */
+    function toggleTheme() {
+      const current = document.body.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.body.setAttribute('data-theme', next);
+      localStorage.setItem('excel_latex_theme', next);
+      document.getElementById('themeBtn').innerText = next === 'dark' ? '☀️ 淺色模式' : '🌙 深色模式';
+    }
+
+    function initTheme() {
+      const saved = localStorage.getItem('excel_latex_theme');
+      if (saved) {
+        document.body.setAttribute('data-theme', saved);
+        document.getElementById('themeBtn').innerText = saved === 'dark' ? '☀️ 淺色模式' : '🌙 深色模式';
+      } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.setAttribute('data-theme', 'dark');
+        document.getElementById('themeBtn').innerText = '☀️ 淺色模式';
+      }
+    }
+
+    /* 批次轉換處理 */
+    let batchResults = [];
+
+    function processBatch() {
+      const input = document.getElementById('batchInput').value.trim();
+      const lines = input.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      const options = getOptions();
+      const generator = new LatexGenerator(options);
+
+      batchResults = [];
+      const tbody = document.getElementById('batchTableBody');
+      tbody.innerHTML = '';
+
+      lines.forEach((line, index) => {
+        let latex = '';
+        let error = null;
+        try {
+          const lexer = new Lexer(line);
+          const tokens = lexer.tokenize();
+          const parser = new Parser(tokens);
+          const ast = parser.parse();
+          latex = generator.toLatex(ast);
+        } catch (err) {
+          error = err.message;
+        }
+
+        batchResults.push({ index: index + 1, excel: line, latex: latex, error: error });
+      });
+
+      document.getElementById('batchCount').innerText = batchResults.length;
+
+      if (batchResults.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;">請輸入公式後點擊「執行批次轉換」</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = batchResults.map((item, idx) => `
+        <tr>
+          <td>${item.index}</td>
+          <td><code>${escapeHtml(item.excel)}</code></td>
+          <td>
+            ${item.error ? `<span style="color: var(--danger); font-size: 0.8rem;">⚠️ ${escapeHtml(item.error)}</span>` : `<code style="color: var(--primary);">${escapeHtml(item.latex)}</code>`}
+          </td>
+          <td style="text-align: center;">
+            <button class="btn btn-sm" onclick="copySingleBatch(${idx})" ${item.error ? 'disabled' : ''}>📋 複製</button>
+          </td>
+        </tr>
+      `).join('');
+
+      showToast(`批次轉換完成，共處理 ${batchResults.length} 條公式`);
+    }
+
+    function copySingleBatch(index) {
+      const item = batchResults[index];
+      if (item && item.latex) {
+        navigator.clipboard.writeText(item.latex).then(() => {
+          showToast(`第 ${item.index} 條公式 LaTeX 已複製！`);
+        });
+      }
+    }
+
+    function copyBatchMarkdown() {
+      if (batchResults.length === 0) return;
+      let md = "| # | Excel 公式 | LaTeX 輸出 |\n|---|---|---|\n";
+      batchResults.forEach(r => {
+        const cleanLatex = (r.latex || r.error || '').replace(/\n/g, ' ');
+        md += `| ${r.index} | \`${r.excel}\` | \`${cleanLatex}\` |\n`;
+      });
+      navigator.clipboard.writeText(md).then(() => {
+        showToast('批次結果已轉換為 Markdown 表格並複製！');
+      });
+    }
+
+    function copyBatchTSV() {
+      if (batchResults.length === 0) return;
+      let tsv = "編號\tExcel公式\tLaTeX表達式\n";
+      batchResults.forEach(r => {
+        const cleanLatex = (r.latex || r.error || '').replace(/\n/g, ' ');
+        tsv += `${r.index}\t${r.excel}\t${cleanLatex}\n`;
+      });
+      navigator.clipboard.writeText(tsv).then(() => {
+        showToast('批次結果已轉換為 TSV 並複製 (可直接在 Excel 貼上)！');
+      });
+    }
+
+    function clearBatch() {
+      document.getElementById('batchInput').value = '';
+      document.getElementById('batchTableBody').innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;">尚無批次數據，請輸入公式後點擊「執行批次轉換」</td></tr>';
+      document.getElementById('batchCount').innerText = '0';
+      batchResults = [];
+    }
+
+    /* 歷史記錄處理 */
+    function saveToHistory(formula, latex) {
+      if (!formula) return;
+      let hist = JSON.parse(localStorage.getItem('excel_latex_history') || '[]');
+      hist = hist.filter(h => h.formula !== formula);
+      hist.unshift({
+        time: new Date().toLocaleTimeString('zh-HK', { hour12: false }),
+        formula: formula,
+        latex: latex
+      });
+      if (hist.length > 20) hist.pop();
+      localStorage.setItem('excel_latex_history', JSON.stringify(hist));
+    }
+
+    function renderHistory() {
+      const hist = JSON.parse(localStorage.getItem('excel_latex_history') || '[]');
+      const tbody = document.getElementById('historyTableBody');
+      if (hist.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;">尚無歷史記錄</td></tr>';
+        return;
+      }
+      tbody.innerHTML = hist.map((item, idx) => `
+        <tr>
+          <td>${item.time}</td>
+          <td><code>${escapeHtml(item.formula)}</code></td>
+          <td><code style="color: var(--primary);">${escapeHtml(item.latex.replace(/\n/g, ' '))}</code></td>
+          <td style="text-align: center; display: flex; gap: 0.3rem; justify-content: center;">
+            <button class="btn btn-sm btn-primary" onclick="loadFromHistory(${idx})">載入</button>
+            <button class="btn btn-sm" onclick="copyHistoryItem(${idx})">複製</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function loadFromHistory(idx) {
+      const hist = JSON.parse(localStorage.getItem('excel_latex_history') || '[]');
+      if (hist[idx]) {
+        document.getElementById('formulaInput').value = hist[idx].formula;
+        switchTab('single');
+        convert();
+        showToast('已載入歷史公式');
+      }
+    }
+
+    function copyHistoryItem(idx) {
+      const hist = JSON.parse(localStorage.getItem('excel_latex_history') || '[]');
+      if (hist[idx] && hist[idx].latex) {
+        navigator.clipboard.writeText(hist[idx].latex).then(() => {
+          showToast('已複製該條 LaTeX！');
+        });
+      }
+    }
+
+    function clearHistory() {
+      localStorage.removeItem('excel_latex_history');
+      renderHistory();
+      showToast('已清除全部歷史記錄');
+    }
+
+    /* 初始化監聽器 */
+    window.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+
+      const input = document.getElementById('formulaInput');
+      input.addEventListener('input', convert);
+
+      // 載入預設範例
+      input.value = "=(-B1 + SQRT(B1^2 - 4*A1*C1)) / (2*A1)";
+      convert();
+    });
+  </script>
+</body>
+</html>
