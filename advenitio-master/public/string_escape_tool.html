@@ -1,423 +1,672 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>URL &amp; Base64 編解碼工具</title>
+    <title>文字轉程式碼字串跳脫工具 (Code String & Escape Generator)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text: #0f172a;
-            --text-light: #475569;
-            --border: #e2e8f0;
+        body {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: var(--bg); color: var(--text); padding: 2rem 1rem; line-height: 1.5; }
-        .container { max-width: 800px; margin: 0 auto; }
-        header { text-align: center; margin-bottom: 2rem; }
-        h1 { font-size: 1.8rem; color: var(--primary); margin-bottom: 0.5rem; }
-        p { color: var(--text-light); font-size: 0.95rem; }
-        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .group { margin-bottom: 1.25rem; }
-        label { display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; }
-        textarea { width: 100%; min-height: 120px; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-family: monospace; font-size: 0.95rem; resize: vertical; transition: border 0.2s; }
-        textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
-        .actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
-        button { background: var(--primary); color: white; border: none; padding: 0.6rem 1.2rem; font-size: 0.9rem; font-weight: 500; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
-        button:hover { background: var(--primary-hover); }
-        button.secondary { background: #e2e8f0; color: var(--text); }
-        button.secondary:hover { background: #cbd5e1; }
-        .error { color: #dc2626; background: #fef2f2; border: 1px solid #fee2e2; padding: 0.75rem; border-radius: 6px; font-size: 0.9rem; display: none; margin-bottom: 1rem; }
-
-        /* ===== 工具列與小按鈕 ===== */
-        .label-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
-        .label-row label { margin-bottom: 0; }
-        .tools { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
-        .chip {
-            background: #eef2ff; color: var(--primary); border: 1px solid #e0e7ff;
-            padding: 0.28rem 0.7rem; font-size: 0.78rem; font-weight: 600;
-            border-radius: 999px; cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s;
-            line-height: 1.4; white-space: nowrap;
+        .font-mono-code {
+            font-family: 'JetBrains Mono', Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
         }
-        .chip:hover { background: #e0e7ff; }
-        .chip:active { transform: scale(0.97); }
-        .chip.done { background: #dcfce7; color: #15803d; border-color: #bbf7d0; }
-        .hint { font-size: 0.78rem; color: #94a3b8; margin-top: 0.4rem; }
-
-        /* 核取方塊 */
-        .checkbox-label {
-            display: inline-flex; align-items: center; gap: 0.35rem;
-            font-size: 0.8rem; font-weight: 500; color: var(--text-light);
-            cursor: pointer; user-select: none; margin-bottom: 0;
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
         }
-        .checkbox-label input {
-            width: 0.95rem; height: 0.95rem; accent-color: var(--primary); cursor: pointer;
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
         }
-        .divider { height: 1px; background: var(--border); margin: 0.25rem 0 1.25rem; }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(51, 65, 85, 0.8);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(71, 85, 105, 1);
+        }
     </style>
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>URL / Base64 編解碼工具</h1>
-            <p>純前端運行，支援編解碼與程式碼字串轉義，即時保障數據隱私</p>
-        </header>
-        <div class="card">
-            <div id="errorMsg" class="error"></div>
+<body class="bg-slate-950 text-slate-100 min-h-full flex flex-col selection:bg-brand-500 selection:text-white">
 
-            <!-- 輸入區 -->
-            <div class="group">
-                <div class="label-row">
-                    <label for="input">輸入文字 / 待處理內容</label>
-                    <div class="tools">
-                        <button type="button" class="chip" data-act="pasteInput">貼上</button>
-                        <button type="button" class="chip" data-act="selectInput">全選</button>
-                        <button type="button" class="chip" data-act="clearInput">清空</button>
-                    </div>
+    <!-- Header Navigation Bar -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-gradient-to-tr from-brand-600 to-indigo-500 rounded-xl shadow-lg shadow-brand-500/20 text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                    </svg>
                 </div>
-                <textarea id="input" placeholder="請在此輸入欲編碼或解碼的字串..."></textarea>
-                <div class="hint">提示：可直接按 Ctrl / ⌘ + V 貼上；「貼上」按鈕會在游標位置插入內容。</div>
+                <div>
+                    <h1 class="text-lg font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+                        文字轉程式碼字串跳脫工具
+                    </h1>
+                    <p class="text-xs text-slate-400 hidden sm:block">Code String & Unicode Escape Sequence Generator</p>
+                </div>
             </div>
 
-            <!-- 處理按鈕 -->
-            <div class="actions">
-                <button type="button" data-act="urlEncode">URL 編碼</button>
-                <button type="button" data-act="urlDecode">URL 解碼</button>
-                <button type="button" data-act="b64Encode">Base64 編碼</button>
-                <button type="button" data-act="b64Decode">Base64 解碼</button>
-                <button type="button" class="secondary" data-act="clearAll">清空全部</button>
-            </div>
-
-            <!-- 輸出區（可編輯） -->
-            <div class="group">
-                <div class="label-row">
-                    <label for="output">輸出結果（可直接編輯）</label>
-                    <div class="tools">
-                        <button type="button" class="chip" data-act="copyOutput">複製</button>
-                        <button type="button" class="chip" data-act="selectOutput">全選</button>
-                        <button type="button" class="chip" data-act="clearOutput">清空</button>
-                        <button type="button" class="chip" data-act="outputToInput">移至輸入</button>
-                    </div>
-                </div>
-                <textarea id="output" placeholder="處理結果將顯示於此，可直接修改編輯..."></textarea>
-                <div class="hint">輸出區已開放編輯，可手動微調後再複製使用。</div>
-            </div>
-
-            <div class="divider"></div>
-
-            <!-- 程式碼字串轉換 -->
-            <div class="group" style="margin-bottom:0;">
-                <div class="label-row">
-                    <label>程式碼字串轉換</label>
-                    <div class="tools">
-                        <label class="checkbox-label" for="escapeNonAscii">
-                            <input type="checkbox" id="escapeNonAscii">
-                            轉義非 ASCII（如中文）
-                        </label>
-                    </div>
-                </div>
-                <div class="actions" style="margin-bottom:0.4rem;">
-                    <button type="button" class="chip" data-act="toPython">→ Python 字串</button>
-                    <button type="button" class="chip" data-act="toJs">→ JavaScript 字串</button>
-                </div>
-                <div class="hint">
-                    將「輸出結果」轉換為可貼入程式碼的字串字面量（會覆蓋輸出區，可再編輯）。Python 用單引號、JS 用雙引號包裹。
-                </div>
+            <!-- Quick Action Presets & Tools -->
+            <div class="flex items-center space-x-2">
+                <button id="btnSampleChinese" class="px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition hover:text-white">
+                    載入中文範例
+                </button>
+                <button id="btnSampleCode" class="px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition hover:text-white hidden sm:inline-block">
+                    載入程式碼範例
+                </button>
+                <button id="btnClearAll" class="px-3 py-1.5 text-xs font-medium text-rose-400 hover:text-rose-300 bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/50 rounded-lg transition">
+                    全部清空
+                </button>
             </div>
         </div>
-    </div>
+    </header>
 
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-6">
+
+        <!-- Controls & Options Bar -->
+        <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl shadow-slate-950/50">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                
+                <!-- Escape Options -->
+                <div class="flex flex-wrap items-center gap-4 sm:gap-6">
+                    <!-- Quote Style Selector -->
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">引號類型 (Quote Style)</label>
+                        <div class="inline-flex rounded-lg bg-slate-950 p-1 border border-slate-800" id="quoteSelector">
+                            <button data-quote="double" class="quote-btn active-quote px-3 py-1.5 text-xs font-medium rounded-md transition text-slate-200 bg-slate-800 shadow-sm border border-slate-700">
+                                雙引號 <span class="font-mono-code text-brand-400">"</span>
+                            </button>
+                            <button data-quote="single" class="quote-btn px-3 py-1.5 text-xs font-medium rounded-md transition text-slate-400 hover:text-slate-200">
+                                單引號 <span class="font-mono-code text-brand-400">'</span>
+                            </button>
+                            <button data-quote="backtick" class="quote-btn px-3 py-1.5 text-xs font-medium rounded-md transition text-slate-400 hover:text-slate-200">
+                                反引號 / 三引號 <span class="font-mono-code text-brand-400">`</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Non-ASCII Escape Toggle Switch -->
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">非 ASCII 轉換</label>
+                        <label class="inline-flex items-center cursor-pointer bg-slate-950 px-3.5 py-1.5 rounded-lg border border-slate-800 hover:border-slate-700 transition h-[38px]">
+                            <!-- 👇 移除最後的 checked 屬性 -->
+                            <input type="checkbox" id="chkEscapeNonAscii" class="sr-only peer">
+                            <div class="relative w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600"></div>
+                            <span class="ms-2.5 text-xs font-medium text-slate-200 select-none">
+                                轉換非 ASCII (如中文轉為 <code class="font-mono-code text-emerald-400 bg-slate-900 px-1 py-0.5 rounded">\uXXXX</code>)
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- Extra Formatting Options -->
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">輸出格式</label>
+                        <div class="flex items-center gap-3 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 h-[38px]">
+                            <label class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-300 cursor-pointer">
+                                <!-- 👇 移除最後的 checked 屬性 -->
+                                <input type="checkbox" id="chkWrapQuotes" class="rounded border-slate-700 bg-slate-900 text-brand-600 focus:ring-brand-500">
+                                外層自動加上引號
+                            </label>
+                            <label class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-300 cursor-pointer">
+                                <input type="checkbox" id="chkWrapVariable" class="rounded border-slate-700 bg-slate-900 text-brand-600 focus:ring-brand-500">
+                                加上變數宣告
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Convert Buttons -->
+                <div class="flex flex-wrap items-center gap-2 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-800">
+                    <button id="btnConvertJS" class="flex-1 sm:flex-none px-4 py-2.5 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-medium text-sm rounded-xl shadow-lg shadow-brand-600/25 transition active:scale-[0.98] flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 3h18v18H3V3zm10.72 13.82c.46.8 1.13 1.4 2.1 1.4.95 0 1.55-.47 1.55-1.2 0-.81-.62-1.12-1.68-1.58l-.58-.25c-1.68-.72-2.8-1.62-2.8-3.57 0-2.02 1.56-3.52 4-3.52 1.77 0 2.98.63 3.82 2.1l-1.8 1.15c-.42-.75-.98-1.07-1.88-1.07-.82 0-1.37.47-1.37 1.1 0 .72.48 1.05 1.58 1.52l.58.25c2.05.88 3.02 1.78 3.02 3.73 0 2.22-1.72 3.65-4.48 3.65-2.58 0-3.95-1.12-4.73-2.65l1.68-1.06zM8.3 16.8c.4 0 .75-.2 1-.5.35-.43.35-1 .35-2.67V8.5h2.45v5.33c0 2.22-.38 3.32-1.42 4.15-.9.73-2.12.92-3.48.92-1.28 0-2.35-.27-3.05-.68l.6-1.85c.5.3 1.25.5 2.15.5z"/></svg>
+                        轉為 JS 字串
+                    </button>
+                    <button id="btnConvertPython" class="flex-1 sm:flex-none px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-medium text-sm rounded-xl shadow-lg shadow-emerald-600/25 transition active:scale-[0.98] flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2c-3.1 0-5.2 1.35-5.2 3.12 0 1.77 2.1 3.12 5.2 3.12 3.1 0 5.2-1.35 5.2-3.12C17.2 3.35 15.1 2 12 2zm-2.8 1.5a.7.7 0 110 1.4.7.7 0 010-1.4zm2.8 9.38c-3.32 0-6.2 1.32-6.2 4.12 0 3.5 3.3 4.12 6.2 4.12 3.32 0 6.2-1.32 6.2-4.12 0-3.5-3.3-4.12-6.2-4.12zm0 6.88a.7.7 0 110-1.4.7.7 0 010 1.4z"/></svg>
+                        轉為 Python 字串
+                    </button>
+                    <button id="btnUnescape" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-amber-400 hover:text-amber-300 font-medium text-sm rounded-xl border border-slate-700 transition active:scale-[0.98] flex items-center justify-center gap-1.5" title="將帶有跳脫字元或 Unicode 的字串轉回純文字">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        反向解碼 (Unescape)
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Workspace (Split / Stacked View) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-[500px]">
+            
+            <!-- INPUT SECTION -->
+            <section class="bg-slate-900 border border-slate-800 rounded-2xl flex flex-col overflow-hidden shadow-xl shadow-slate-950/40">
+                <!-- Panel Header -->
+                <div class="bg-slate-900/90 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-brand-500 animate-pulse"></span>
+                        <h2 class="text-sm font-semibold text-slate-200">輸入區 (Input Text)</h2>
+                        <span id="inputStats" class="text-xs text-slate-500 font-mono-code ml-2">0 字元 | 0 行</span>
+                    </div>
+                    
+                    <!-- Input Actions -->
+                    <div class="flex items-center space-x-1.5">
+                        <button id="btnInputPaste" class="px-2.5 py-1 text-xs font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 hover:text-white border border-slate-700/80 rounded-lg transition flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                            貼上
+                        </button>
+                        <button id="btnInputSelectAll" class="px-2.5 py-1 text-xs font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 hover:text-white border border-slate-700/80 rounded-lg transition flex items-center gap-1">
+                            全選
+                        </button>
+                        <button id="btnInputClear" class="px-2.5 py-1 text-xs font-medium text-rose-400 hover:text-rose-300 bg-rose-950/30 hover:bg-rose-900/50 border border-rose-800/40 rounded-lg transition flex items-center gap-1">
+                            清空
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Textarea Body -->
+                <div class="relative flex-1 p-3">
+                    <textarea id="inputText" class="w-full h-full min-h-[360px] lg:min-h-[460px] bg-transparent text-slate-100 font-mono-code text-sm p-2 focus:outline-none resize-y leading-relaxed placeholder:text-slate-600" placeholder="請在此輸入或貼上任意原始文本，例如 HTML、JSON、SQL 或含有中文字元的內容..."></textarea>
+                </div>
+            </section>
+
+            <!-- OUTPUT SECTION -->
+            <section class="bg-slate-900 border border-slate-800 rounded-2xl flex flex-col overflow-hidden shadow-xl shadow-slate-950/40">
+                <!-- Panel Header -->
+                <div class="bg-slate-900/90 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                        <h2 class="text-sm font-semibold text-slate-200">轉換結果 (Output Result)</h2>
+                        <span id="outputStats" class="text-xs text-slate-500 font-mono-code ml-2">0 字元</span>
+                    </div>
+
+                    <!-- Output Actions -->
+                    <div class="flex items-center space-x-1.5">
+                        <button id="btnOutputCopy" class="px-2.5 py-1 text-xs font-medium text-white bg-brand-600 hover:bg-brand-500 rounded-lg transition shadow-sm flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            複製
+                        </button>
+                        <button id="btnOutputSelectAll" class="px-2.5 py-1 text-xs font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 hover:text-white border border-slate-700/80 rounded-lg transition flex items-center gap-1">
+                            全選
+                        </button>
+                        <button id="btnOutputClear" class="px-2.5 py-1 text-xs font-medium text-rose-400 hover:text-rose-300 bg-rose-950/30 hover:bg-rose-900/50 border border-rose-800/40 rounded-lg transition flex items-center gap-1">
+                            清空
+                        </button>
+                        <button id="btnMoveToInput" class="px-2.5 py-1 text-xs font-medium text-indigo-300 bg-indigo-950/50 hover:bg-indigo-900/70 border border-indigo-800/60 rounded-lg transition flex items-center gap-1" title="將輸出的結果移回輸入區">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z"></path></svg>
+                            移至輸入
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Textarea Result Body (Editable) -->
+                <div class="relative flex-1 p-3">
+                    <textarea id="outputText" class="w-full h-full min-h-[360px] lg:min-h-[460px] bg-transparent text-emerald-300 font-mono-code text-sm p-2 focus:outline-none resize-y leading-relaxed placeholder:text-slate-600" placeholder="轉換後的跳脫字串將會顯示在此處，您亦可直接編輯此結果..."></textarea>
+                </div>
+            </section>
+
+        </div>
+
+        <!-- Reference Quick Guide -->
+        <section class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 text-xs text-slate-400">
+            <h3 class="font-semibold text-slate-300 mb-2 flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                跳脫規則與對照說明 Cheat Sheet
+            </h3>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono-code text-[11px]">
+                <div class="bg-slate-950 p-2 rounded-lg border border-slate-800/60">
+                    <span class="text-slate-500">反斜線:</span> <code class="text-amber-400">\</code> &rarr; <code class="text-emerald-400">\\</code>
+                </div>
+                <div class="bg-slate-950 p-2 rounded-lg border border-slate-800/60">
+                    <span class="text-slate-500">換行符:</span> <code class="text-amber-400">Newline</code> &rarr; <code class="text-emerald-400">\n</code>
+                </div>
+                <div class="bg-slate-950 p-2 rounded-lg border border-slate-800/60">
+                    <span class="text-slate-500">定位符:</span> <code class="text-amber-400">Tab</code> &rarr; <code class="text-emerald-400">\t</code>
+                </div>
+                <div class="bg-slate-950 p-2 rounded-lg border border-slate-800/60">
+                    <span class="text-slate-500">Unicode (中文):</span> <code class="text-amber-400">中文</code> &rarr; <code class="text-emerald-400">\u4e2d\u6587</code>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- JavaScript Logic Application -->
     <script>
-        const inputEl  = document.getElementById('input');
-        const outputEl = document.getElementById('output');
-        const errorEl  = document.getElementById('errorMsg');
-        const escapeNonAsciiEl = document.getElementById('escapeNonAscii');
+        document.addEventListener('DOMContentLoaded', () => {
+            // Element References
+            const inputText = document.getElementById('inputText');
+            const outputText = document.getElementById('outputText');
+            const inputStats = document.getElementById('inputStats');
+            const outputStats = document.getElementById('outputStats');
+            const chkEscapeNonAscii = document.getElementById('chkEscapeNonAscii');
+            const chkWrapQuotes = document.getElementById('chkWrapQuotes');
+            const chkWrapVariable = document.getElementById('chkWrapVariable');
+            const quoteSelector = document.getElementById('quoteSelector');
 
-        /* ================= 錯誤提示 ================= */
-        function showError(msg) {
-            errorEl.textContent = msg;
-            errorEl.style.display = 'block';
-        }
-        function hideError() {
-            errorEl.style.display = 'none';
-        }
+            // Global State
+            let currentQuoteStyle = 'double'; // 'double', 'single', 'backtick'
 
-        /* ================= 通用工具 ================= */
-        function focusSelect(el) {
-            el.focus();
-            el.select();
-            try { el.setSelectionRange(0, el.value.length); } catch (e) {}
-        }
+            // --- Toast Notification System ---
+            function showToast(message, type = 'info') {
+                const toastContainer = document.getElementById('toastContainer');
+                const toast = document.createElement('div');
+                
+                const typeStyles = {
+                    success: 'bg-emerald-950/90 border-emerald-500/50 text-emerald-200',
+                    error: 'bg-rose-950/90 border-rose-500/50 text-rose-200',
+                    warning: 'bg-amber-950/90 border-amber-500/50 text-amber-200',
+                    info: 'bg-slate-900/90 border-brand-500/50 text-slate-200'
+                };
 
-        function insertAtCursor(el, text) {
-            const start = (typeof el.selectionStart === 'number') ? el.selectionStart : el.value.length;
-            const end   = (typeof el.selectionEnd   === 'number') ? el.selectionEnd   : el.value.length;
-            el.value = el.value.slice(0, start) + text + el.value.slice(end);
-            const pos = start + text.length;
-            el.focus();
-            try { el.setSelectionRange(pos, pos); } catch (e) {}
-        }
+                const icons = {
+                    success: '<svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>',
+                    error: '<svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>',
+                    warning: '<svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>',
+                    info: '<svg class="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
+                };
 
-        function flash(btn, text) {
-            if (!btn) return;
-            if (!btn.dataset.original) btn.dataset.original = btn.textContent;
-            btn.textContent = text;
-            btn.classList.add('done');
-            clearTimeout(btn._timer);
-            btn._timer = setTimeout(() => {
-                btn.textContent = btn.dataset.original;
-                btn.classList.remove('done');
-            }, 1200);
-        }
+                toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl border shadow-xl backdrop-blur-md transition-all duration-300 transform translate-y-4 opacity-0 ${typeStyles[type] || typeStyles.info}`;
+                toast.innerHTML = `
+                    ${icons[type] || icons.info}
+                    <span class="text-xs font-medium">${escapeHtml(message)}</span>
+                `;
 
-        async function copyText(text) {
-            if (navigator.clipboard && window.isSecureContext) {
-                try { await navigator.clipboard.writeText(text); return true; } catch (e) {}
+                toastContainer.appendChild(toast);
+
+                // Animate In
+                requestAnimationFrame(() => {
+                    toast.classList.remove('translate-y-4', 'opacity-0');
+                });
+
+                // Dismiss after timeout
+                setTimeout(() => {
+                    toast.classList.add('opacity-0', 'translate-y-2');
+                    setTimeout(() => toast.remove(), 300);
+                }, 2500);
             }
-            try {
+
+            function escapeHtml(str) {
+                return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            }
+
+            // --- Quote Selector Handling ---
+            quoteSelector.addEventListener('click', (e) => {
+                const btn = e.target.closest('.quote-btn');
+                if (!btn) return;
+
+                document.querySelectorAll('.quote-btn').forEach(b => {
+                    b.classList.remove('active-quote', 'bg-slate-800', 'text-slate-200', 'shadow-sm', 'border', 'border-slate-700');
+                    b.classList.add('text-slate-400');
+                });
+
+                btn.classList.add('active-quote', 'bg-slate-800', 'text-slate-200', 'shadow-sm', 'border', 'border-slate-700');
+                btn.classList.remove('text-slate-400');
+                currentQuoteStyle = btn.getAttribute('data-quote');
+            });
+
+            // --- Stats Counter ---
+            function updateStats() {
+                const inVal = inputText.value;
+                const inChars = inVal.length;
+                const inLines = inVal ? inVal.split('\n').length : 0;
+                inputStats.textContent = `${inChars} 字元 | ${inLines} 行`;
+
+                const outChars = outputText.value.length;
+                outputStats.textContent = `${outChars} 字元`;
+            }
+
+            inputText.addEventListener('input', updateStats);
+            outputText.addEventListener('input', updateStats);
+
+            // --- Clipboard Operations ---
+            function copyToClipboard(text, successMsg = '已複製到剪貼簿！') {
+                if (!text) {
+                    showToast('沒有可複製的內容', 'warning');
+                    return;
+                }
+
+                // Fallback method using textarea select for compatibility in iframe/sandboxed environments
                 const ta = document.createElement('textarea');
                 ta.value = text;
-                ta.setAttribute('readonly', '');
                 ta.style.position = 'fixed';
-                ta.style.top = '-9999px';
+                ta.style.left = '-9999px';
                 document.body.appendChild(ta);
                 ta.select();
-                ta.setSelectionRange(0, ta.value.length);
-                const ok = document.execCommand('copy');
-                document.body.removeChild(ta);
-                return ok;
-            } catch (e) {
-                return false;
-            }
-        }
-
-        async function readClipboard() {
-            if (navigator.clipboard && navigator.clipboard.readText) {
-                return await navigator.clipboard.readText();
-            }
-            throw new Error('unsupported');
-        }
-
-        /* ================= 編解碼邏輯 ================= */
-        function process(type, val) {
-            switch (type) {
-                case 'urlEncode': return encodeURIComponent(val);
-                case 'urlDecode': return decodeURIComponent(val.replace(/\+/g, ' '));
-                case 'b64Encode': return btoa(unescape(encodeURIComponent(val)));
-                case 'b64Decode': return decodeURIComponent(escape(atob(val)));
-                default: return '';
-            }
-        }
-
-        function handleProcess(type) {
-            hideError();
-            const val = inputEl.value;
-            if (!val) { outputEl.value = ''; return; }
-            try {
-                outputEl.value = process(type, val);
-            } catch (e) {
-                showError('處理失敗：請檢查輸入格式是否正確（例如解碼非正確格式的字串）。');
-                outputEl.value = '';
-            }
-        }
-
-        function clearAll() {
-            inputEl.value = '';
-            outputEl.value = '';
-            hideError();
-            inputEl.focus();
-        }
-
-        /* ================= 程式碼字串轉義 ================= */
-        // 轉成 Python 字串字面量（單引號包裹）
-        function toPythonLiteral(str, escapeNonAscii) {
-            let out = '';
-            for (const ch of str) {
-                const cp = ch.codePointAt(0);
-                if (ch === '\\') {
-                    out += '\\\\';
-                } else if (ch === "'") {
-                    out += "\\'";
-                } else if (ch === '\n') {
-                    out += '\\n';
-                } else if (ch === '\r') {
-                    out += '\\r';
-                } else if (ch === '\t') {
-                    out += '\\t';
-                } else if (ch === '\b') {
-                    out += '\\b';
-                } else if (ch === '\f') {
-                    out += '\\f';
-                } else if (ch === '\v') {
-                    out += '\\v';
-                } else if (cp < 0x20 || cp === 0x7f) {
-                    out += '\\x' + cp.toString(16).padStart(2, '0');
-                } else if (escapeNonAscii && cp > 0x7e) {
-                    if (cp <= 0xff) {
-                        out += '\\x' + cp.toString(16).padStart(2, '0');
-                    } else if (cp <= 0xffff) {
-                        out += '\\u' + cp.toString(16).padStart(4, '0');
+                
+                try {
+                    const successful = document.execCommand('copy');
+                    if (successful) {
+                        showToast(successMsg, 'success');
                     } else {
-                        out += '\\U' + cp.toString(16).padStart(8, '0');
+                        showToast('複製失敗，請手動全選複製', 'error');
                     }
-                } else {
-                    out += ch;
+                } catch (err) {
+                    showToast('複製失敗: ' + err.message, 'error');
+                } finally {
+                    document.body.removeChild(ta);
                 }
             }
-            return "'" + out + "'";
-        }
 
-        // 轉成 JavaScript 字串字面量（雙引號包裹）
-        function toJsLiteral(str, escapeNonAscii) {
-            let out = '';
-            for (const ch of str) {
-                const cp = ch.codePointAt(0);
-                if (ch === '\\') {
-                    out += '\\\\';
-                } else if (ch === '"') {
-                    out += '\\"';
-                } else if (ch === '\n') {
-                    out += '\\n';
-                } else if (ch === '\r') {
-                    out += '\\r';
-                } else if (ch === '\t') {
-                    out += '\\t';
-                } else if (ch === '\b') {
-                    out += '\\b';
-                } else if (ch === '\f') {
-                    out += '\\f';
-                } else if (ch === '\v') {
-                    out += '\\v';
-                } else if (cp === 0x2028) {
-                    out += '\\u2028';
-                } else if (cp === 0x2029) {
-                    out += '\\u2029';
-                } else if (cp < 0x20 || cp === 0x7f) {
-                    out += '\\x' + cp.toString(16).padStart(2, '0');
-                } else if (escapeNonAscii && cp > 0x7e) {
-                    if (cp <= 0xffff) {
-                        out += '\\u' + cp.toString(16).padStart(4, '0');
+            async function pasteFromClipboard() {
+                try {
+                    if (navigator.clipboard && navigator.clipboard.readText) {
+                        const text = await navigator.clipboard.readText();
+                        inputText.value = text;
+                        updateStats();
+                        showToast('已從剪貼簿貼上內容', 'success');
                     } else {
-                        const hi = Math.floor((cp - 0x10000) / 0x400) + 0xD800;
-                        const lo = ((cp - 0x10000) % 0x400) + 0xDC00;
-                        out += '\\u' + hi.toString(16).padStart(4, '0') +
-                               '\\u' + lo.toString(16).padStart(4, '0');
+                        showToast('瀏覽器安全性限制，請使用 Ctrl+V 貼上', 'info');
                     }
-                } else {
-                    out += ch;
+                } catch (err) {
+                    showToast('無法存取剪貼簿，請直接按下 Ctrl+V 貼上', 'warning');
                 }
             }
-            return '"' + out + '"';
-        }
 
-        /* ================= 按鈕行為分派 ================= */
-        async function handleAction(act, btn) {
-            switch (act) {
-                /* --- 輸入區 --- */
-                case 'selectInput':
-                    focusSelect(inputEl);
-                    break;
+            // --- Core Escaping Logic Engine ---
 
-                case 'clearInput':
-                    inputEl.value = '';
-                    hideError();
-                    inputEl.focus();
-                    break;
+            /**
+             * Convert plain string to escaped JS String
+             */
+            function convertToJSString(rawText) {
+                const escapeNonAscii = chkEscapeNonAscii.checked;
+                const wrapQuotes = chkWrapQuotes.checked;
+                const wrapVar = chkWrapVariable.checked;
 
-                case 'pasteInput': {
-                    try {
-                        const text = await readClipboard();
-                        if (text) {
-                            insertAtCursor(inputEl, text);
-                            flash(btn, '已貼上');
+                let escaped = '';
+
+                // Process code point by code point
+                for (const char of rawText) {
+                    const code = char.codePointAt(0);
+
+                    // Standard Escape sequences
+                    if (char === '\\') {
+                        escaped += '\\\\';
+                    } else if (char === '\n') {
+                        escaped += '\\n';
+                    } else if (char === '\r') {
+                        escaped += '\\r';
+                    } else if (char === '\t') {
+                        escaped += '\\t';
+                    } else if (char === '\b') {
+                        escaped += '\\b';
+                    } else if (char === '\f') {
+                        escaped += '\\f';
+                    } else if (currentQuoteStyle === 'double' && char === '"') {
+                        escaped += '\\"';
+                    } else if (currentQuoteStyle === 'single' && char === "'") {
+                        escaped += "\\'";
+                    } else if (currentQuoteStyle === 'backtick' && char === '`') {
+                        escaped += '\\`';
+                    } else if (currentQuoteStyle === 'backtick' && char === '$') {
+                        escaped += '\\$'; // escape template interpolation
+                    } else if (escapeNonAscii && code > 127) {
+                        // Unicode Escaping
+                        if (code <= 0xFFFF) {
+                            escaped += '\\u' + code.toString(16).padStart(4, '0');
                         } else {
-                            showError('剪貼簿是空的，沒有可貼上的內容。');
+                            // ES6 code point escape or UTF-16 surrogate pairs
+                            // Surrogate pair calculation for universal safe compatibility
+                            const H = Math.floor((code - 0x10000) / 0x400) + 0xD800;
+                            const L = ((code - 0x10000) % 0x400) + 0xDC00;
+                            escaped += '\\u' + H.toString(16).padStart(4, '0') + '\\u' + L.toString(16).padStart(4, '0');
                         }
-                    } catch (e) {
-                        showError('無法讀取剪貼簿（瀏覽器權限限制），請點擊輸入框後使用 Ctrl / ⌘ + V 手動貼上。');
-                        inputEl.focus();
-                    }
-                    break;
-                }
-
-                /* --- 處理動作 --- */
-                case 'urlEncode':
-                case 'urlDecode':
-                case 'b64Encode':
-                case 'b64Decode':
-                    handleProcess(act);
-                    break;
-
-                case 'clearAll':
-                    clearAll();
-                    break;
-
-                /* --- 輸出區 --- */
-                case 'selectOutput':
-                    focusSelect(outputEl);
-                    break;
-
-                case 'clearOutput':
-                    outputEl.value = '';
-                    hideError();
-                    break;
-
-                case 'copyOutput': {
-                    if (!outputEl.value) {
-                        showError('輸出為空，沒有可複製的內容。');
-                        return;
-                    }
-                    const ok = await copyText(outputEl.value);
-                    if (ok) {
-                        flash(btn, '已複製');
-                        hideError();
                     } else {
-                        showError('複製失敗，請點「全選」後手動複製。');
+                        escaped += char;
                     }
-                    break;
                 }
 
-                case 'outputToInput': {
-                    if (!outputEl.value) {
-                        showError('輸出為空，沒有可移至輸入的內容。');
-                        return;
-                    }
-                    inputEl.value = outputEl.value;
-                    hideError();
-                    inputEl.focus();
-                    flash(btn, '已移入');
-                    break;
+                // Determine quote wrapper
+                let quoteChar = '"';
+                if (currentQuoteStyle === 'single') quoteChar = "'";
+                if (currentQuoteStyle === 'backtick') quoteChar = "`";
+
+                let finalResult = escaped;
+                if (wrapQuotes) {
+                    finalResult = `${quoteChar}${escaped}${quoteChar}`;
                 }
 
-                /* --- 程式碼字串轉換 --- */
-                case 'toPython':
-                case 'toJs': {
-                    const src = outputEl.value;
-                    if (!src) {
-                        showError('輸出為空，請先產生內容再轉換為程式碼字串。');
-                        return;
-                    }
-                    const esc = escapeNonAsciiEl.checked;
-                    outputEl.value = (act === 'toPython')
-                        ? toPythonLiteral(src, esc)
-                        : toJsLiteral(src, esc);
-                    hideError();
-                    flash(btn, '已轉換');
-                    break;
+                if (wrapVar) {
+                    finalResult = `const myString = ${finalResult};`;
                 }
+
+                return finalResult;
             }
-        }
 
-        /* ================= 事件綁定 ================= */
-        document.querySelectorAll('[data-act]').forEach(btn => {
-            btn.addEventListener('click', () => handleAction(btn.dataset.act, btn));
+            /**
+             * Convert plain string to escaped Python String
+             */
+            function convertToPythonString(rawText) {
+                const escapeNonAscii = chkEscapeNonAscii.checked;
+                const wrapQuotes = chkWrapQuotes.checked;
+                const wrapVar = chkWrapVariable.checked;
+
+                let escaped = '';
+
+                for (const char of rawText) {
+                    const code = char.codePointAt(0);
+
+                    if (char === '\\') {
+                        escaped += '\\\\';
+                    } else if (char === '\n') {
+                        escaped += '\\n';
+                    } else if (char === '\r') {
+                        escaped += '\\r';
+                    } else if (char === '\t') {
+                        escaped += '\\t';
+                    } else if (currentQuoteStyle === 'double' && char === '"') {
+                        escaped += '\\"';
+                    } else if (currentQuoteStyle === 'single' && char === "'") {
+                        escaped += "\\'";
+                    } else if (currentQuoteStyle === 'backtick' && char === '"') {
+                        escaped += '\\"';
+                    } else if (escapeNonAscii && code > 127) {
+                        if (code <= 0xFFFF) {
+                            escaped += '\\u' + code.toString(16).padStart(4, '0');
+                        } else {
+                            // Python 32-bit hex unicode sequence \U00XXXXXX
+                            escaped += '\\U' + code.toString(16).padStart(8, '0');
+                        }
+                    } else {
+                        escaped += char;
+                    }
+                }
+
+                let quoteChar = '"';
+                if (currentQuoteStyle === 'single') quoteChar = "'";
+                if (currentQuoteStyle === 'backtick') quoteChar = '"""';
+
+                let finalResult = escaped;
+                if (wrapQuotes) {
+                    finalResult = `${quoteChar}${escaped}${quoteChar}`;
+                }
+
+                if (wrapVar) {
+                    finalResult = `my_string = ${finalResult}`;
+                }
+
+                return finalResult;
+            }
+
+            /**
+             * Unescape logic: decode escaped sequence back to plain human text
+             */
+            function unescapeString(escapedText) {
+                if (!escapedText) return '';
+
+                let text = escapedText.trim();
+
+                // Strip leading/trailing quote wrappers if present
+                if ((text.startsWith('"') && text.endsWith('"')) ||
+                    (text.startsWith("'") && text.endsWith("'")) ||
+                    (text.startsWith("`") && text.endsWith("`"))) {
+                    text = text.substring(1, text.length - 1);
+                } else if (text.startsWith('"""') && text.endsWith('"""')) {
+                    text = text.substring(3, text.length - 3);
+                }
+
+                // Unescape Python 8-digit Unicode \U00XXXXXX
+                text = text.replace(/\\U([0-9a-fA-F]{8})/g, (_, hex) => {
+                    return String.fromCodePoint(parseInt(hex, 16));
+                });
+
+                // Unescape standard \uXXXX
+                text = text.replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) => {
+                    return String.fromCharCode(parseInt(hex, 16));
+                });
+
+                // Unescape \xXX
+                text = text.replace(/\\x([0-9a-fA-F]{2})/g, (_, hex) => {
+                    return String.fromCharCode(parseInt(hex, 16));
+                });
+
+                // Unescape standard control sequences
+                text = text.replace(/\\n/g, '\n')
+                           .replace(/\\r/g, '\r')
+                           .replace(/\\t/g, '\t')
+                           .replace(/\\b/g, '\b')
+                           .replace(/\\f/g, '\f')
+                           .replace(/\\"/g, '"')
+                           .replace(/\\'/g, "'")
+                           .replace(/\\`/g, "`")
+                           .replace(/\\\$/g, "$")
+                           .replace(/\\\\/g, '\\');
+
+                return text;
+            }
+
+            // --- Button Event Listeners ---
+
+            // Convert to JS
+            document.getElementById('btnConvertJS').addEventListener('click', () => {
+                const val = inputText.value;
+                if (!val) {
+                    showToast('請先輸入或貼上文字', 'warning');
+                    return;
+                }
+                const res = convertToJSString(val);
+                outputText.value = res;
+                updateStats();
+                showToast('已轉為 JavaScript 跳脫字串', 'success');
+            });
+
+            // Convert to Python
+            document.getElementById('btnConvertPython').addEventListener('click', () => {
+                const val = inputText.value;
+                if (!val) {
+                    showToast('請先輸入或貼上文字', 'warning');
+                    return;
+                }
+                const res = convertToPythonString(val);
+                outputText.value = res;
+                updateStats();
+                showToast('已轉為 Python 跳脫字串', 'success');
+            });
+
+            // Unescape Action
+            document.getElementById('btnUnescape').addEventListener('click', () => {
+                const val = inputText.value || outputText.value;
+                if (!val) {
+                    showToast('輸入區與輸出區皆無文字可解碼', 'warning');
+                    return;
+                }
+                const decoded = unescapeString(val);
+                outputText.value = decoded;
+                updateStats();
+                showToast('已完成反向字串解碼 (Unescaped)', 'success');
+            });
+
+            // Input Buttons
+            document.getElementById('btnInputPaste').addEventListener('click', pasteFromClipboard);
+
+            document.getElementById('btnInputSelectAll').addEventListener('click', () => {
+                inputText.select();
+                showToast('已全選輸入文字', 'info');
+            });
+
+            document.getElementById('btnInputClear').addEventListener('click', () => {
+                inputText.value = '';
+                updateStats();
+                showToast('已清空輸入區', 'info');
+            });
+
+            // Output Buttons
+            document.getElementById('btnOutputCopy').addEventListener('click', () => {
+                copyToClipboard(outputText.value, '已複製輸出結果到剪貼簿！');
+            });
+
+            document.getElementById('btnOutputSelectAll').addEventListener('click', () => {
+                outputText.select();
+                showToast('已全選輸出文字', 'info');
+            });
+
+            document.getElementById('btnOutputClear').addEventListener('click', () => {
+                outputText.value = '';
+                updateStats();
+                showToast('已清空輸出區', 'info');
+            });
+
+            document.getElementById('btnMoveToInput').addEventListener('click', () => {
+                const val = outputText.value;
+                if (!val) {
+                    showToast('輸出區沒有內容可移動', 'warning');
+                    return;
+                }
+                inputText.value = val;
+                updateStats();
+                showToast('已將輸出結果移至輸入區', 'success');
+            });
+
+            // Top Header Buttons
+            document.getElementById('btnClearAll').addEventListener('click', () => {
+                inputText.value = '';
+                outputText.value = '';
+                updateStats();
+                showToast('已清空所有內容', 'info');
+            });
+
+            // Sample Buttons
+            document.getElementById('btnSampleChinese').addEventListener('click', () => {
+                inputText.value = `你好，世界！\n這是一段含有中文字元與特殊符號的測試文字：\n- 雙引號: "Hello World"\n- 單引號: 'JavaScript & Python'\n- 反斜線: C:\\Program Files\\App\n- Tab鍵: \t[縮排項目]`;
+                updateStats();
+                showToast('已載入中文範例文字', 'info');
+            });
+
+            document.getElementById('btnSampleCode').addEventListener('click', () => {
+                inputText.value = `<div class="container">\n  <h1 id="title">Hello "Web" Generator!</h1>\n  <script>\n    console.log("Line 1\\nLine 2");\n  <\/script>\n</div>`;
+                updateStats();
+                showToast('已載入 HTML/JS 程式碼範例', 'info');
+            });
+
+            // Initialize stats
+            updateStats();
         });
-
-        outputEl.addEventListener('input', hideError);
-        inputEl.addEventListener('input', hideError);
     </script>
 </body>
 </html>
