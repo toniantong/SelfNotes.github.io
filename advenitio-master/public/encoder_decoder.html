@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL &amp; Base64 編解碼工具</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --text-light: #475569;
+            --border: #e2e8f0;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding: 2rem 1rem; line-height: 1.5; }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 2rem; }
+        h1 { font-size: 1.8rem; color: var(--primary); margin-bottom: 0.5rem; }
+        p { color: var(--text-light); font-size: 0.95rem; }
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .group { margin-bottom: 1.25rem; }
+        label { display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; }
+        textarea { width: 100%; min-height: 120px; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-family: monospace; font-size: 0.95rem; resize: vertical; transition: border 0.2s; }
+        textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        .actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+        button { background: var(--primary); color: white; border: none; padding: 0.6rem 1.2rem; font-size: 0.9rem; font-weight: 500; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
+        button:hover { background: var(--primary-hover); }
+        button.secondary { background: #e2e8f0; color: var(--text); }
+        button.secondary:hover { background: #cbd5e1; }
+        .error { color: #dc2626; background: #fef2f2; border: 1px solid #fee2e2; padding: 0.75rem; border-radius: 6px; font-size: 0.9rem; display: none; margin-bottom: 1rem; }
+
+        /* ===== 新增：工具列與小按鈕 ===== */
+        .label-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+        .label-row label { margin-bottom: 0; }
+        .tools { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+        .chip {
+            background: #eef2ff; color: var(--primary); border: 1px solid #e0e7ff;
+            padding: 0.28rem 0.7rem; font-size: 0.78rem; font-weight: 600;
+            border-radius: 999px; cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s;
+            line-height: 1.4; white-space: nowrap;
+        }
+        .chip:hover { background: #e0e7ff; }
+        .chip:active { transform: scale(0.97); }
+        .chip.done { background: #dcfce7; color: #15803d; border-color: #bbf7d0; }
+        .hint { font-size: 0.78rem; color: #94a3b8; margin-top: 0.4rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>URL / Base64 編解碼工具</h1>
+            <p>純前端運行，響應式設計，即時保障數據隱私</p>
+        </header>
+        <div class="card">
+            <div id="errorMsg" class="error"></div>
+
+            <!-- 輸入區 -->
+            <div class="group">
+                <div class="label-row">
+                    <label for="input">輸入文字 / 待處理內容</label>
+                    <div class="tools">
+                        <button type="button" class="chip" data-act="pasteInput">貼上</button>
+                        <button type="button" class="chip" data-act="selectInput">全選</button>
+                        <button type="button" class="chip" data-act="clearInput">清空</button>
+                    </div>
+                </div>
+                <textarea id="input" placeholder="請在此輸入欲編碼或解碼的字串..."></textarea>
+                <div class="hint">提示：可直接按 Ctrl / ⌘ + V 貼上；「貼上」按鈕會在游標位置插入內容。</div>
+            </div>
+
+            <!-- 處理按鈕 -->
+            <div class="actions">
+                <button type="button" data-act="urlEncode">URL 編碼</button>
+                <button type="button" data-act="urlDecode">URL 解碼</button>
+                <button type="button" data-act="b64Encode">Base64 編碼</button>
+                <button type="button" data-act="b64Decode">Base64 解碼</button>
+                <button type="button" class="secondary" data-act="clearAll">清空全部</button>
+            </div>
+
+            <!-- 輸出區（可編輯） -->
+            <div class="group">
+                <div class="label-row">
+                    <label for="output">輸出結果（可直接編輯）</label>
+                    <div class="tools">
+                        <button type="button" class="chip" data-act="copyOutput">複製</button>
+                        <button type="button" class="chip" data-act="selectOutput">全選</button>
+                        <button type="button" class="chip" data-act="clearOutput">清空</button>
+                        <button type="button" class="chip" data-act="outputToInput">移至輸入</button>
+                    </div>
+                </div>
+                <textarea id="output" placeholder="處理結果將顯示於此，可直接修改編輯..."></textarea>
+                <div class="hint">輸出區已開放編輯，可手動微調後再複製使用。</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const inputEl  = document.getElementById('input');
+        const outputEl = document.getElementById('output');
+        const errorEl  = document.getElementById('errorMsg');
+
+        /* ================= 錯誤提示 ================= */
+        function showError(msg) {
+            errorEl.textContent = msg;
+            errorEl.style.display = 'block';
+        }
+        function hideError() {
+            errorEl.style.display = 'none';
+        }
+
+        /* ================= 通用工具 ================= */
+        // 聚焦並全選
+        function focusSelect(el) {
+            el.focus();
+            el.select();
+            // 部分行動裝置需要 setSelectionRange 才有效
+            try { el.setSelectionRange(0, el.value.length); } catch (e) {}
+        }
+
+        // 在游標位置插入文字（無游標則附加到結尾）
+        function insertAtCursor(el, text) {
+            const start = (typeof el.selectionStart === 'number') ? el.selectionStart : el.value.length;
+            const end   = (typeof el.selectionEnd   === 'number') ? el.selectionEnd   : el.value.length;
+            el.value = el.value.slice(0, start) + text + el.value.slice(end);
+            const pos = start + text.length;
+            el.focus();
+            try { el.setSelectionRange(pos, pos); } catch (e) {}
+        }
+
+        // 按鈕短暫變色回饋
+        function flash(btn, text) {
+            if (!btn) return;
+            if (!btn.dataset.original) btn.dataset.original = btn.textContent;
+            btn.textContent = text;
+            btn.classList.add('done');
+            clearTimeout(btn._timer);
+            btn._timer = setTimeout(() => {
+                btn.textContent = btn.dataset.original;
+                btn.classList.remove('done');
+            }, 1200);
+        }
+
+        // 複製（含舊瀏覽器 fallback）
+        async function copyText(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                try { await navigator.clipboard.writeText(text); return true; } catch (e) {}
+            }
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.setAttribute('readonly', '');
+                ta.style.position = 'fixed';
+                ta.style.top = '-9999px';
+                document.body.appendChild(ta);
+                ta.select();
+                ta.setSelectionRange(0, ta.value.length);
+                const ok = document.execCommand('copy');
+                document.body.removeChild(ta);
+                return ok;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // 讀取剪貼簿
+        async function readClipboard() {
+            if (navigator.clipboard && navigator.clipboard.readText) {
+                return await navigator.clipboard.readText();
+            }
+            throw new Error('unsupported');
+        }
+
+        /* ================= 編解碼邏輯 ================= */
+        function process(type, val) {
+            switch (type) {
+                case 'urlEncode': return encodeURIComponent(val);
+                case 'urlDecode': return decodeURIComponent(val.replace(/\+/g, ' '));
+                case 'b64Encode': return btoa(unescape(encodeURIComponent(val)));
+                case 'b64Decode': return decodeURIComponent(escape(atob(val)));
+                default: return '';
+            }
+        }
+
+        function handleProcess(type) {
+            hideError();
+            const val = inputEl.value;
+            if (!val) { outputEl.value = ''; return; }
+            try {
+                outputEl.value = process(type, val);
+            } catch (e) {
+                showError('處理失敗：請檢查輸入格式是否正確（例如解碼非正確格式的字串）。');
+                outputEl.value = '';
+            }
+        }
+
+        function clearAll() {
+            inputEl.value = '';
+            outputEl.value = '';
+            hideError();
+            inputEl.focus();
+        }
+
+        /* ================= 按鈕行為分派 ================= */
+        async function handleAction(act, btn) {
+            switch (act) {
+                /* --- 輸入區 --- */
+                case 'selectInput':
+                    focusSelect(inputEl);
+                    break;
+
+                case 'clearInput':
+                    inputEl.value = '';
+                    hideError();
+                    inputEl.focus();
+                    break;
+
+                case 'pasteInput': {
+                    try {
+                        const text = await readClipboard();
+                        if (text) {
+                            insertAtCursor(inputEl, text);
+                            flash(btn, '已貼上');
+                        } else {
+                            showError('剪貼簿是空的，沒有可貼上的內容。');
+                        }
+                    } catch (e) {
+                        showError('無法讀取剪貼簿（瀏覽器權限限制），請點擊輸入框後使用 Ctrl / ⌘ + V 手動貼上。');
+                        inputEl.focus();
+                    }
+                    break;
+                }
+
+                /* --- 處理動作 --- */
+                case 'urlEncode':
+                case 'urlDecode':
+                case 'b64Encode':
+                case 'b64Decode':
+                    handleProcess(act);
+                    break;
+
+                case 'clearAll':
+                    clearAll();
+                    break;
+
+                /* --- 輸出區 --- */
+                case 'selectOutput':
+                    focusSelect(outputEl);
+                    break;
+
+                case 'clearOutput':
+                    outputEl.value = '';
+                    hideError();
+                    break;
+
+                case 'copyOutput': {
+                    if (!outputEl.value) {
+                        showError('輸出為空，沒有可複製的內容。');
+                        return;
+                    }
+                    const ok = await copyText(outputEl.value);
+                    if (ok) {
+                        flash(btn, '已複製');
+                        hideError();
+                    } else {
+                        showError('複製失敗，請點「全選」後手動複製。');
+                    }
+                    break;
+                }
+
+                case 'outputToInput': {
+                    if (!outputEl.value) {
+                        showError('輸出為空，沒有可移至輸入的內容。');
+                        return;
+                    }
+                    inputEl.value = outputEl.value;
+                    hideError();
+                    inputEl.focus();
+                    flash(btn, '已移入');
+                    break;
+                }
+            }
+        }
+
+        /* ================= 事件綁定 ================= */
+        document.querySelectorAll('[data-act]').forEach(btn => {
+            btn.addEventListener('click', () => handleAction(btn.dataset.act, btn));
+        });
+
+        // 編輯輸出 / 輸入時自動隱藏舊錯誤訊息
+        outputEl.addEventListener('input', hideError);
+        inputEl.addEventListener('input', hideError);
+    </script>
+</body>
+</html>
