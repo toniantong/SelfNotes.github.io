@@ -138,3 +138,7 @@
 [excel_formula_to_latex.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/excel_formula_to_latex.html)
 
 [developer_calculator.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/developer_calculator.html)
+
+[string_escape_tool.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/string_escape_tool.html)
+
+[encoder_decoder.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/encoder_decoder.html)
