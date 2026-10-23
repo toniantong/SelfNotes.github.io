@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>複息滾存計算機 (Compound Interest Calculator)</title>
 
-    <!-- Tailwind CSS（已修正 CDN 網址） -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Google Fonts（已修正 @import 網址，改用 link 更穩定） -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -53,11 +53,19 @@
                            class="w-full rounded-lg border border-slate-300 px-3 py-2 bg-white shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none">
                 </div>
 
-                <!-- Period (Years) -->
+                <!-- Period Value & Unit (Modified) -->
                 <div>
-                    <label for="years" class="block text-sm font-medium text-slate-700 mb-1">滾存年期 (年)</label>
-                    <input type="number" id="years" value="10" min="1" max="100" step="1"
-                           class="w-full rounded-lg border border-slate-300 px-3 py-2 bg-white shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                    <label for="periodVal" class="block text-sm font-medium text-slate-700 mb-1">滾存時間</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="periodVal" value="10" min="1" step="1"
+                               class="w-full rounded-lg border border-slate-300 px-3 py-2 bg-white shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                        <select id="periodUnit"
+                                class="rounded-lg border border-slate-300 px-3 py-2 bg-white shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none w-28">
+                            <option value="years" selected>年</option>
+                            <option value="months">月</option>
+                            <option value="days">日</option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Compounding Frequency -->
@@ -109,12 +117,12 @@
 
                 <!-- Quick Breakdown Table View -->
                 <div class="mt-6">
-                    <h3 class="text-sm font-semibold text-slate-900 mb-2">年度增長摘要</h3>
+                    <h3 id="breakdownTitle" class="text-sm font-semibold text-slate-900 mb-2">滾存增長明細</h3>
                     <div class="overflow-x-auto max-h-48 border border-slate-200 rounded-lg shadow-inner">
                         <table class="w-full text-sm text-left text-slate-500">
                             <thead class="text-xs text-slate-700 uppercase bg-slate-50 sticky top-0 border-b border-slate-200">
                                 <tr>
-                                    <th class="px-4 py-2">年末</th>
+                                    <th id="thPeriod" class="px-4 py-2">時間</th>
                                     <th class="px-4 py-2">累積投入本金</th>
                                     <th class="px-4 py-2">累積利息</th>
                                     <th class="px-4 py-2">總結餘 (本利和)</th>
@@ -137,7 +145,7 @@
         'use strict';
 
         const $ = (id) => document.getElementById(id);
-        const INPUT_IDS = ['principal', 'contribution', 'rate', 'years', 'frequency'];
+        const INPUT_IDS = ['principal', 'contribution', 'rate', 'periodVal', 'periodUnit', 'frequency'];
 
         /* ---------- 格式化工具 ---------- */
         function formatCurrency(value) {
@@ -157,46 +165,81 @@
             return Number.isFinite(v) ? v : fallback;
         }
 
+        /* ---------- 渲染表格行 ---------- */
+        function renderRow(label, invested, interest, balance) {
+            return '<tr class="bg-white border-b border-slate-100 hover:bg-slate-50/80">' +
+                '<td class="px-4 py-2 font-medium text-slate-900 whitespace-nowrap">' + label + '</td>' +
+                '<td class="px-4 py-2 whitespace-nowrap">' + formatCurrency(invested) + '</td>' +
+                '<td class="px-4 py-2 whitespace-nowrap text-emerald-700">' + formatCurrency(interest) + '</td>' +
+                '<td class="px-4 py-2 whitespace-nowrap font-semibold text-slate-800">' + formatCurrency(balance) + '</td>' +
+            '</tr>';
+        }
+
         /* ---------- 主計算 ---------- */
         function calculate() {
             // 1. 讀取並夾限輸入值
-            const P      = Math.max(0, readNumber('principal', 0));       // 起始本金
-            const PMT    = Math.max(0, readNumber('contribution', 0));    // 每月投入
-            const r      = Math.max(0, readNumber('rate', 0)) / 100;      // 年利率（小數）
-            const years  = Math.min(100, Math.max(1, Math.round(readNumber('years', 1))));
-            const n      = parseInt($('frequency').value, 10) || 12;      // 每年複息次數
+            const P          = Math.max(0, readNumber('principal', 0));      // 起始本金
+            const PMT        = Math.max(0, readNumber('contribution', 0));   // 每月投入
+            const r          = Math.max(0, readNumber('rate', 0)) / 100;     // 年利率（小數）
+            const periodVal  = Math.max(1, readNumber('periodVal', 1));
+            const periodUnit = $('periodUnit').value;                       // years | months | days
+            const n          = parseInt($('frequency').value, 10) || 12;     // 每年複息次數
 
             // 2. 實際年利率 EAR
             const ear = Math.pow(1 + r / n, n) - 1;
 
-            // 3. 把「每期複息」換算成「等效月利率」
-            //    這樣 12 個月後的累積增長剛好等於 (1 + r/n)^n，
-            //    即與標準公式 P*(1+r/n)^(n*t) 完全一致，且能精確處理每月供款。
-            const monthlyRate = Math.pow(1 + r / n, n / 12) - 1;
+            // 3. 計算等效月利率與日利率
+            const monthlyRate = Math.pow(1 + ear, 1 / 12) - 1;
+            const dailyRate   = Math.pow(1 + ear, 1 / 365) - 1;
 
             let balance  = P;   // 當前結餘
             let invested = P;   // 累積投入本金
             let rows     = '';
 
-            // 4. 逐年 × 逐月滾存
-            for (let year = 1; year <= years; year++) {
-                for (let month = 1; month <= 12; month++) {
-                    // 每月月初投入
+            // 4. 根據「年 / 月 / 日」分別計算
+            if (periodUnit === 'years') {
+                const years = Math.min(100, Math.round(periodVal));
+                $('thPeriod').textContent = '年末';
+
+                for (let year = 1; year <= years; year++) {
+                    for (let month = 1; month <= 12; month++) {
+                        balance  += PMT;
+                        invested += PMT;
+                        balance  *= (1 + monthlyRate);
+                    }
+                    const interest = balance - invested;
+                    rows += renderRow('第 ' + year + ' 年', invested, interest, balance);
+                }
+            } else if (periodUnit === 'months') {
+                const months = Math.min(1200, Math.round(periodVal));
+                $('thPeriod').textContent = '月末';
+
+                for (let month = 1; month <= months; month++) {
                     balance  += PMT;
                     invested += PMT;
-                    // 該月複息增長
                     balance  *= (1 + monthlyRate);
+
+                    const interest = balance - invested;
+                    rows += renderRow('第 ' + month + ' 個月', invested, interest, balance);
                 }
+            } else if (periodUnit === 'days') {
+                const days = Math.min(36500, Math.round(periodVal));
+                $('thPeriod').textContent = '日數';
 
-                const interest = balance - invested;
+                for (let day = 1; day <= days; day++) {
+                    // 每 30 天或第 1 天投入每月供款
+                    if (day === 1 || (day - 1) % 30 === 0) {
+                        balance  += PMT;
+                        invested += PMT;
+                    }
+                    balance *= (1 + dailyRate);
 
-                rows +=
-                    '<tr class="bg-white border-b border-slate-100 hover:bg-slate-50/80">' +
-                        '<td class="px-4 py-2 font-medium text-slate-900 whitespace-nowrap">第 ' + year + ' 年</td>' +
-                        '<td class="px-4 py-2 whitespace-nowrap">' + formatCurrency(invested) + '</td>' +
-                        '<td class="px-4 py-2 whitespace-nowrap text-emerald-700">' + formatCurrency(interest) + '</td>' +
-                        '<td class="px-4 py-2 whitespace-nowrap font-semibold text-slate-800">' + formatCurrency(balance) + '</td>' +
-                    '</tr>';
+                    // 若日數不超過 31 天則每日顯示，否則每 30 天或最後一天顯示摘要
+                    if (days <= 31 || day % 30 === 0 || day === days) {
+                        const interest = balance - invested;
+                        rows += renderRow('第 ' + day + ' 天', invested, interest, balance);
+                    }
+                }
             }
 
             // 5. 更新畫面
@@ -211,8 +254,10 @@
         /* ---------- 綁定事件 ---------- */
         INPUT_IDS.forEach(function (id) {
             const el = $(id);
-            el.addEventListener('input', calculate);
-            el.addEventListener('change', calculate);
+            if (el) {
+                el.addEventListener('input', calculate);
+                el.addEventListener('change', calculate);
+            }
         });
 
         /* ---------- 首次載入即計算 ---------- */
