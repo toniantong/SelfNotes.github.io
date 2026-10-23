@@ -142,3 +142,5 @@
 [string_escape_tool.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/string_escape_tool.html)
 
 [encoder_decoder.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/encoder_decoder.html)
+
+[compound_interest.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/compound_interest.html)
