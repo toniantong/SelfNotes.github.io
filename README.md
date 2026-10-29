@@ -129,18 +129,20 @@
 
 [password_generator](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/password_generator.html)
 
-[hq_prf_demo.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/hq_prf_demo.html)
+[hq_prf_demo](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/hq_prf_demo.html)
 
-[BinaryTreeMLM.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/BinaryTreeMLM.html)
+[BinaryTreeMLM](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/BinaryTreeMLM.html)
 
-[MLMBinaryAnalyzer.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/MLMBinaryAnalyzer.html)
+[MLMBinaryAnalyzer](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/MLMBinaryAnalyzer.html)
 
-[excel_formula_to_latex.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/excel_formula_to_latex.html)
+[excel_formula_to_latex](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/excel_formula_to_latex.html)
 
-[developer_calculator.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/developer_calculator.html)
+[developer_calculator](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/developer_calculator.html)
 
-[string_escape_tool.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/string_escape_tool.html)
+[string_escape_tool](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/string_escape_tool.html)
 
-[encoder_decoder.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/encoder_decoder.html)
+[encoder_decoder](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/encoder_decoder.html)
 
-[compound_interest.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/compound_interest.html)
+[compound_interest](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/compound_interest.html)
+
+[filename-cleaner](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/filename-cleaner.html)
