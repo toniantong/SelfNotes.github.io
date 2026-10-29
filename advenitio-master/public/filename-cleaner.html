@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>檔案/資料夾名稱淨化與半全形轉換工具</title>
+    <!-- 引入 Tailwind CSS 確保響應式設計與美觀 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <!-- 主容器 -->
+    <main class="max-w-4xl mx-auto px-4 py-8 w-full flex-grow">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-slate-900 mb-2">檔案命名淨化與轉換工具</h1>
+            <p class="text-slate-600">自動偵測並處理 Windows/macOS 禁用字元，支援半全形轉換與保留字避讓。</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- 輸入區 -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col">
+                <label for="inputText" class="block text-sm font-semibold text-slate-700 mb-2">輸入原始檔名或路徑：</label>
+                <textarea id="inputText" rows="6" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none mb-4 resize-none" placeholder="輸入包含 \ / : * ? &quot; < > | 或保留字的檔名..."></textarea>
+                
+                <!-- 轉換選項 -->
+                <div class="space-y-3 mb-4 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                    <span class="block text-xs font-bold text-slate-500 uppercase tracking-wider">處理模式選項</span>
+                    <label class="flex items-center space-x-2 text-sm cursor-pointer">
+                        <input type="radio" name="cleanMode" value="zenkaku" checked class="text-blue-600 focus:ring-blue-500">
+                        <span>將非法半形字元轉為<strong>全形字元</strong>（例如 <code class="bg-slate-200 px-1 rounded">?</code> 轉為 <code class="bg-slate-200 px-1 rounded">？</code>）</span>
+                    </label>
+                    <label class="flex items-center space-x-2 text-sm cursor-pointer">
+                        <input type="radio" name="cleanMode" value="replace" class="text-blue-600 focus:ring-blue-500">
+                        <span>將非法字元直接<strong>取代</strong>為指定字元（預設底線 <code class="bg-slate-200 px-1 rounded">_</code>）</span>
+                    </label>
+                    <div id="replaceCharBox" class="hidden pl-6 pt-1">
+                        <label class="text-xs text-slate-600 mr-2">取代為：</label>
+                        <input type="text" id="customReplaceChar" value="_" maxlength="1" class="w-12 text-center border border-slate-300 rounded p-1 text-sm">
+                    </div>
+                </div>
+
+                <button id="processBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm">
+                    立即轉換與淨化
+                </button>
+            </div>
+
+            <!-- 輸出區 -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <label for="outputText" class="block text-sm font-semibold text-slate-700 mb-2">轉換後的安全名稱：</label>
+                    <textarea id="outputText" rows="6" readonly class="w-full p-3 bg-slate-100 border border-slate-300 rounded-lg text-slate-700 mb-4 resize-none" placeholder="轉換結果將顯示於此..."></textarea>
+                    
+                    <!-- 警告/提示訊息區 -->
+                    <div id="alertBox" class="hidden p-3 bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-lg mb-4">
+                        <span class="font-bold">注意：</span> <span id="alertMessage"></span>
+                    </div>
+                </div>
+
+                <button id="copyBtn" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm flex items-center justify-center space-x-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                    <span>複製結果</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 說明提示 -->
+        <section class="mt-12 bg-white p-6 rounded-xl border border-slate-200 text-sm text-slate-600">
+            <h2 class="font-bold text-slate-800 mb-2">工具處理規則說明：</h2>
+            <ul class="list-disc pl-5 space-y-1">
+                <li><strong>禁用半形字元對應（全形模式）：</strong> <code class="bg-slate-100 px-1">\</code> -> <code class="bg-slate-100 px-1">＼</code>, <code class="bg-slate-100 px-1">/</code> -> <code class="bg-slate-100 px-1">／</code>, <code class="bg-slate-100 px-1">:</code> -> <code class="bg-slate-100 px-1">：</code>, <code class="bg-slate-100 px-1">*</code> -> <code class="bg-slate-100 px-1">＊</code>, <code class="bg-slate-100 px-1">?</code> -> <code class="bg-slate-100 px-1">？</code>, <code class="bg-slate-100 px-1">"</code> -> <code class="bg-slate-100 px-1">＂</code>, <code class="bg-slate-100 px-1">&lt;</code> -> <code class="bg-slate-100 px-1">＜</code>, <code class="bg-slate-100 px-1">&gt;</code> -> <code class="bg-slate-100 px-1">＞</code>, <code class="bg-slate-100 px-1">|</code> -> <code class="bg-slate-100 px-1">｜</code>。</li>
+                <li><strong>系統保留字防護：</strong> 若偵測到 <code class="bg-slate-100 px-1">CON</code>、<code class="bg-slate-100 px-1">PRN</code>、<code class="bg-slate-100 px-1">AUX</code>、<code class="bg-slate-100 px-1">NUL</code>、<code class="bg-slate-100 px-1">COM1-9</code>、<code class="bg-slate-100 px-1">LPT1-9</code> 等名稱，系統會自動在結尾加上底線（例如 <code class="bg-slate-100 px-1">CON_</code>）以符合合規性。</li>
+                <li><strong>結尾去除：</strong> 自動清除名稱結尾的半形空格或點（如 <code class="bg-slate-100 px-1">test.</code> 轉為 <code class="bg-slate-100 px-1">test</code>）。</li>
+            </ul>
+        </section>
+    </main>
+
+    <footer class="text-center py-4 text-xs text-slate-400 border-t border-slate-200 mt-8">
+        純前端靜態網頁，資料不落地安全有保障。
+    </footer>
+
+    <!-- 互動邏輯 -->
+    <script>
+        const illegalMapZenkaku = {
+            '\\': '＼',
+            '/': '／',
+            ':': '：',
+            '*': '＊',
+            '?': '？',
+            '"': '＂',
+            '<': '＜',
+            '>': '＞',
+            '|': '｜'
+        };
+
+        const reservedWords = [
+            'CON', 'PRN', 'AUX', 'NUL',
+            'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9',
+            'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'
+        ];
+
+        const modeRadios = document.querySelectorAll('input[name="cleanMode"]');
+        const replaceCharBox = document.getElementById('replaceCharBox');
+        const inputText = document.getElementById('inputText');
+        const outputText = document.getElementById('outputText');
+        const processBtn = document.getElementById('processBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const alertBox = document.getElementById('alertBox');
+        const alertMessage = document.getElementById('alertMessage');
+        const customReplaceChar = document.getElementById('customReplaceChar');
+
+        // 切換取代模式時顯示/隱藏自訂字元輸入框
+        modeRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.value === 'replace') {
+                    replaceCharBox.classList.remove('hidden');
+                } else {
+                    replaceCharBox.classList.add('hidden');
+                }
+            });
+        });
+
+        function cleanFileName(input, mode, replaceChar) {
+            let alerts = [];
+            let result = input;
+
+            // 1. 逐字元替換非法字元
+            if (mode === 'zenkaku') {
+                result = result.split('').charMap = result.split('').map(char => {
+                    return illegalMapZenkaku[char] !== undefined ? illegalMapZenkaku[char] : char;
+                }).join('');
+            } else {
+                // 取代模式
+                const escapedKeys = Object.keys(illegalMapZenkaku).join('\\');
+                const regex = new RegExp(`[${escapedKeys}]`, 'g');
+                result = result.replace(regex, replaceChar);
+            }
+
+            // 2. 檢查保留字 (針對完整主檔名或無副檔名狀況)
+            // 將字串依路徑斜線分割處理每一段，或整體檢查
+            let upperResult = result.toUpperCase();
+            if (reservedWords.includes(upperResult)) {
+                result += '_';
+                alerts.push(`偵測到系統保留字 "${upperResult}"，已自動在結尾補上底線。`);
+            }
+
+            // 3. 結尾不能是半形點或空格
+            if (result.endsWith('.') || result.endsWith(' ')) {
+                result = result.replace(/[\.\s]+$/, '');
+                alerts.push('自動移除了結尾的半形點或空格。');
+            }
+
+            return { result, alerts };
+        }
+
+        processBtn.addEventListener('click', () => {
+            const val = inputText.value;
+            if (!val.trim()) {
+                outputText.value = '';
+                alertBox.classList.add('hidden');
+                return;
+            }
+
+            const selectedMode = document.querySelector('input[name="cleanMode"]:checked').value;
+            const repChar = customReplaceChar.value || '_';
+
+            // 支援多行文字處理（逐行處理）
+            const lines = val.split('\n');
+            let processedLines = [];
+            let allAlerts = [];
+
+            lines.forEach(line => {
+                const { result, alerts } = cleanFileName(line, selectedMode, repChar);
+                processedLines.push(result);
+                allAlerts = allAlerts.concat(alerts);
+            });
+
+            outputText.value = processedLines.join('\n');
+
+            // 顯示提示訊息
+            if (allAlerts.length > 0) {
+                alertMessage.textContent = Array.from(new Set(allAlerts)).join(' ');
+                alertBox.classList.remove('hidden');
+            } else {
+                alertBox.classList.add('hidden');
+            }
+        });
+
+        // 複製按鈕功能
+        copyBtn.addEventListener('click', () => {
+            if (!outputText.value) return;
+            navigator.clipboard.writeText(outputText.value).then(() => {
+                const originalText = copyBtn.innerHTML;
+                copyBtn.innerHTML = `<svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span class="text-green-300">已成功複製！</span>`;
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalText;
+                }, 2000);
+            });
+        });
+    </script>
+</body>
+</html>
