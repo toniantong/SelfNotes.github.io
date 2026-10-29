@@ -6,15 +6,38 @@
     <title>檔案/資料夾名稱淨化與半全形轉換工具</title>
     <!-- 引入 Tailwind CSS 確保響應式設計與美觀 -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 微調 textarea 的滾動條與焦點樣式 */
+        textarea:focus, input:focus { outline: none; }
+        .btn-icon { transition: all 0.1s ease; }
+        .btn-icon:active { transform: scale(0.97); }
+    </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
 
     <!-- 主容器 -->
     <main class="max-w-4xl mx-auto px-4 py-8 w-full flex-grow">
-        <header class="mb-8 text-center">
+        <header class="mb-6 text-center">
             <h1 class="text-3xl font-bold text-slate-900 mb-2">檔案命名淨化與轉換工具</h1>
             <p class="text-slate-600">自動偵測並處理 Windows/macOS 禁用字元，支援半全形轉換與保留字避讓。</p>
         </header>
+
+        <!-- 全局操作按鈕區 (清空 / 貼上 / 全選) -->
+        <div class="flex flex-wrap items-center gap-2 mb-3">
+            <button id="clearBtn" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-white border border-slate-300 rounded-lg shadow-sm hover:bg-slate-50 text-slate-700 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                清空
+            </button>
+            <button id="pasteBtn" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-white border border-slate-300 rounded-lg shadow-sm hover:bg-slate-50 text-slate-700 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                貼上
+            </button>
+            <button id="selectAllBtn" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-white border border-slate-300 rounded-lg shadow-sm hover:bg-slate-50 text-slate-700 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                全選
+            </button>
+            <span class="text-xs text-slate-400 ml-auto">快速操作</span>
+        </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- 輸入區 -->
@@ -44,11 +67,14 @@
                 </button>
             </div>
 
-            <!-- 輸出區 -->
+            <!-- 輸出區 (可編輯) -->
             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
                 <div>
-                    <label for="outputText" class="block text-sm font-semibold text-slate-700 mb-2">轉換後的安全名稱：</label>
-                    <textarea id="outputText" rows="6" readonly class="w-full p-3 bg-slate-100 border border-slate-300 rounded-lg text-slate-700 mb-4 resize-none" placeholder="轉換結果將顯示於此..."></textarea>
+                    <div class="flex items-center justify-between mb-2">
+                        <label for="outputText" class="block text-sm font-semibold text-slate-700">轉換後的安全名稱（可編輯）：</label>
+                        <span class="text-xs text-slate-400 italic">可直接修改</span>
+                    </div>
+                    <textarea id="outputText" rows="6" class="w-full p-3 bg-white border border-slate-300 rounded-lg text-slate-700 mb-4 resize-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-colors" placeholder="轉換結果將顯示於此..."></textarea>
                     
                     <!-- 警告/提示訊息區 -->
                     <div id="alertBox" class="hidden p-3 bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-lg mb-4">
@@ -70,6 +96,8 @@
                 <li><strong>禁用半形字元對應（全形模式）：</strong> <code class="bg-slate-100 px-1">\</code> -> <code class="bg-slate-100 px-1">＼</code>, <code class="bg-slate-100 px-1">/</code> -> <code class="bg-slate-100 px-1">／</code>, <code class="bg-slate-100 px-1">:</code> -> <code class="bg-slate-100 px-1">：</code>, <code class="bg-slate-100 px-1">*</code> -> <code class="bg-slate-100 px-1">＊</code>, <code class="bg-slate-100 px-1">?</code> -> <code class="bg-slate-100 px-1">？</code>, <code class="bg-slate-100 px-1">"</code> -> <code class="bg-slate-100 px-1">＂</code>, <code class="bg-slate-100 px-1">&lt;</code> -> <code class="bg-slate-100 px-1">＜</code>, <code class="bg-slate-100 px-1">&gt;</code> -> <code class="bg-slate-100 px-1">＞</code>, <code class="bg-slate-100 px-1">|</code> -> <code class="bg-slate-100 px-1">｜</code>。</li>
                 <li><strong>系統保留字防護：</strong> 若偵測到 <code class="bg-slate-100 px-1">CON</code>、<code class="bg-slate-100 px-1">PRN</code>、<code class="bg-slate-100 px-1">AUX</code>、<code class="bg-slate-100 px-1">NUL</code>、<code class="bg-slate-100 px-1">COM1-9</code>、<code class="bg-slate-100 px-1">LPT1-9</code> 等名稱，系統會自動在結尾加上底線（例如 <code class="bg-slate-100 px-1">CON_</code>）以符合合規性。</li>
                 <li><strong>結尾去除：</strong> 自動清除名稱結尾的半形空格或點（如 <code class="bg-slate-100 px-1">test.</code> 轉為 <code class="bg-slate-100 px-1">test</code>）。</li>
+                <li><strong>輸出可編輯：</strong> 轉換結果可以直接在右側文字框中手動調整，複製按鈕會複製最終編輯後的內容。</li>
+                <li><strong>多行支援：</strong> 可一次輸入多行檔名，每行獨立處理。</li>
             </ul>
         </section>
     </main>
@@ -80,122 +108,187 @@
 
     <!-- 互動邏輯 -->
     <script>
-        const illegalMapZenkaku = {
-            '\\': '＼',
-            '/': '／',
-            ':': '：',
-            '*': '＊',
-            '?': '？',
-            '"': '＂',
-            '<': '＜',
-            '>': '＞',
-            '|': '｜'
-        };
+        (function(){
+            const illegalMapZenkaku = {
+                '\\': '＼',
+                '/': '／',
+                ':': '：',
+                '*': '＊',
+                '?': '？',
+                '"': '＂',
+                '<': '＜',
+                '>': '＞',
+                '|': '｜'
+            };
 
-        const reservedWords = [
-            'CON', 'PRN', 'AUX', 'NUL',
-            'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9',
-            'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'
-        ];
+            const reservedWords = [
+                'CON', 'PRN', 'AUX', 'NUL',
+                'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9',
+                'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'
+            ];
 
-        const modeRadios = document.querySelectorAll('input[name="cleanMode"]');
-        const replaceCharBox = document.getElementById('replaceCharBox');
-        const inputText = document.getElementById('inputText');
-        const outputText = document.getElementById('outputText');
-        const processBtn = document.getElementById('processBtn');
-        const copyBtn = document.getElementById('copyBtn');
-        const alertBox = document.getElementById('alertBox');
-        const alertMessage = document.getElementById('alertMessage');
-        const customReplaceChar = document.getElementById('customReplaceChar');
+            // DOM 元素
+            const modeRadios = document.querySelectorAll('input[name="cleanMode"]');
+            const replaceCharBox = document.getElementById('replaceCharBox');
+            const inputText = document.getElementById('inputText');
+            const outputText = document.getElementById('outputText');
+            const processBtn = document.getElementById('processBtn');
+            const copyBtn = document.getElementById('copyBtn');
+            const alertBox = document.getElementById('alertBox');
+            const alertMessage = document.getElementById('alertMessage');
+            const customReplaceChar = document.getElementById('customReplaceChar');
 
-        // 切換取代模式時顯示/隱藏自訂字元輸入框
-        modeRadios.forEach(radio => {
-            radio.addEventListener('change', (e) => {
-                if (e.target.value === 'replace') {
-                    replaceCharBox.classList.remove('hidden');
+            // 新增按鈕
+            const clearBtn = document.getElementById('clearBtn');
+            const pasteBtn = document.getElementById('pasteBtn');
+            const selectAllBtn = document.getElementById('selectAllBtn');
+
+            // 切換取代模式時顯示/隱藏自訂字元輸入框
+            modeRadios.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    if (e.target.value === 'replace') {
+                        replaceCharBox.classList.remove('hidden');
+                    } else {
+                        replaceCharBox.classList.add('hidden');
+                    }
+                });
+            });
+
+            // 核心淨化函數 (處理單行)
+            function cleanFileName(input, mode, replaceChar) {
+                let alerts = [];
+                let result = input;
+
+                // 1. 逐字元替換非法字元
+                if (mode === 'zenkaku') {
+                    result = result.split('').map(char => {
+                        return illegalMapZenkaku[char] !== undefined ? illegalMapZenkaku[char] : char;
+                    }).join('');
                 } else {
-                    replaceCharBox.classList.add('hidden');
+                    // 取代模式：構建正則表達式 (需轉義特殊字元)
+                    const escapedKeys = Object.keys(illegalMapZenkaku).map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+                    // 使用 split/join 以避免正則複雜度，或直接使用正則
+                    const regex = new RegExp(`[${escapedKeys}]`, 'g');
+                    result = result.replace(regex, replaceChar);
+                }
+
+                // 2. 檢查保留字 (針對完整主檔名或無副檔名狀況，僅檢查純名稱)
+                // 簡單起見，不區分副檔名，但通常保留字檢查是針對主檔名。這裡保留原始邏輯，檢查整個字符串大寫
+                let upperResult = result.toUpperCase();
+                // 但是如果檔案名稱本身有副檔名，例如 "CON.txt" 在 Windows 中也不合法，但這裡簡化檢查，如果輸入就是保留字才加底線
+                // 但保留字可能包含路徑，所以只檢查最後一部分？為了簡單且符合一般使用，維持檢查整個字串 (若含路徑可能誤判，但保留字通常不會含路徑)
+                // 改進：只檢查最後一段 (若存在斜線或反斜線，取最後一段，但這是簡單工具，先保留原邏輯，但對於路徑可能需要微調)
+                // 更好的做法：若包含路徑，僅檢查主檔名部分。但保留字只針對檔案名稱，此處簡化，維持檢查整體結果 (可能誤殺路徑中的保留字)
+                // 改進：使用正則提取最後一段進行保留字檢查，但保留字加底線加在最後。
+                // 為了避免路徑中的保留字被誤判 (如 C:\CON\file)，我們只取最後一段來檢查 (檔案名稱部分)
+                const segments = result.split(/[\\/]/); // 分割路徑
+                const lastSegment = segments.length > 0 ? segments[segments.length - 1] : result;
+                const upperLast = lastSegment.toUpperCase();
+
+                if (reservedWords.includes(upperLast)) {
+                    // 在最後一段加上底線，並重組路徑
+                    segments[segments.length - 1] = lastSegment + '_';
+                    result = segments.join('\\'); // 簡化路徑分隔符，但不影響檢查
+                    alerts.push(`偵測到系統保留字 "${upperLast}"，已自動在結尾補上底線。`);
+                }
+
+                // 3. 結尾不能是半形點或空格 (針對整個字串結尾)
+                if (result.endsWith('.') || result.endsWith(' ')) {
+                    result = result.replace(/[\.\s]+$/, '');
+                    alerts.push('自動移除了結尾的半形點或空格。');
+                }
+
+                return { result, alerts };
+            }
+
+            // 處理按鈕點擊
+            processBtn.addEventListener('click', () => {
+                const val = inputText.value;
+                if (!val.trim()) {
+                    outputText.value = '';
+                    alertBox.classList.add('hidden');
+                    return;
+                }
+
+                const selectedMode = document.querySelector('input[name="cleanMode"]:checked').value;
+                const repChar = customReplaceChar.value || '_';
+
+                // 支援多行文字處理（逐行處理）
+                const lines = val.split('\n');
+                let processedLines = [];
+                let allAlerts = [];
+
+                lines.forEach(line => {
+                    // 跳過完全空行? 但保留空行可以維持格式，但仍處理空字串會產生空警報? 不，cleanFileName對空字串不會有警報，保留即可
+                    const { result, alerts } = cleanFileName(line, selectedMode, repChar);
+                    processedLines.push(result);
+                    allAlerts = allAlerts.concat(alerts);
+                });
+
+                outputText.value = processedLines.join('\n');
+
+                // 顯示提示訊息 (去重)
+                if (allAlerts.length > 0) {
+                    alertMessage.textContent = Array.from(new Set(allAlerts)).join(' ');
+                    alertBox.classList.remove('hidden');
+                } else {
+                    alertBox.classList.add('hidden');
                 }
             });
-        });
 
-        function cleanFileName(input, mode, replaceChar) {
-            let alerts = [];
-            let result = input;
+            // 複製按鈕功能 (複製可編輯輸出框的內容)
+            copyBtn.addEventListener('click', () => {
+                const textToCopy = outputText.value;
+                if (!textToCopy) return;
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    const originalText = copyBtn.innerHTML;
+                    copyBtn.innerHTML = `<svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span class="text-green-300">已成功複製！</span>`;
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalText;
+                    }, 2000);
+                }).catch(err => {
+                    alert('複製失敗，請手動選取複製。');
+                });
+            });
 
-            // 1. 逐字元替換非法字元
-            if (mode === 'zenkaku') {
-                result = result.split('').charMap = result.split('').map(char => {
-                    return illegalMapZenkaku[char] !== undefined ? illegalMapZenkaku[char] : char;
-                }).join('');
-            } else {
-                // 取代模式
-                const escapedKeys = Object.keys(illegalMapZenkaku).join('\\');
-                const regex = new RegExp(`[${escapedKeys}]`, 'g');
-                result = result.replace(regex, replaceChar);
-            }
-
-            // 2. 檢查保留字 (針對完整主檔名或無副檔名狀況)
-            // 將字串依路徑斜線分割處理每一段，或整體檢查
-            let upperResult = result.toUpperCase();
-            if (reservedWords.includes(upperResult)) {
-                result += '_';
-                alerts.push(`偵測到系統保留字 "${upperResult}"，已自動在結尾補上底線。`);
-            }
-
-            // 3. 結尾不能是半形點或空格
-            if (result.endsWith('.') || result.endsWith(' ')) {
-                result = result.replace(/[\.\s]+$/, '');
-                alerts.push('自動移除了結尾的半形點或空格。');
-            }
-
-            return { result, alerts };
-        }
-
-        processBtn.addEventListener('click', () => {
-            const val = inputText.value;
-            if (!val.trim()) {
+            // ---- 新增按鈕功能 ----
+            // 清空按鈕：清空輸入框、輸出框、隱藏警告
+            clearBtn.addEventListener('click', () => {
+                inputText.value = '';
                 outputText.value = '';
                 alertBox.classList.add('hidden');
-                return;
-            }
-
-            const selectedMode = document.querySelector('input[name="cleanMode"]:checked').value;
-            const repChar = customReplaceChar.value || '_';
-
-            // 支援多行文字處理（逐行處理）
-            const lines = val.split('\n');
-            let processedLines = [];
-            let allAlerts = [];
-
-            lines.forEach(line => {
-                const { result, alerts } = cleanFileName(line, selectedMode, repChar);
-                processedLines.push(result);
-                allAlerts = allAlerts.concat(alerts);
+                inputText.focus();
             });
 
-            outputText.value = processedLines.join('\n');
-
-            // 顯示提示訊息
-            if (allAlerts.length > 0) {
-                alertMessage.textContent = Array.from(new Set(allAlerts)).join(' ');
-                alertBox.classList.remove('hidden');
-            } else {
-                alertBox.classList.add('hidden');
-            }
-        });
-
-        // 複製按鈕功能
-        copyBtn.addEventListener('click', () => {
-            if (!outputText.value) return;
-            navigator.clipboard.writeText(outputText.value).then(() => {
-                const originalText = copyBtn.innerHTML;
-                copyBtn.innerHTML = `<svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span class="text-green-300">已成功複製！</span>`;
-                setTimeout(() => {
-                    copyBtn.innerHTML = originalText;
-                }, 2000);
+            // 貼上按鈕：從剪貼簿讀取文字並填入輸入框 (若無法訪問則提示)
+            pasteBtn.addEventListener('click', async () => {
+                try {
+                    const text = await navigator.clipboard.readText();
+                    if (text) {
+                        inputText.value = text;
+                        // 自動觸發轉換? 可選，但多數使用者習慣貼上後手動按轉換，這邊不自動觸發，保留控制權
+                    } else {
+                        // 剪貼簿為空
+                    }
+                } catch (err) {
+                    alert('無法讀取剪貼簿，請手動貼上 (Ctrl+V)。');
+                }
             });
-        });
+
+            // 全選按鈕：全選輸入框的內容
+            selectAllBtn.addEventListener('click', () => {
+                inputText.focus();
+                inputText.select();
+            });
+
+            // 額外小優化：在輸出框上按 Ctrl+Enter 可快速複製 (非必要，但方便)
+            outputText.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    copyBtn.click();
+                }
+            });
+        })();
     </script>
 </body>
 </html>
