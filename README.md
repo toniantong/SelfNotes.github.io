@@ -146,3 +146,5 @@
 [compound_interest](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/compound_interest.html)
 
 [filename-cleaner](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/filename-cleaner.html)
+
+[hcb_salary_declaration_payment_proof.html](https://toniantong.github.io/SelfNotes.github.io/advenitio-master/public/hcb_salary_declaration_payment_proof.html)
