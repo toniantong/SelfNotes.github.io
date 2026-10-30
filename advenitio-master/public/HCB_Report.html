@@ -1,265 +1,129 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="zh-HK">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>輸入輸出</title>
-  <style>
-    /* 在此處添加 CSS 樣式 */
-    :root {
-      --max-width: 1080px;
-    }
-
-    html,
-    body {
-      /*height: 100%;*/
-      /*width: 100%;*/
-      margin: 10px;
-      padding: 1px;
-      font-family: Arial, sans-serif;
-      transition: all 0.3s ease;
-    }
-
-    /* 屏幕大小 (1080px) */
-    @media (min-width: 1080px) {
-      body {
-        margin: 10px;
-        margin-left: auto;
-        margin-right: auto;
-        /*max-width: var(--max-width);*/
-      }
-    }
-  </style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>破產期內薪金申報及供款憑證提交</title>
 </head>
+<body style="margin: 0; padding: 0; background-color: #f4f6f8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
 
-<body>
-  <div>Input
-    <button id="readFile">讀取檔案</button>
-    <button id="paste">貼上</button>
-    <button id="process">輸入</button>
-    <button id="clear">清除</button>
-    <button id="run">執行</button>
-  </div>
-  <div style="padding: 10px; border: 1px solid black;
-    white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word;"
-    contenteditable="plaintext-only" id="inputEditor">Hello World</div>
-  <!--contenteditable="plaintext-only" 會自動阻止字串以外的html的標記等和"true"不同-->
-  <div>Output
-    <button id="saveFile">儲存檔案</button>
-    <button id="copy">複制</button>
-    <button id="clearOurput">清除</button>
-    <button id="saveCheckpoint">儲存還原點</button>
-    <button id="restoreCheckpoint">還原</button>
-  </div>
-  <div style="padding: 10px; border: 1px solid black;
-    white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word;"
-    contenteditable="true" id="outputEditor">ABC</div>
-  <script>
-    // 在此處添加 JavaScript 程式碼
-    // 取得對元素的引用
-    const readFileButton = document.getElementById('readFile'); // 讀取檔案按鈕的引用
-    const pasteIputButton = document.getElementById('paste'); // 貼上輸入按鈕的引用
-    const processIputButton = document.getElementById('process'); // 處理輸入按鈕的引用
-    const clearIputButton = document.getElementById('clear'); // 清除輸入按鈕的引用
-    // 讀取檔案功能的隱藏檔案輸入元素
-    const inputEditorDiv = document.getElementById('inputEditor'); // 取得輸入編輯器的引用
-    const saveFileButton = document.getElementById('saveFile'); // 儲存檔案按鈕的引用
-    const copyBin = document.getElementById('copy'); // 複製輸出按鈕的引用
-    const clearOutputBtm = document.getElementById('clearOurput');
-    const outputEditorDiv = document.getElementById('outputEditor'); // 取得輸出編輯器的引用
-    // 讀取檔案按鈕事件 功能 functionality
-    const fileInput = document.createElement('input');
-    const runBtn document getElementById('run');
-    fileInput.type = 'file';
-    fileInput.accept = '.txt, .html, .js, .css, .json, .md, .csv, .tsv, .xml, .yaml, .yml, .ini, .log, .sql, .sh, .bat, .ps1';
-    fileInput.style.display = 'none';
-    document.body.appendChild(fileInput);
-    // 讀取檔案按鈕事件 功能 functionality
-    readFileButton.addEventListener('click', () => {
-      fileInput.click();
-    });
-    fileInput.addEventListener('change', (event) => {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          inputEditorDiv.textContent = e.target.result;
-        };
-        reader.readAsText(file);
-      }
-    });
-    // Paste input button event 功能 functionality
-    pasteIputButton.addEventListener('click', async () => {
-      try {
-        const text = await navigator.clipboard.readText();
-        inputEditorDiv.textContent = text;
-      } catch (err) {
-        alert('讀取剪貼簿失敗。請檢查瀏覽器權限。');
-        // 全選輸入區域的文字 Select text
-        const range = document.createRange();
-        range.selectNodeContents(inputEditorDiv);
-        const selection = window.getSelection();
-        selection.removeAllRanges();
-        selection.addRange(range);
-        console.error('讀取剪貼簿失敗：', err);
-      }
-    });
+    <!-- 主容器 -->
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f6f8; padding: 20px 0;">
+        <tr>
+            <td align="center">
+                <!-- 郵件卡片主體 (建議寬度 600px) -->
+                <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e1e4e8;">
+                    
+                    <!-- 標頭 Header -->
+                    <tr>
+                        <td style="background-color: #1a365d; padding: 25px 30px; color: #ffffff;">
+                            <h2 style="margin: 0; font-size: 20px; font-weight: 600; letter-spacing: 0.5px;">每月薪金申報及供款憑證提交</h2>
+                            <p style="margin: 8px 0 0 0; font-size: 14px; color: #cbd5e0;">破產案號：HCB [案號] / [年份]</p>
+                        </td>
+                    </tr>
 
-    // Process input button event 功能 functionality
-    processIputButton.addEventListener('click', () => {
-      const inputText = inputEditorDiv.textContent;
-      // alert(`處理輸入：${inputText}`);
-      // 在此處添加處理輸入的程式碼
-      outputEditorDiv.textContent = inputText;
-    });
+                    <!-- 郵件內文區塊 -->
+                    <tr>
+                        <td style="padding: 30px; color: #2d3748; font-size: 15px; line-height: 1.6;">
+                            
+                            <p style="margin-top: 0;">尊敬的受託人 / [受託人公司名稱 / 主任姓名]：</p>
+                            
+                            <p>您好！本人為上述破產案號之破產人 <strong>[您的中文姓名]（[YOUR ENGLISH NAME]）</strong>。現特此電郵向 貴公司申報最新薪金收入狀況，並提交 <strong>[年份及月份，例如：2026年10月]</strong> 之每月指定供款憑證。</p>
 
-    // Clear input button event 功能 functionality
-    clearIputButton.addEventListener('click', () => {
-      inputEditorDiv.textContent = '';
-    });
+                            <!-- 基本資料卡片 -->
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f7fafc; border-left: 4px solid #3182ce; padding: 15px; margin: 20px 0; border-radius: 0 4px 4px 0;">
+                                <tr>
+                                    <td style="font-size: 14px; color: #4a5568;">
+                                        <strong>破產人姓名：</strong> [您的中文姓名] ([YOUR ENGLISH NAME])<br>
+                                        <strong>香港身份證號碼：</strong> [A123456(7)]<br>
+                                        <strong>聯絡電話：</strong> [您的電話號碼]<br>
+                                        <strong>破產案號：</strong> HCB [案號] / [年份]
+                                    </td>
+                                </tr>
+                            </table>
 
-      // Copy output button event 功能 functionality
-      copyBin.addEventListener('click', async () => {
-        try {
-          await navigator.clipboard.writeText(outputEditorDiv.textContent);
-          // 全選輸出區域的文字 Select text
-          const range = document.createRange();
-          range.selectNodeContents(outputEditorDiv);
-          const selection = window.getSelection();
-          selection.removeAllRanges();
-          selection.addRange(range);          
-          // 視覺回饋 Visual feedback
-          const originalText = copyBin.textContent;
-          copyBin.textContent = '已複製';
-          copyBin.classList.add('成功');
+                            <!-- 1. 薪金及出糧詳情 -->
+                            <h3 style="color: #2b6cb0; font-size: 16px; margin: 25px 0 12px 0; border-bottom: 2px solid #edf2f7; padding-bottom: 6px;">一、 薪金收入及出糧詳情</h3>
+                            
+                            <table border="0" cellpadding="8" cellspacing="0" width="100%" style="border-collapse: collapse; font-size: 14px; margin-bottom: 15px;">
+                                <tr style="background-color: #f7fafc;">
+                                    <td width="35%" style="border: 1px solid #e2e8f0; font-weight: bold; color: #4a5568;">現時僱主名稱</td>
+                                    <td style="border: 1px solid #e2e8f0; color: #2d3748;">[公司名稱，例如：香港ABC有限公司]</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #e2e8f0; font-weight: bold; color: #4a5568;">任職職位 / 形式</td>
+                                    <td style="border: 1px solid #e2e8f0; color: #2d3748;">[職銜，例如：文員] （[全職 / 兼職]）</td>
+                                </tr>
+                                <tr style="background-color: #f7fafc;">
+                                    <td style="border: 1px solid #e2e8f0; font-weight: bold; color: #4a5568;">每月基本底薪</td>
+                                    <td style="border: 1px solid #e2e8f0; color: #2d3748;">港幣 $[18,000] 元</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #e2e8f0; font-weight: bold; color: #4a5568;">法定 MPF 扣除 (5%)</td>
+                                    <td style="border: 1px solid #e2e8f0; color: #e53e3e;">- 港幣 $[900] 元</td>
+                                </tr>
+                                <tr style="background-color: #f7fafc;">
+                                    <td style="border: 1px solid #e2e8f0; font-weight: bold; color: #4a5568;">每月實收薪金 (Net)</td>
+                                    <td style="border: 1px solid #e2e8f0; color: #2b6cb0; font-weight: bold;">港幣 $[17,100] 元</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #e2e8f0; font-weight: bold; color: #4a5568;">每月出糧日期</td>
+                                    <td style="border: 1px solid #e2e8f0; color: #2d3748;">每月 [最後一天 / 7 號]</td>
+                                </tr>
+                                <tr style="background-color: #f7fafc;">
+                                    <td style="border: 1px solid #e2e8f0; font-weight: bold; color: #4a5568;">出糧方式及銀行戶口</td>
+                                    <td style="border: 1px solid #e2e8f0; color: #2d3748;">
+                                        僱主以 [銀行自動轉帳 Autopay / 轉數快 FPS] 發放<br>
+                                        <strong>收款銀行：</strong> [銀行名稱，如：滙豐銀行]<br>
+                                        <strong>戶口號碼：</strong> [XXX-XXXXXX-XXX]
+                                    </td>
+                                </tr>
+                            </table>
 
-          // 零點五秒後恢復原始狀態
-          setTimeout(() => {
-            copyBin.textContent = originalText;
-            copyBin.classList.remove('成功');
-          }, 500);
-        } catch (err) {
-          alert('複製到剪貼簿失敗。請檢查瀏覽器權限，您可以手動複制（Ctrl+C/Command+C）');
-          // 全選輸出區域的文字 Select text
-          const range = document.createRange();
-          range.selectNodeContents(outputEditorDiv);
-          const selection = window.getSelection();
-          selection.removeAllRanges();
-          selection.addRange(range); // 選擇輸出編輯器的內容 Select the content of the output editor
-          console.error('複製到剪貼簿失敗。', err);
-        }
-      });
-    // 創建儲存模態框元素
-    const saveModal = document.createElement('div');
-    saveModal.style.cssText = 'display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);';
+                            <!-- 2. 本月供款詳情 -->
+                            <h3 style="color: #2b6cb0; font-size: 16px; margin: 25px 0 12px 0; border-bottom: 2px solid #edf2f7; padding-bottom: 6px;">二、 本月供款繳付詳情</h3>
+                            
+                            <p style="margin: 5px 0;">本人已於 <strong>[付款日期，例如：2026年10月28日]</strong> 順利完成本月供款，詳情如下：</p>
+                            <ul style="padding-left: 20px; margin: 10px 0; color: #4a5568; font-size: 14px;">
+                                <li style="margin-bottom: 6px;"><strong>供款金額：</strong> 港幣 <strong>$[指定金額]</strong> 元整</li>
+                                <li style="margin-bottom: 6px;"><strong>付款方式：</strong> [轉數快 FPS / 銀行轉帳 / 繳費靈 PSS / 支票]</li>
+                                <li style="margin-bottom: 6px;"><strong>交易參考編號：</strong> [交易單號 / 參考編號]</li>
+                            </ul>
 
-    const modalContent = document.createElement('div');
-    modalContent.style.cssText = 'background:white; padding:20px; width:300px; margin:100px auto;';
+                            <!-- 3. 附件清單 -->
+                            <h3 style="color: #2b6cb0; font-size: 16px; margin: 25px 0 12px 0; border-bottom: 2px solid #edf2f7; padding-bottom: 6px;">三、 隨信附上之證明文件</h3>
+                            
+                            <ol style="padding-left: 20px; margin: 10px 0; color: #4a5568; font-size: 14px;">
+                                <li style="margin-bottom: 6px;"><strong>供款憑證：</strong> 本月銀行轉帳 / 入數紙截圖 乙份</li>
+                                <li style="margin-bottom: 6px;"><strong>收入證明：</strong> [2026年10月] 薪金單（Pay Slip）/ 僱主出糧紀錄 乙份</li>
+                                <li style="margin-bottom: 6px;"><strong>銀行戶口流水帳：</strong> 已標示薪金入帳之銀行月結單/紀錄 乙份</li>
+                            </ol>
 
-    const fileNameInput = document.createElement('input');
-    fileNameInput.placeholder = '檔案名稱';
-    fileNameInput.value = 'output.txt';
+                            <p style="margin-top: 25px;">如 貴署 / 貴公司對上述申報或款項有任何疑問，歡迎隨時透過電話 <strong>[您的電話號碼]</strong> 或電郵與本人聯絡。</p>
 
-    const cancelSaveBtn = document.createElement('button');
-    cancelSaveBtn.textContent = '取消';
+                            <p style="margin-bottom: 0;">祝 工作順利！</p>
 
-    const confirmSaveBtn = document.createElement('button');
-    confirmSaveBtn.textContent = '儲存';
+                            <!-- 簽署 -->
+                            <div style="margin-top: 30px; padding-top: 15px; border-top: 1px dashed #e2e8f0; font-size: 14px; color: #718096;">
+                                破產人：<strong>[您的中文姓名]</strong> 謹啟<br>
+                                日期：[年/月/日]
+                            </div>
 
-    modalContent.appendChild(fileNameInput);
-    modalContent.appendChild(cancelSaveBtn);
-    modalContent.appendChild(confirmSaveBtn);
-    saveModal.appendChild(modalContent);
-    document.body.appendChild(saveModal);
+                        </td>
+                    </tr>
 
-    // Save file button event 功能 functionality
-    saveFileButton.addEventListener('click', () => {
-      saveModal.style.display = 'block';
-    });
+                    <!-- 頁尾 Footer -->
+                    <tr>
+                        <td align="center" style="background-color: #edf2f7; padding: 15px; font-size: 12px; color: #718096; font-family: sans-serif;">
+                            此郵件為破產案號 HCB [案號]/[年份] 之正式定期申報文件。
+                        </td>
+                    </tr>
 
-    // 取消儲存按鈕事件
-    cancelSaveBtn.addEventListener('click', () => {
-      saveModal.style.display = 'none';
-    });
+                </table>
+            </td>
+        </tr>
+    </table>
 
-    // 儲存按鈕事件
-    confirmSaveBtn.addEventListener('click', () => {
-      const content = outputEditorDiv.textContent;
-      const fileName = fileNameInput.value || 'output.txt';
-      const blob = new Blob([content], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const alink = document.createElement('a');
-      alink.href = url;
-      alink.download = fileName;
-      document.body.appendChild(alink);
-      alink.click();
-      document.body.removeChild(alink);
-      URL.revokeObjectURL(url);
-      saveModal.style.display = 'none';
-
-      // 視覺回饋
-      const originalText = saveFileButton.textContent;
-      saveFileButton.textContent = '已儲存';
-      saveFileButton.classList.add('成功');
-      setTimeout(() => {
-        saveFileButton.textContent = originalText;
-        saveFileButton.classList.remove('成功');
-      }, 500);
-    });
-
-    // 點選模態外部時關閉
-    window.addEventListener('click', (event) => {
-      if (event.target === saveModal) {
-        saveModal.style.display = 'none';
-      }
-    });
-      // 清除輸出 Clear output button event 功能 functionality
-      clearOutputBtm.addEventListener('click', () => {
-        outputEditorDiv.textContent = '';
-      });
-
-      // 還原點功能
-      const saveCheckpointBtn = document.getElementById('saveCheckpoint');
-      const restoreCheckpointBtn = document.getElementById('restoreCheckpoint');
-      let checkpoint = {
-        input: '',
-        output: ''
-      };
-
-      saveCheckpointBtn.addEventListener('click', () => {
-        checkpoint.input = inputEditorDiv.textContent;
-        checkpoint.output = outputEditorDiv.textContent;
-
-        // 視覺回饋
-        const originalText = saveCheckpointBtn.textContent;
-        saveCheckpointBtn.textContent = '已儲存';
-        saveCheckpointBtn.classList.add('成功');
-        setTimeout(() => {
-          saveCheckpointBtn.textContent = originalText;
-          saveCheckpointBtn.classList.remove('成功');
-        }, 500);
-      });
-
-      restoreCheckpointBtn.addEventListener('click', () => {
-        inputEditorDiv.textContent = checkpoint.input;
-        outputEditorDiv.textContent = checkpoint.output;
-
-        // 視覺回饋
-        const originalText = restoreCheckpointBtn.textContent;
-        restoreCheckpointBtn.textContent = '已還原';
-        restoreCheckpointBtn.classList.add('成功');
-        setTimeout(() => {
-          restoreCheckpointBtn.textContent = originalText;
-          restoreCheckpointBtn.classList.remove('成功');
-        }, 500);
-      });
-
-      runBtn.addEventListener('click', () => {
-const content = inputEditorDiv.textContent;
-
-outputEditorDiv.textContent = "2";
-});;
-  </script>
 </body>
 </html>
+
